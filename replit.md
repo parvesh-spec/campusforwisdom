@@ -31,6 +31,7 @@ The backend implements a clean separation between routes, storage layer, and bus
 - **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
 - **Schema Management**: Drizzle Kit for database migrations and schema evolution
 - **Connection**: Neon Database serverless PostgreSQL for scalable cloud hosting
+- **Storage Layer**: DatabaseStorage implementation for all data operations with proper null handling and type safety
 
 The database schema supports:
 - User management with role-based access (student, instructor, admin)
