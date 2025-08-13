@@ -25,7 +25,7 @@ export default function Header() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <h1 className="text-2xl font-bold gradient-text cursor-pointer">
-                  CampusForWisdom
+                  Campus for Wisdom
                 </h1>
               </Link>
             </div>
@@ -52,9 +52,10 @@ export default function Header() {
 
           <div className="hidden md:block">
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <Link href="/admin">
-                <Button variant="ghost" className="text-gray-600 hover:text-primary">
-                  Admin
+
+              <Link href="/login">
+                <Button variant="ghost" className="text-gray-600 hover:text-primary mr-2">
+                  Login
                 </Button>
               </Link>
               <Button className="bg-primary text-white hover:bg-primary/90">
@@ -98,9 +99,10 @@ export default function Header() {
                 </Link>
               ))}
               <div className="flex flex-col space-y-2 pt-4">
-                <Link href="/admin">
+
+                <Link href="/login">
                   <Button variant="ghost" className="w-full justify-start">
-                    Admin
+                    Login
                   </Button>
                 </Link>
                 <Button className="w-full bg-primary text-white hover:bg-primary/90">

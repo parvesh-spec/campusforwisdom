@@ -22,7 +22,7 @@ export const courses = pgTable("courses", {
   shortDescription: text("short_description"),
   level: text("level").notNull(), // beginner, intermediate, advanced
   duration: text("duration").notNull(), // e.g., "12 weeks"
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  price: varchar("price").notNull(), // Store as string for display (e.g., "₹4,999")
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   studentsCount: integer("students_count").default(0),
   thumbnail: text("thumbnail"),

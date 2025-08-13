@@ -4,12 +4,30 @@ import { courses, users, testimonials, enrollments, liveSessions } from '@shared
 async function seed() {
   console.log('🌱 Seeding database...');
 
-  // Create some sample users
+  // Create some sample users (including admin)
   const sampleUsers = [
+    {
+      username: 'admin',
+      email: 'admin@campusforwisdom.com',
+      password: 'admin123',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'admin' as const,
+      avatar: null,
+    },
+    {
+      username: 'student',
+      email: 'student@example.com',
+      password: 'student123',
+      firstName: 'Student',
+      lastName: 'Demo',
+      role: 'student' as const,
+      avatar: null,
+    },
     {
       username: 'john_doe',
       email: 'john@example.com',
-      password: 'hashed_password',
+      password: 'password123',
       firstName: 'John',
       lastName: 'Doe',
       role: 'student' as const,
@@ -18,7 +36,7 @@ async function seed() {
     {
       username: 'jane_smith',
       email: 'jane@example.com',
-      password: 'hashed_password',
+      password: 'password123',
       firstName: 'Jane',
       lastName: 'Smith',
       role: 'student' as const,
@@ -27,7 +45,7 @@ async function seed() {
     {
       username: 'instructor_ai',
       email: 'instructor@campusforwisdom.com',
-      password: 'hashed_password',
+      password: 'instructor123',
       firstName: 'AI',
       lastName: 'Instructor',
       role: 'instructor' as const,
@@ -168,7 +186,7 @@ async function seed() {
 }
 
 // Only run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   seed().catch(console.error);
 }
 
