@@ -25,7 +25,7 @@ export default function AdminLogin() {
     onSuccess: (data) => {
       // Only allow admin users on this page
       if (data.user.role === "admin") {
-        setLocation("/admin/dashboard");
+        setLocation("/admin");
       } else {
         throw new Error("Access denied. Admin privileges required.");
       }
