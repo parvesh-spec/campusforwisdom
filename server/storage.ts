@@ -287,6 +287,7 @@ export class MemStorage implements IStorage {
       role: "admin",
       firstName: "Admin",
       lastName: "User",
+      avatar: null,
       createdAt: new Date(),
     };
     this.users.set(adminUser.id, adminUser);
@@ -303,6 +304,7 @@ export class MemStorage implements IStorage {
         price: "15999",
         rating: "4.8",
         studentsCount: 340,
+        thumbnail: null,
         category: "AI Software Development",
         isActive: true,
         instructorId: adminUser.id,
@@ -318,6 +320,7 @@ export class MemStorage implements IStorage {
         price: "12999",
         rating: "4.9",
         studentsCount: 285,
+        thumbnail: null,
         category: "AI Video Creation",
         isActive: true,
         instructorId: adminUser.id,
@@ -333,6 +336,7 @@ export class MemStorage implements IStorage {
         price: "9999",
         rating: "4.7",
         studentsCount: 420,
+        thumbnail: null,
         category: "AI Presentation Design",
         isActive: true,
         instructorId: adminUser.id,
@@ -352,6 +356,7 @@ export class MemStorage implements IStorage {
         role: "student",
         firstName: "Rahul",
         lastName: "Khurana",
+        avatar: null,
         createdAt: new Date(),
       },
       {
@@ -362,6 +367,7 @@ export class MemStorage implements IStorage {
         role: "student",
         firstName: "Priya",
         lastName: "Sharma",
+        avatar: null,
         createdAt: new Date(),
       },
       {
@@ -372,6 +378,7 @@ export class MemStorage implements IStorage {
         role: "student",
         firstName: "Arjun",
         lastName: "Gupta",
+        avatar: null,
         createdAt: new Date(),
       }
     ];
@@ -442,7 +449,15 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id, createdAt: new Date() };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      role: insertUser.role || "student",
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      avatar: insertUser.avatar || null,
+      createdAt: new Date() 
+    };
     this.users.set(id, user);
     this.addActivity("user", `New user registered: ${user.firstName} ${user.lastName}`);
     return user;
@@ -457,7 +472,7 @@ export class MemStorage implements IStorage {
     return students.map(student => {
       const studentEnrollments = Array.from(this.enrollments.values()).filter(e => e.studentId === student.id);
       const completedCourses = studentEnrollments.filter(e => e.completed).length;
-      const totalProgress = studentEnrollments.reduce((sum, e) => sum + e.progress, 0) / Math.max(studentEnrollments.length, 1);
+      const totalProgress = studentEnrollments.reduce((sum, e) => sum + (e.progress || 0), 0) / Math.max(studentEnrollments.length, 1);
       
       return {
         ...student,
@@ -484,6 +499,9 @@ export class MemStorage implements IStorage {
       id,
       rating: "0",
       studentsCount: 0,
+      shortDescription: course.shortDescription || null,
+      thumbnail: course.thumbnail || null,
+      instructorId: course.instructorId || null,
       isActive: true,
       createdAt: new Date(),
     };
@@ -522,13 +540,13 @@ export class MemStorage implements IStorage {
     category: string;
   }>> {
     const courses = Array.from(this.courses.values())
-      .sort((a, b) => b.studentsCount - a.studentsCount)
+      .sort((a, b) => (b.studentsCount || 0) - (a.studentsCount || 0))
       .slice(0, 10);
 
     return courses.map(course => ({
       id: course.id,
       title: course.title,
-      studentsCount: course.studentsCount,
+      studentsCount: course.studentsCount || 0,
       rating: parseFloat(course.rating || "0"),
       category: course.category,
     }));
@@ -544,6 +562,10 @@ export class MemStorage implements IStorage {
     const newSession: LiveSession = {
       ...session,
       id,
+      instructorId: session.instructorId || null,
+      courseId: session.courseId || null,
+      maxParticipants: session.maxParticipants || null,
+      meetingUrl: session.meetingUrl || null,
       currentParticipants: 0,
       status: "scheduled",
       createdAt: new Date(),
@@ -617,7 +639,7 @@ export class MemStorage implements IStorage {
     // Update course student count
     const course = this.courses.get(enrollment.courseId);
     if (course) {
-      course.studentsCount++;
+      course.studentsCount = (course.studentsCount || 0) + 1;
       this.courses.set(course.id, course);
     }
 
@@ -657,6 +679,7 @@ export class MemStorage implements IStorage {
     const newTestimonial: Testimonial = {
       ...testimonial,
       id,
+      courseId: testimonial.courseId || null,
       isPublished: false,
       createdAt: new Date(),
     };
@@ -1029,7 +1052,7 @@ export class MemStorage implements IStorage {
     const enrollments = Array.from(this.enrollments.values());
     const completedEnrollments = enrollments.filter(e => e.completed);
     const avgProgress = enrollments.length > 0 
-      ? enrollments.reduce((sum, e) => sum + e.progress, 0) / enrollments.length
+      ? enrollments.reduce((sum, e) => sum + (e.progress || 0), 0) / enrollments.length
       : 0;
 
     return {

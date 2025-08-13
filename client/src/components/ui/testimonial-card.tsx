@@ -32,7 +32,7 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
         <p className="text-gray-700 mb-6 italic">"{testimonial.content}"</p>
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 gradient-primary rounded-full flex items-center justify-center text-white font-bold">
-            {getInitials(testimonial.student.firstName, testimonial.student.lastName)}
+            {getInitials(testimonial.student.firstName || undefined, testimonial.student.lastName || undefined)}
           </div>
           <div>
             <div className="font-semibold text-gray-900">

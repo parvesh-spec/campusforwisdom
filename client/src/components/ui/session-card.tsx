@@ -39,7 +39,7 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
               {isLive ? "Live Session" : "Session"}
             </span>
           </div>
-          <Badge className={statusColors[session.status]}>
+          <Badge className={(statusColors as Record<string, string>)[session.status] || statusColors.scheduled}>
             {session.status === "live" ? "Live Now" : 
              session.status === "scheduled" ? "Upcoming" : 
              session.status}

@@ -276,17 +276,17 @@ export default function StudentManagement() {
                             <div className="text-sm text-gray-500">{enrollment.course.category}</div>
                           </TableCell>
                           <TableCell>
-                            {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                            {new Date(enrollment.enrolledAt || new Date()).toLocaleDateString()}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center">
                               <div className="w-12 bg-gray-200 rounded-full h-2 mr-2">
                                 <div
                                   className="bg-primary h-2 rounded-full"
-                                  style={{ width: `${enrollment.progress}%` }}
+                                  style={{ width: `${enrollment.progress || 0}%` }}
                                 ></div>
                               </div>
-                              <span className="text-sm text-gray-600">{enrollment.progress}%</span>
+                              <span className="text-sm text-gray-600">{enrollment.progress || 0}%</span>
                             </div>
                           </TableCell>
                           <TableCell>

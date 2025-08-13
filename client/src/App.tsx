@@ -13,15 +13,15 @@ import About from "@/pages/about";
 import Contact from "@/pages/contact";
 
 // Admin pages
-import AdminDashboard from "@/pages/admin/dashboard";
-import CourseManagement from "@/pages/admin/course-management";
-import StudentManagement from "@/pages/admin/student-management";
-import LiveSessionsManagement from "@/pages/admin/live-sessions-management";
-import ContentLibrary from "@/pages/admin/content-library";
-import Analytics from "@/pages/admin/analytics";
-import Communications from "@/pages/admin/communications";
-import Payments from "@/pages/admin/payments";
-import Settings from "@/pages/admin/settings";
+import AdminDashboard from "./pages/admin/dashboard";
+import CourseManagement from "./pages/admin/course-management";
+import StudentManagement from "./pages/admin/student-management";
+import LiveSessionsManagement from "./pages/admin/live-sessions-management";
+import ContentLibrary from "./pages/admin/content-library";
+import Analytics from "./pages/admin/analytics";
+import Communications from "./pages/admin/communications";
+import Payments from "./pages/admin/payments";
+import Settings from "./pages/admin/settings";
 
 // Layouts
 import Header from "@/components/layout/header";

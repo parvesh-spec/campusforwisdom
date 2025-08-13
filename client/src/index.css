@@ -115,4 +115,30 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
+
+  /* Improved color contrast fixes */
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .bg-muted {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  /* Ensure text is visible on all backgrounds */
+  .dark .text-gray-600 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .text-gray-500 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .text-gray-600 {
+    color: hsl(215.4, 16.3%, 46.9%) !important;
+  }
+
+  .text-gray-500 {
+    color: hsl(215.4, 16.3%, 46.9%) !important;
+  }
 }

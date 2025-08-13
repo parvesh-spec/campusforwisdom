@@ -131,7 +131,7 @@ export default function LiveSessionsManagement() {
       description: session.description,
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
-      maxParticipants: session.maxParticipants.toString(),
+      maxParticipants: (session.maxParticipants || 0).toString(),
       courseId: session.courseId || "",
       meetingUrl: session.meetingUrl || ""
     });
@@ -335,7 +335,7 @@ export default function LiveSessionsManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Participants</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {sessions?.reduce((sum, session) => sum + session.currentParticipants, 0) || 0}
+                    {sessions?.reduce((sum, session) => sum + (session.currentParticipants || 0), 0) || 0}
                   </p>
                 </div>
               </div>
@@ -384,11 +384,11 @@ export default function LiveSessionsManagement() {
                       <TableCell>{session.duration} min</TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {session.currentParticipants}/{session.maxParticipants}
+                          {session.currentParticipants || 0}/{session.maxParticipants || 0}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[session.status]}>
+                        <Badge className={(statusColors as Record<string, string>)[session.status] || statusColors.scheduled}>
                           {session.status === "live" && (
                             <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></div>
                           )}

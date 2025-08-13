@@ -279,7 +279,7 @@ export default function CourseManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {courses?.reduce((sum, course) => sum + course.studentsCount, 0) || 0}
+                    {courses?.reduce((sum, course) => sum + (course.studentsCount || 0), 0) || 0}
                   </p>
                 </div>
               </div>
@@ -353,7 +353,7 @@ export default function CourseManagement() {
                           {course.level}
                         </Badge>
                       </TableCell>
-                      <TableCell>{course.studentsCount}</TableCell>
+                      <TableCell>{course.studentsCount || 0}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <Star className="h-4 w-4 text-yellow-400 mr-1" />
