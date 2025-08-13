@@ -24,7 +24,7 @@ export default function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link href="/">
-                <h1 className="text-2xl font-bold gradient-text cursor-pointer">
+                <h1 className="text-2xl font-bold gradient-text cursor-pointer hover:opacity-80 transition-opacity">
                   Campus for Wisdom
                 </h1>
               </Link>
