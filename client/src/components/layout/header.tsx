@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
+import StudentLoginModal from "@/components/StudentLoginModal";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [location] = useLocation();
 
   const isActive = (path: string) => location === path;
@@ -52,12 +54,14 @@ export default function Header() {
 
           <div className="hidden md:block">
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
-
-              <Link href="/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-primary mr-2">
-                  Login
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                onClick={() => setIsLoginModalOpen(true)}
+                className="text-gray-600 hover:text-primary mr-2 flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                Student Login
+              </Button>
               <Button className="bg-primary text-white hover:bg-primary/90">
                 Get Started
               </Button>
@@ -99,12 +103,17 @@ export default function Header() {
                 </Link>
               ))}
               <div className="flex flex-col space-y-2 pt-4">
-
-                <Link href="/login">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Login
-                  </Button>
-                </Link>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Student Login
+                </Button>
                 <Button className="w-full bg-primary text-white hover:bg-primary/90">
                   Get Started
                 </Button>
@@ -113,6 +122,11 @@ export default function Header() {
           </div>
         )}
       </nav>
+      
+      <StudentLoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </header>
   );
 }
