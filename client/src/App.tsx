@@ -29,6 +29,7 @@ import Settings from "./pages/admin/settings";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import AdminSidebar from "@/components/layout/admin-sidebar";
+import AdminAuthWrapper from "@/components/AdminAuthWrapper";
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,12 +43,14 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <AdminSidebar />
-      <main className="flex-1 ml-64">
-        {children}
-      </main>
-    </div>
+    <AdminAuthWrapper>
+      <div className="min-h-screen bg-gray-50 flex">
+        <AdminSidebar />
+        <main className="flex-1 ml-64">
+          {children}
+        </main>
+      </div>
+    </AdminAuthWrapper>
   );
 }
 

@@ -82,6 +82,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Logout route
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      res.clearCookie('connect.sid'); // Clear the session cookie
+      res.json({ success: true });
+    });
+  });
+
+  // Get current user route
+  app.get("/api/auth/user", (req, res) => {
+    const user = (req.session as any)?.user;
+    if (!user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    res.json(user);
+  });
+
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {

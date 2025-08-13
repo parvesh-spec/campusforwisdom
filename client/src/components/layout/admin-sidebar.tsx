@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   GraduationCap
 } from "lucide-react";
+import AdminLogout from "@/components/AdminLogout";
 
 export default function AdminSidebar() {
   const [location] = useLocation();
@@ -63,9 +64,8 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="absolute bottom-4 left-4 right-4">
-        <div className="gradient-primary rounded-lg p-4 text-white text-sm">
-          <div className="font-semibold mb-1">Admin Panel v2.0</div>
-          <div className="opacity-90">Logged in as Admin</div>
+        <div className="pt-4 border-t border-gray-200">
+          <AdminLogout />
         </div>
       </div>
     </aside>
