@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/admin/dashboard";
 import CourseManagement from "./pages/admin/course-management";
 import StudentManagement from "./pages/admin/student-management";
 import LiveSessionsManagement from "./pages/admin/live-sessions-management-new";
+import { WebinarRegistrationPage } from "./pages/webinar-registration";
 import ContentLibrary from "./pages/admin/content-library";
 import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
@@ -83,6 +84,9 @@ function Router() {
         <PublicLayout>
           <Contact />
         </PublicLayout>
+      </Route>
+      <Route path="/webinar/:id/register">
+        <WebinarRegistrationPage />
       </Route>
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={() => <AdminLogin />} />

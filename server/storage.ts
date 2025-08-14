@@ -203,6 +203,65 @@ export class DatabaseStorage implements IStorage {
     return newWebinar;
   }
 
+  async updateLiveWebinar(id: string, updates: Partial<LiveWebinar>): Promise<LiveWebinar> {
+    const [updatedWebinar] = await db
+      .update(liveWebinars)
+      .set(updates)
+      .where(eq(liveWebinars.id, id))
+      .returning();
+    if (!updatedWebinar) {
+      throw new Error("Webinar not found");
+    }
+    return updatedWebinar;
+  }
+
+  async deleteLiveWebinar(id: string): Promise<void> {
+    await db.delete(liveWebinars).where(eq(liveWebinars.id, id));
+  }
+
+  // Webinar Registration Methods
+  async createWebinarRegistration(registration: InsertWebinarRegistration): Promise<WebinarRegistration> {
+    const [newRegistration] = await db
+      .insert(webinarRegistrations)
+      .values(registration)
+      .returning();
+    
+    // Update registered participants count
+    await db
+      .update(liveWebinars)
+      .set({
+        registeredParticipants: sql`${liveWebinars.registeredParticipants} + 1`
+      })
+      .where(eq(liveWebinars.id, registration.webinarId));
+    
+    return newRegistration;
+  }
+
+  async getWebinarParticipants(webinarId: string): Promise<WebinarRegistration[]> {
+    return await db
+      .select()
+      .from(webinarRegistrations)
+      .where(eq(webinarRegistrations.webinarId, webinarId))
+      .orderBy(desc(webinarRegistrations.registeredAt));
+  }
+
+  async updateWebinarAttendance(participantId: string, updates: {
+    attended?: boolean;
+    joinedAt?: Date | null;
+    leftAt?: Date | null;
+  }): Promise<WebinarRegistration> {
+    const [updatedParticipant] = await db
+      .update(webinarRegistrations)
+      .set(updates)
+      .where(eq(webinarRegistrations.id, participantId))
+      .returning();
+    
+    if (!updatedParticipant) {
+      throw new Error("Participant not found");
+    }
+    return updatedParticipant;
+  }
+
   async updateLiveWebinar(id: string, webinarData: InsertLiveWebinar): Promise<LiveWebinar | null> {
     const [webinar] = await db
       .update(liveWebinars)

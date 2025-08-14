@@ -255,64 +255,255 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/admin/live-sessions", requireAdmin, async (req, res) => {
+  app.get("/api/admin/live-webinars", requireAdmin, async (req, res) => {
     try {
-      const sessions = await storage.getLiveSessions();
-      res.json(sessions);
+      const webinars = await storage.getLiveWebinars();
+      res.json(webinars);
     } catch (error) {
-      console.error("Error fetching live sessions:", error);
+      console.error("Error fetching live webinars:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.post("/api/admin/live-sessions", requireAdmin, async (req, res) => {
+  app.post("/api/admin/live-webinars", requireAdmin, async (req, res) => {
     try {
-      const sessionData = insertLiveSessionSchema.parse(req.body);
-      const session = await storage.createLiveSession(sessionData);
-      res.json(session);
+      const webinarData = insertLiveWebinarSchema.parse(req.body);
+      const webinar = await storage.createLiveWebinar(webinarData);
+      res.json(webinar);
     } catch (error) {
-      console.error("Error creating live session:", error);
+      console.error("Error creating live webinar:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid session data", details: error.errors });
+        return res.status(400).json({ error: "Invalid webinar data", details: error.errors });
       }
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // Create Zoom meeting for session
-  app.post("/api/admin/live-sessions/:id/create-meeting", requireAdmin, async (req, res) => {
+  // Create Zoom webinar for session
+  app.post("/api/admin/live-webinars/:id/create-webinar", requireAdmin, async (req, res) => {
     try {
-      const sessionId = req.params.id;
-      const session = await storage.getLiveSession(sessionId);
+      const webinarId = req.params.id;
+      const webinars = await storage.getLiveWebinars();
+      const webinar = webinars.find(w => w.id === webinarId);
       
-      if (!session) {
-        return res.status(404).json({ error: "Session not found" });
+      if (!webinar) {
+        return res.status(404).json({ error: "Webinar not found" });
       }
 
-      const zoomMeeting = await zoomService.createZoomMeeting({
-        title: session.title,
-        startTime: session.scheduledAt,
-        duration: session.duration,
+      const zoomWebinar = await zoomService.createZoomWebinar({
+        title: webinar.title,
+        description: webinar.description || "",
+        startTime: webinar.scheduledAt,
+        duration: webinar.duration,
+        maxParticipants: webinar.maxParticipants || 100,
         timezone: 'Asia/Kolkata'
       });
 
-      // Update session with Zoom meeting details
-      await storage.updateLiveSession(sessionId, {
-        title: session.title,
-        duration: session.duration,
-        description: session.description,
-        scheduledAt: session.scheduledAt,
-        zoomMeetingId: zoomMeeting.zoomMeetingId,
-        zoomJoinUrl: zoomMeeting.joinUrl,
-        zoomStartUrl: zoomMeeting.startUrl,
-        zoomPassword: zoomMeeting.password,
-        meetingUrl: zoomMeeting.joinUrl
+      // Update webinar with Zoom webinar details
+      await storage.updateLiveWebinar(webinarId, {
+        title: webinar.title,
+        duration: webinar.duration,
+        description: webinar.description,
+        scheduledAt: webinar.scheduledAt,
+        zoomWebinarId: zoomWebinar.zoomWebinarId,
+        zoomJoinUrl: zoomWebinar.joinUrl,
+        zoomStartUrl: zoomWebinar.startUrl,
+        zoomPassword: zoomWebinar.password,
+        zoomWebinarUrl: zoomWebinar.joinUrl
       });
 
-      res.json({ success: true, meeting: zoomMeeting });
+      res.json({ success: true, webinar: zoomWebinar });
     } catch (error) {
-      console.error("Error creating Zoom meeting:", error);
-      res.status(500).json({ error: "Failed to create Zoom meeting" });
+      console.error("Error creating Zoom webinar:", error);
+      res.status(500).json({ error: "Failed to create Zoom webinar" });
+    }
+  });
+
+  // Start live webinar
+  app.put("/api/admin/live-webinars/:id/start", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const webinars = await storage.getLiveWebinars();
+      const webinar = webinars.find(w => w.id === webinarId);
+      if (!webinar) {
+        return res.status(404).json({ error: "Webinar not found" });
+      }
+      const updatedWebinar = await storage.updateLiveWebinar(webinarId, { 
+        ...webinar,
+        status: "live" 
+      });
+      res.json(updatedWebinar);
+    } catch (error) {
+      console.error("Error starting webinar:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // End live webinar
+  app.put("/api/admin/live-webinars/:id/end", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const webinars = await storage.getLiveWebinars();
+      const webinar = webinars.find(w => w.id === webinarId);
+      if (!webinar) {
+        return res.status(404).json({ error: "Webinar not found" });
+      }
+      const updatedWebinar = await storage.updateLiveWebinar(webinarId, { 
+        ...webinar,
+        status: "completed" 
+      });
+      res.json(updatedWebinar);
+    } catch (error) {
+      console.error("Error ending webinar:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update live webinar
+  app.put("/api/admin/live-webinars/:id", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const webinarData = insertLiveWebinarSchema.partial().parse(req.body);
+      const webinars = await storage.getLiveWebinars();
+      const existingWebinar = webinars.find(w => w.id === webinarId);
+      if (!existingWebinar) {
+        return res.status(404).json({ error: "Webinar not found" });
+      }
+      const updatedWebinar = await storage.updateLiveWebinar(webinarId, {
+        ...existingWebinar,
+        ...webinarData
+      });
+      res.json(updatedWebinar);
+    } catch (error) {
+      console.error("Error updating webinar:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid webinar data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete live webinar  
+  app.delete("/api/admin/live-webinars/:id", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      await storage.deleteLiveWebinar(webinarId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting webinar:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Webinar Participant Management
+  
+  // Register participant for webinar
+  app.post("/api/webinars/:id/register", async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const { name, email, role = "attendee" } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ error: "Name and email are required" });
+      }
+
+      const registration = await storage.createWebinarRegistration({
+        webinarId,
+        participantName: name,
+        participantEmail: email,
+        role: role as "host" | "panelist" | "attendee",
+        registeredAt: new Date(),
+        attended: false
+      });
+
+      res.json({ 
+        success: true, 
+        registration,
+        message: "Successfully registered for webinar" 
+      });
+    } catch (error) {
+      console.error("Error registering for webinar:", error);
+      res.status(500).json({ error: "Failed to register for webinar" });
+    }
+  });
+
+  // Get webinar participants
+  app.get("/api/admin/live-webinars/:id/participants", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const participants = await storage.getWebinarParticipants(webinarId);
+      res.json(participants);
+    } catch (error) {
+      console.error("Error fetching webinar participants:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update participant attendance
+  app.put("/api/admin/live-webinars/:webinarId/participants/:participantId", requireAdmin, async (req, res) => {
+    try {
+      const { webinarId, participantId } = req.params;
+      const { attended, joinedAt, leftAt } = req.body;
+      
+      const updatedParticipant = await storage.updateWebinarAttendance(participantId, {
+        attended: attended || false,
+        joinedAt: joinedAt ? new Date(joinedAt) : null,
+        leftAt: leftAt ? new Date(leftAt) : null
+      });
+
+      res.json(updatedParticipant);
+    } catch (error) {
+      console.error("Error updating participant attendance:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get webinar analytics
+  app.get("/api/admin/live-webinars/:id/analytics", requireAdmin, async (req, res) => {
+    try {
+      const webinarId = req.params.id;
+      const webinars = await storage.getLiveWebinars();
+      const webinar = webinars.find(w => w.id === webinarId);
+      
+      if (!webinar) {
+        return res.status(404).json({ error: "Webinar not found" });
+      }
+
+      const participants = await storage.getWebinarParticipants(webinarId);
+      const totalRegistered = participants.length;
+      const totalAttended = participants.filter(p => p.attended).length;
+      const attendanceRate = totalRegistered > 0 ? (totalAttended / totalRegistered) * 100 : 0;
+
+      const analytics = {
+        webinar: {
+          id: webinar.id,
+          title: webinar.title,
+          scheduledAt: webinar.scheduledAt,
+          duration: webinar.duration,
+          status: webinar.status
+        },
+        participation: {
+          totalRegistered,
+          totalAttended,
+          attendanceRate: Math.round(attendanceRate * 100) / 100,
+          noShows: totalRegistered - totalAttended
+        },
+        participants: participants.map(p => ({
+          id: p.id,
+          name: p.participantName,
+          email: p.participantEmail,
+          role: p.role,
+          registeredAt: p.registeredAt,
+          attended: p.attended,
+          joinedAt: p.joinedAt,
+          leftAt: p.leftAt
+        }))
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching webinar analytics:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
