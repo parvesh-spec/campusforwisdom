@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { db } from '../db';
-import { liveSessions, sessionAttendees, participantEngagement, zoomEvents, sessionAnalytics } from '@shared/schema';
+import { liveWebinars, webinarAttendees, participantEngagement, zoomEvents, webinarAnalytics } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 interface ZoomConfig {
@@ -421,80 +421,168 @@ export class ZoomService {
     console.log('🔌 Zoom service disconnected');
   }
 
-  // Public methods for integration
-  async createZoomMeeting(sessionData: {
+  // Public methods for webinar integration
+  async createZoomWebinar(sessionData: {
     title: string;
+    description: string;
     startTime: Date;
     duration: number;
+    maxParticipants: number;
     timezone?: string;
   }) {
     try {
       const token = await this.getAccessToken();
       
-      const meetingData = {
+      const webinarData = {
         topic: sessionData.title,
-        type: 2, // Scheduled meeting
+        agenda: sessionData.description,
+        type: 5, // Scheduled webinar
         start_time: sessionData.startTime.toISOString(),
         duration: sessionData.duration,
         timezone: sessionData.timezone || 'Asia/Kolkata',
         settings: {
           host_video: true,
-          participant_video: true,
-          join_before_host: false,
-          mute_upon_entry: true,
-          waiting_room: true,
+          panelists_video: true,
+          practice_session: false,
+          hd_video: true,
+          hd_video_for_attendees: true,
+          approval_type: 0, // Automatically approve
+          registration_type: 1, // Attendees register once and can attend any occurrence
           audio: 'voip',
-          auto_recording: 'cloud'
+          auto_recording: 'cloud',
+          enforce_login: false,
+          enforce_login_domains: '',
+          alternative_hosts: '',
+          show_share_button: true,
+          allow_multiple_devices: false,
+          on_demand: false,
+          global_dial_in_countries: ['US'],
+          contact_name: 'Campus for Wisdom',
+          contact_email: 'contact@campusforwisdom.com',
+          registrants_confirmation_email: true,
+          registrants_email_notification: true,
+          meeting_authentication: false,
+          add_watermark: false,
+          add_audio_watermark: false,
+          attendees_and_panelists_reminder_email_notification: {
+            enable: true,
+            type: 0
+          },
+          follow_up_attendees_email_notification: {
+            enable: true,
+            type: 1
+          },
+          follow_up_absentees_email_notification: {
+            enable: true,
+            type: 1
+          }
         }
       };
 
-      const response = await fetch('https://api.zoom.us/v2/users/me/meetings', {
+      const response = await fetch('https://api.zoom.us/v2/users/me/webinars', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(meetingData)
+        body: JSON.stringify(webinarData)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create Zoom meeting: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to create Zoom webinar: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const meeting = await response.json();
-      console.log('✅ Zoom meeting created successfully:', meeting.id);
+      const webinar = await response.json();
+      console.log('✅ Zoom webinar created successfully:', webinar.id);
       
       return {
-        zoomMeetingId: meeting.id.toString(),
-        joinUrl: meeting.join_url,
-        startUrl: meeting.start_url,
-        password: meeting.password
+        zoomWebinarId: webinar.id.toString(),
+        joinUrl: webinar.join_url,
+        startUrl: webinar.start_url,
+        registrationUrl: webinar.registration_url,
+        password: webinar.password
       };
     } catch (error) {
-      console.error('❌ Error creating Zoom meeting:', error);
+      console.error('❌ Error creating Zoom webinar:', error);
       throw error;
     }
   }
 
-  // Get meeting recording
-  async getMeetingRecording(zoomMeetingId: string) {
+  // Get webinar recording
+  async getWebinarRecording(zoomWebinarId: string) {
     try {
       const token = await this.getAccessToken();
       
-      const response = await fetch(`https://api.zoom.us/v2/meetings/${zoomMeetingId}/recordings`, {
+      const response = await fetch(`https://api.zoom.us/v2/webinars/${zoomWebinarId}/recordings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to get recording: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to get webinar recording: ${response.status} ${response.statusText}`);
       }
 
       const recording = await response.json();
       return recording;
     } catch (error) {
-      console.error('❌ Error getting meeting recording:', error);
+      console.error('❌ Error getting webinar recording:', error);
+      throw error;
+    }
+  }
+
+  // Add panelist to webinar
+  async addPanelist(zoomWebinarId: string, panelistData: {
+    name: string;
+    email: string;
+  }) {
+    try {
+      const token = await this.getAccessToken();
+      
+      const response = await fetch(`https://api.zoom.us/v2/webinars/${zoomWebinarId}/panelists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          panelists: [panelistData]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add panelist: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Panelist added successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Error adding panelist:', error);
+      throw error;
+    }
+  }
+
+  // Get webinar registrants
+  async getWebinarRegistrants(zoomWebinarId: string) {
+    try {
+      const token = await this.getAccessToken();
+      
+      const response = await fetch(`https://api.zoom.us/v2/webinars/${zoomWebinarId}/registrants`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get registrants: ${response.status} ${response.statusText}`);
+      }
+
+      const registrants = await response.json();
+      return registrants;
+    } catch (error) {
+      console.error('❌ Error getting webinar registrants:', error);
       throw error;
     }
   }

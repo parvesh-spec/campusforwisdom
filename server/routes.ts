@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { z } from "zod";
-import { insertCourseSchema, insertLiveSessionSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
+import { insertCourseSchema, insertLiveWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
 import { zoomService, startZoomService } from "./zoom";
 
 // Simple session configuration

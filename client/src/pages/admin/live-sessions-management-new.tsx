@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, ExternalLink, BarChart3, TrendingUp, Activity } from "lucide-react";
-import type { LiveSession, Course } from "@shared/schema";
+import type { LiveWebinar, Course } from "@shared/schema";
 
 interface FormData {
   title: string;
@@ -23,7 +23,7 @@ interface FormData {
   courseId: string;
 }
 
-export default function LiveSessionsManagement() {
+export default function LiveWebinarsManagement() {
   // Poll Zoom WebSocket status from backend
   const { data: zoomStatusData, error: zoomStatusError } = useQuery({
     queryKey: ["/api/admin/zoom/status"],
@@ -36,7 +36,7 @@ export default function LiveSessionsManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<LiveSession | null>(null);
+  const [editingWebinar, setEditingWebinar] = useState<LiveWebinar | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
@@ -46,35 +46,35 @@ export default function LiveSessionsManagement() {
     courseId: ""
   });
 
-  const { data: sessions, isLoading } = useQuery<LiveSession[]>({
-    queryKey: ["/api/admin/live-sessions"],
+  const { data: webinars, isLoading } = useQuery<LiveWebinar[]>({
+    queryKey: ["/api/admin/live-webinars"],
   });
 
   const { data: courses } = useQuery<Course[]>({
     queryKey: ["/api/admin/courses"],
   });
 
-  const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
+  const createWebinarMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-webinars", data),
     onSuccess: () => {
-      toast({ title: "Live session created successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Live webinar created successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
       setIsCreateModalOpen(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast({ title: "Error creating session", description: error.message, variant: "destructive" });
+      toast({ title: "Error creating webinar", description: error.message, variant: "destructive" });
     },
   });
 
-  const updateSessionMutation = useMutation({
+  const updateWebinarMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest("PUT", `/api/admin/live-sessions/${id}`, data),
+      apiRequest("PUT", `/api/admin/live-webinars/${id}`, data),
     onSuccess: () => {
-      toast({ title: "Session updated successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Webinar updated successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
       setIsCreateModalOpen(false);
-      setEditingSession(null);
+      setEditingWebinar(null);
       resetForm();
     },
     onError: (error: any) => {
@@ -82,34 +82,34 @@ export default function LiveSessionsManagement() {
     },
   });
 
-  const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/live-sessions/${id}`),
+  const deleteWebinarMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/live-webinars/${id}`),
     onSuccess: () => {
-      toast({ title: "Session deleted successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Webinar deleted successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
     },
     onError: (error: any) => {
-      toast({ title: "Error deleting session", description: error.message, variant: "destructive" });
+      toast({ title: "Error deleting webinar", description: error.message, variant: "destructive" });
     },
   });
 
-  const createZoomMeetingMutation = useMutation({
-    mutationFn: (sessionId: string) => apiRequest("POST", `/api/admin/live-sessions/${sessionId}/create-meeting`),
+  const createZoomWebinarMutation = useMutation({
+    mutationFn: (webinarId: string) => apiRequest("POST", `/api/admin/live-webinars/${webinarId}/create-webinar`),
     onSuccess: () => {
-      toast({ title: "Zoom meeting created successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Zoom webinar created successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
     },
     onError: (error: any) => {
       console.error('Create Zoom meeting error:', error);
       if (error.message?.includes('Meeting')) {
         toast({ 
-          title: "Zoom meeting creation failed", 
+          title: "Zoom webinar creation failed", 
           description: "Please check your Zoom configuration and try again.",
           variant: "destructive" 
         });
       } else {
         toast({ 
-          title: "Error creating Zoom meeting", 
+          title: "Error creating Zoom webinar", 
           description: error.message,
           variant: "destructive" 
         });
@@ -117,25 +117,25 @@ export default function LiveSessionsManagement() {
     }
   });
 
-  const startSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-sessions/${id}/start`),
+  const startWebinarMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-webinars/${id}/start`),
     onSuccess: () => {
-      toast({ title: "Session started successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Webinar started successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
     },
     onError: (error: any) => {
-      toast({ title: "Error starting session", description: error.message, variant: "destructive" });
+      toast({ title: "Error starting webinar", description: error.message, variant: "destructive" });
     },
   });
 
-  const endSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-sessions/${id}/end`),
+  const endWebinarMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-webinars/${id}/end`),
     onSuccess: () => {
-      toast({ title: "Session ended successfully!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      toast({ title: "Webinar ended successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-webinars"] });
     },
     onError: (error: any) => {
-      toast({ title: "Error ending session", description: error.message, variant: "destructive" });
+      toast({ title: "Error ending webinar", description: error.message, variant: "destructive" });
     },
   });
 
@@ -159,30 +159,30 @@ export default function LiveSessionsManagement() {
       scheduledAt: formData.scheduledAt, // Let Zod coerce this to Date
     };
 
-    if (editingSession) {
-      updateSessionMutation.mutate({ id: editingSession.id, data: sessionData });
+    if (editingWebinar) {
+      updateWebinarMutation.mutate({ id: editingWebinar.id, data: sessionData });
     } else {
-      createSessionMutation.mutate(sessionData);
+      createWebinarMutation.mutate(sessionData);
     }
   };
 
-  const handleEdit = (session: LiveSession) => {
-    setEditingSession(session);
+  const handleEdit = (webinar: LiveWebinar) => {
+    setEditingWebinar(webinar);
     setFormData({
-      title: session.title,
-      description: session.description,
-      scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
-      duration: session.duration,
-      maxParticipants: session.maxParticipants || 100,
-      courseId: session.courseId || "none"
+      title: webinar.title,
+      description: webinar.description || "",
+      scheduledAt: new Date(webinar.scheduledAt).toISOString().slice(0, 16),
+      duration: webinar.duration,
+      maxParticipants: webinar.maxParticipants || 100,
+      courseId: webinar.courseId || "none"
     });
     setIsCreateModalOpen(true);
   };
 
-  // Session categorization
-  const liveSessions = sessions?.filter(s => s.status === 'live') || [];
-  const upcomingSessions = sessions?.filter(s => s.status === 'scheduled') || [];
-  const completedSessions = sessions?.filter(s => s.status === 'completed') || [];
+  // Webinar categorization
+  const liveWebinars = webinars?.filter(w => w.status === 'live') || [];
+  const upcomingWebinars = webinars?.filter(w => w.status === 'scheduled') || [];
+  const completedWebinars = webinars?.filter(w => w.status === 'completed') || [];
 
   const statusColors = {
     scheduled: "bg-blue-100 text-blue-800",
@@ -196,8 +196,8 @@ export default function LiveSessionsManagement() {
       <header className="bg-white shadow-sm border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Sessions Management</h1>
-            <p className="text-sm text-gray-600 mt-1">Schedule, manage, and track live learning sessions</p>
+            <h1 className="text-2xl font-bold text-gray-900">Live Webinars Management</h1>
+            <p className="text-sm text-gray-600 mt-1">Schedule, manage, and track live learning webinars</p>
             
             <div className="flex items-center gap-2 mt-2">
               <Badge variant={connectionStatus === 'Connected' ? 'default' : 'destructive'}>
@@ -214,24 +214,24 @@ export default function LiveSessionsManagement() {
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
-                setEditingSession(null);
+                setEditingWebinar(null);
                 resetForm();
               }}>
                 <Plus className="h-4 w-4 mr-2" />
-                Schedule Session
+                Schedule Webinar
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingSession ? "Edit Session" : "Schedule New Session"}
+                  {editingWebinar ? "Edit Webinar" : "Schedule New Webinar"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Title *
+                      Webinar Title *
                     </label>
                     <Input
                       required

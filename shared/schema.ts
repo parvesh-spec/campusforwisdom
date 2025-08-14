@@ -32,24 +32,51 @@ export const courses = pgTable("courses", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const liveSessions = pgTable("live_sessions", {
+export const liveWebinars = pgTable("live_webinars", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration_minutes").notNull(), // duration in minutes
-  maxParticipants: integer("max_participants").default(100),
+  maxParticipants: integer("max_participants").default(1000),
   currentParticipants: integer("current_participants").default(0),
+  registeredParticipants: integer("registered_participants").default(0),
   status: text("status").notNull().default("scheduled"), // scheduled, live, completed, cancelled
-  meetingUrl: text("meeting_url"),
-  zoomMeetingId: text("zoom_meeting_id"),
+  zoomWebinarId: text("zoom_webinar_id"),
   zoomJoinUrl: text("zoom_join_url"),
   zoomStartUrl: text("zoom_start_url"),
+  zoomRegistrationUrl: text("zoom_registration_url"),
   zoomPassword: text("zoom_password"),
   recordingUrl: text("recording_url"),
   instructorId: varchar("instructor_id").references(() => users.id),
   courseId: varchar("course_id").references(() => courses.id),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Webinar panelists (instructors/co-hosts)
+export const webinarPanelists = pgTable("webinar_panelists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  role: text("role").default("panelist"), // panelist, co-host
+  joinUrl: text("join_url"),
+  addedAt: timestamp("added_at").defaultNow(),
+});
+
+// Webinar registrations
+export const webinarRegistrations = pgTable("webinar_registrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  registrationStatus: text("registration_status").default("approved"), // approved, pending, denied
+  zoomRegistrantId: text("zoom_registrant_id"),
+  joinUrl: text("join_url"),
+  registeredAt: timestamp("registered_at").defaultNow(),
 });
 
 export const enrollments = pgTable("enrollments", {
@@ -62,22 +89,24 @@ export const enrollments = pgTable("enrollments", {
   completedAt: timestamp("completed_at"),
 });
 
-export const sessionAttendees = pgTable("session_attendees", {
+export const webinarAttendees = pgTable("webinar_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   zoomParticipantId: text("zoom_participant_id"),
+  participantType: text("participant_type").default("attendee"), // attendee, panelist, host
   joinedAt: timestamp("joined_at").defaultNow(),
   leftAt: timestamp("left_at"),
   totalDuration: integer("total_duration_minutes").default(0),
   attended: boolean("attended").default(true),
 });
 
-// New table for detailed session analytics
-export const sessionAnalytics = pgTable("session_analytics", {
+// New table for detailed webinar analytics
+export const webinarAnalytics = pgTable("webinar_analytics", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
-  totalParticipants: integer("total_participants").default(0),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id).notNull(),
+  totalRegistrants: integer("total_registrants").default(0),
+  totalAttendees: integer("total_attendees").default(0),
   avgAttendanceTime: integer("avg_attendance_minutes").default(0),
   peakAttendance: integer("peak_attendance").default(0),
   engagementScore: decimal("engagement_score", { precision: 3, scale: 2 }).default("0"),
@@ -85,14 +114,16 @@ export const sessionAnalytics = pgTable("session_analytics", {
   chatMessages: integer("chat_messages").default(0),
   questionsAsked: integer("questions_asked").default(0),
   pollResponses: integer("poll_responses").default(0),
+  handRaises: integer("hand_raises").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // New table for participant engagement tracking  
 export const participantEngagement = pgTable("participant_engagement", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  participantType: text("participant_type").default("attendee"), // attendee, panelist, host
   speakingTime: integer("speaking_time_seconds").default(0),
   chatMessages: integer("chat_messages").default(0),
   reactionsCount: integer("reactions_count").default(0),
@@ -107,8 +138,8 @@ export const participantEngagement = pgTable("participant_engagement", {
 export const zoomEvents = pgTable("zoom_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   eventType: text("event_type").notNull(),
-  sessionId: varchar("session_id").references(() => liveSessions.id),
-  zoomMeetingId: text("zoom_meeting_id"),
+  webinarId: varchar("webinar_id").references(() => liveWebinars.id),
+  zoomWebinarId: text("zoom_webinar_id"),
   eventData: jsonb("event_data"),
   processed: boolean("processed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -148,12 +179,43 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   studentsCount: true,
 });
 
-export const insertLiveSessionSchema = createInsertSchema(liveSessions).omit({
+export const insertLiveWebinarSchema = createInsertSchema(liveWebinars).omit({
   id: true,
   createdAt: true,
   currentParticipants: true,
+  registeredParticipants: true,
 }).extend({
   scheduledAt: z.coerce.date(), // Allow string to Date conversion
+});
+
+export const insertWebinarPanelistSchema = createInsertSchema(webinarPanelists).omit({
+  id: true,
+  addedAt: true,
+});
+
+export const insertWebinarRegistrationSchema = createInsertSchema(webinarRegistrations).omit({
+  id: true,
+  registeredAt: true,
+});
+
+export const insertWebinarAttendeeSchema = createInsertSchema(webinarAttendees).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertWebinarAnalyticsSchema = createInsertSchema(webinarAnalytics).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertParticipantEngagementSchema = createInsertSchema(participantEngagement).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertZoomEventSchema = createInsertSchema(zoomEvents).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertEnrollmentSchema = createInsertSchema(enrollments).omit({
@@ -182,8 +244,35 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 
-export type LiveSession = typeof liveSessions.$inferSelect;
-export type InsertLiveSession = z.infer<typeof insertLiveSessionSchema>;
+export type LiveWebinar = typeof liveWebinars.$inferSelect;
+export type InsertLiveWebinar = z.infer<typeof insertLiveWebinarSchema>;
+
+export type WebinarPanelist = typeof webinarPanelists.$inferSelect;
+export type InsertWebinarPanelist = z.infer<typeof insertWebinarPanelistSchema>;
+
+export type WebinarRegistration = typeof webinarRegistrations.$inferSelect;
+export type InsertWebinarRegistration = z.infer<typeof insertWebinarRegistrationSchema>;
+
+// Legacy compatibility aliases for gradual migration
+export type LiveSession = LiveWebinar;
+export type InsertLiveSession = InsertLiveWebinar;
+
+export type WebinarAttendee = typeof webinarAttendees.$inferSelect;
+
+// Missing type exports that are needed
+export type WebinarAnalytic = typeof webinarAnalytics.$inferSelect;
+export type InsertWebinarAnalytic = z.infer<typeof insertWebinarAnalyticsSchema>;
+
+export type SessionAttendee = WebinarAttendee; // Legacy alias for compatibility
+export type SessionAnalytic = WebinarAnalytic; // Legacy alias for compatibility
+export type InsertSessionAttendee = z.infer<typeof insertWebinarAttendeeSchema>;
+export type InsertSessionAnalytic = InsertWebinarAnalytic; // Legacy alias for compatibility
+
+export type ZoomEvent = typeof zoomEvents.$inferSelect;
+export type InsertZoomEvent = z.infer<typeof insertZoomEventSchema>;
+
+export type ParticipantEngagement = typeof participantEngagement.$inferSelect;
+export type InsertParticipantEngagement = z.infer<typeof insertParticipantEngagementSchema>;
 
 export type Enrollment = typeof enrollments.$inferSelect;
 export type InsertEnrollment = z.infer<typeof insertEnrollmentSchema>;
