@@ -24,7 +24,6 @@ export default function AdminSidebar() {
     { name: "Course Management", href: "/admin/courses", icon: GraduationCap },
     { name: "Students", href: "/admin/students", icon: Users },
     { name: "Live Sessions", href: "/admin/live-sessions", icon: Video },
-    { name: "Zoom Sessions", href: "/admin/zoom-sessions", icon: Video },
     { name: "Content Library", href: "/admin/content", icon: FolderOpen },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { name: "Communications", href: "/admin/communications", icon: MessageSquare },

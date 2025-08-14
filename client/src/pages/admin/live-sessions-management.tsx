@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +8,51 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, ExternalLink, BarChart3, TrendingUp, Activity } from "lucide-react";
 import type { LiveSession, Course } from "@shared/schema";
 
 export default function LiveSessionsManagement() {
+  // WebSocket connection for real-time Zoom events
+  const [zoomEvents, setZoomEvents] = useState<any[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState('Connecting...');
+
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const connectWebSocket = () => {
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        setConnectionStatus('Connected');
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'zoom-event') {
+            setZoomEvents(prev => [data.payload, ...prev.slice(0, 49)]);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      ws.onclose = () => {
+        setConnectionStatus('Disconnected');
+        setTimeout(connectWebSocket, 2000);
+      };
+      
+      ws.onerror = () => {
+        setConnectionStatus('Error');
+      };
+    };
+    
+    connectWebSocket();
+  }, []);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -72,6 +111,32 @@ export default function LiveSessionsManagement() {
     onError: () => {
       toast({ title: "Error deleting session", variant: "destructive" });
     },
+  });
+
+  const createZoomMeetingMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      const response = await fetch(`/api/admin/live-sessions/${sessionId}/create-meeting`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create Zoom meeting');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/live-sessions'] });
+      toast({ title: "Zoom meeting created successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create Zoom meeting", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    }
   });
 
   const startSessionMutation = useMutation({
@@ -148,14 +213,32 @@ export default function LiveSessionsManagement() {
   const upcomingSessions = sessions?.filter(s => s.status === "scheduled") || [];
   const completedSessions = sessions?.filter(s => s.status === "completed") || [];
 
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    } as any);
+  };
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
   return (
     <div>
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Sessions Management</h1>
-            <p className="text-gray-600 mt-1">Schedule, manage, and monitor live learning sessions</p>
+            <h1 className="text-2xl font-bold text-gray-900">Live Sessions with Zoom Integration</h1>
+            <p className="text-gray-600 mt-1">Manage live learning sessions with comprehensive Zoom integration and real-time analytics</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant={connectionStatus === 'Connected' ? 'default' : 'destructive'}>
+                {connectionStatus === 'Connected' ? '🟢' : '🔴'} Zoom WebSocket: {connectionStatus}
+              </Badge>
+            </div>
           </div>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>

@@ -24,7 +24,7 @@ import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
 import Payments from "./pages/admin/payments";
 import Settings from "./pages/admin/settings";
-import ZoomSessions from "./pages/admin/ZoomSessions";
+
 
 // Layouts
 import Header from "@/components/layout/header";
@@ -108,11 +108,7 @@ function Router() {
           <LiveSessionsManagement />
         </AdminLayout>
       </Route>
-      <Route path="/admin/zoom-sessions">
-        <AdminLayout>
-          <ZoomSessions />
-        </AdminLayout>
-      </Route>
+
       <Route path="/admin/content">
         <AdminLayout>
           <ContentLibrary />
