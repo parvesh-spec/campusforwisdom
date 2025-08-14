@@ -32,12 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  const requireAdmin = (req: any, res: any, next: any) => {
-    if (!(req.session as any)?.user || (req.session as any).user.role !== 'admin') {
-      return res.status(401).json({ error: 'Admin access required' });
-    }
-    next();
-  };
+
 
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
@@ -105,9 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.get("/api/auth/user", requireAuth, (req: any, res) => {
-    res.json({ user: (req.session as any).user });
-  });
+
 
   // Public API routes
   
@@ -185,89 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes (protected)
-  
-  // Dashboard stats
-  app.get("/api/admin/dashboard-stats", requireAdmin, async (req, res) => {
-    try {
-      const stats = await storage.getAdminStats();
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
-  // Course Management
-  app.get("/api/admin/courses", requireAdmin, async (req, res) => {
-    try {
-      const courses = await storage.getCourses();
-      res.json(courses);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.post("/api/admin/courses", requireAdmin, async (req, res) => {
-    try {
-      const courseData = insertCourseSchema.parse(req.body);
-      const course = await storage.createCourse(courseData);
-      res.json(course);
-    } catch (error) {
-      console.error("Error creating course:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid course data", details: error.errors });
-      }
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Student Management (simplified)
-  app.get("/api/admin/students", requireAdmin, async (req, res) => {
-    try {
-      // Return empty array for now - would implement proper user listing
-      res.json([]);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.get("/api/admin/enrollments", requireAdmin, async (req, res) => {
-    try {
-      const enrollments = await storage.getEnrollmentsWithDetails();
-      res.json(enrollments);
-    } catch (error) {
-      console.error("Error fetching enrollments:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Live Session Management
-  app.get("/api/admin/live-sessions", requireAdmin, async (req, res) => {
-    try {
-      const sessions = await storage.getLiveSessions();
-      res.json(sessions);
-    } catch (error) {
-      console.error("Error fetching live sessions:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.post("/api/admin/live-sessions", requireAdmin, async (req, res) => {
-    try {
-      const sessionData = insertLiveSessionSchema.parse(req.body);
-      const session = await storage.createLiveSession(sessionData);
-      res.json(session);
-    } catch (error) {
-      console.error("Error creating live session:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid session data", details: error.errors });
-      }
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

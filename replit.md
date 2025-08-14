@@ -1,8 +1,8 @@
 # Overview
 
-CampusForWisdom is a comprehensive AI education platform that provides online courses, live learning sessions, and content management capabilities. The platform serves students seeking to learn AI skills for software development, video creation, and presentation design, while providing instructors and administrators with tools to manage courses, students, and educational content.
+CampusForWisdom is a student-focused AI education platform that provides online courses and live learning sessions. The platform serves students seeking to learn AI skills for software development, video creation, and presentation design through an intuitive public-facing website with secure student authentication.
 
-The application is built as a full-stack web platform with a React frontend, Express.js backend, and PostgreSQL database, designed to facilitate interactive AI education through both self-paced courses and live instructor-led sessions.
+The application is built as a full-stack web platform with a React frontend, Express.js backend, and PostgreSQL database, designed to facilitate interactive AI education through both self-paced courses and live instructor-led sessions. The platform focuses exclusively on student-facing functionality with simplified authentication.
 
 # User Preferences
 
@@ -17,7 +17,7 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack Query (React Query) for server state management and caching
 - **Build Tool**: Vite for fast development and optimized production builds
 
-The frontend follows a component-based architecture with dedicated layouts for public pages (marketing, courses, sessions) and admin functionality (dashboard, management interfaces). The design system uses CSS variables for theming and supports both light and dark modes.
+The frontend follows a component-based architecture with a clean public layout for marketing, courses, and sessions. The design system uses CSS variables for theming and supports both light and dark modes with a simplified navigation focused on student login functionality.
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js framework for RESTful API development
@@ -34,12 +34,11 @@ The backend implements a clean separation between routes, storage layer, and bus
 - **Storage Layer**: DatabaseStorage implementation for all data operations with proper null handling and type safety
 
 The database schema supports:
-- User management with role-based access (student, instructor, admin)
+- Student user management with secure authentication
 - Course catalog with pricing, ratings, and enrollment tracking
 - Live session scheduling and participant management
 - Payment processing and transaction history
 - Testimonials and feedback system
-- Administrative content management
 
 ## File Storage & Media
 - **Cloud Storage**: Google Cloud Storage for handling course materials, videos, and user-generated content
@@ -47,8 +46,8 @@ The database schema supports:
 - **Asset Management**: Dedicated asset handling through organized cloud storage buckets
 
 ## Authentication & Authorization
-- **Session Management**: Cookie-based authentication for secure user sessions
-- **Role-Based Access**: Three-tier user system (student, instructor, admin) with appropriate permissions
+- **Session Management**: Cookie-based authentication for secure student sessions
+- **Student Access**: Streamlined authentication system focused on student experience
 - **Security**: CORS configuration and secure cookie handling for production deployment
 
 ## Development Workflow
