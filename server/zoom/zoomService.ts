@@ -93,8 +93,16 @@ export class ZoomService {
   async connectWebSocket(): Promise<void> {
     try {
       const token = await this.getAccessToken();
-      // Use the websocket endpoint URL directly
-      const wsUrl = this.config.websocketEndpointUrl;
+      const subscriptionId = process.env.ZOOM_SUBSCRIPTION_ID;
+      
+      if (!subscriptionId) {
+        console.log('⚠️  ZOOM_SUBSCRIPTION_ID not configured - WebSocket connection disabled');
+        return;
+      }
+      
+      // Format URL with subscriptionId and access_token as parameters (Zoom's required format)
+      const wsUrl = `${this.config.websocketEndpointUrl}?subscriptionId=${subscriptionId}&access_token=${token}`;
+      console.log('🔗 Connecting to Zoom WebSocket with proper authentication...');
 
       this.wsConnection = new WebSocket(wsUrl);
 
@@ -102,19 +110,7 @@ export class ZoomService {
         console.log('🔗 Zoom WebSocket connected successfully');
         this.reconnectAttempts = 0;
         
-        // Send authentication message immediately after connection
-        const authMessage = {
-          module: 'auth',
-          sequence: 1,
-          body: {
-            access_token: token,
-            account_id: this.config.accountId
-          }
-        };
-        
-        this.wsConnection?.send(JSON.stringify(authMessage));
-        console.log('📤 Sent authentication message to Zoom WebSocket');
-        
+        // Authentication is handled by URL parameters, start heartbeat immediately
         this.startHeartbeat();
       });
 
