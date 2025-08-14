@@ -326,7 +326,7 @@ export default function LiveWebinarsManagement() {
                     variant="outline"
                     onClick={() => {
                       setIsCreateModalOpen(false);
-                      setEditingSession(null);
+                      setEditingWebinar(null);
                       resetForm();
                     }}
                   >
@@ -334,9 +334,9 @@ export default function LiveWebinarsManagement() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createSessionMutation.isPending || updateSessionMutation.isPending}
+                    disabled={createWebinarMutation.isPending || updateWebinarMutation.isPending}
                   >
-                    {editingSession ? "Update Session" : "Schedule Session"}
+                    {editingWebinar ? "Update Webinar" : "Schedule Webinar"}
                   </Button>
                 </div>
               </form>
@@ -354,7 +354,7 @@ export default function LiveWebinarsManagement() {
                 <Video className="h-8 w-8 text-red-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Live Now</p>
-                  <p className="text-2xl font-bold text-gray-900">{liveSessions.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{liveWebinars.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -365,7 +365,7 @@ export default function LiveWebinarsManagement() {
                 <Calendar className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Upcoming</p>
-                  <p className="text-2xl font-bold text-gray-900">{upcomingSessions.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{upcomingWebinars.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -376,7 +376,7 @@ export default function LiveWebinarsManagement() {
                 <Clock className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{completedSessions.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{completedWebinars.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -388,7 +388,7 @@ export default function LiveWebinarsManagement() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Participants</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {sessions?.reduce((sum, session) => sum + (session.currentParticipants || 0), 0) || 0}
+                    {webinars?.reduce((sum, webinar) => sum + (webinar.currentParticipants || 0), 0) || 0}
                   </p>
                 </div>
               </div>
@@ -399,18 +399,18 @@ export default function LiveWebinarsManagement() {
         {/* Sessions Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Sessions</CardTitle>
+            <CardTitle>All Webinars</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">Loading sessions...</p>
+                <p className="text-gray-500">Loading webinars...</p>
               </div>
-            ) : sessions && sessions.length > 0 ? (
+            ) : webinars && webinars.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Session</TableHead>
+                    <TableHead>Webinar</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
                     <TableHead>Participants</TableHead>
@@ -419,75 +419,75 @@ export default function LiveWebinarsManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sessions.map((session) => (
-                    <TableRow key={session.id}>
+                  {webinars.map((webinar) => (
+                    <TableRow key={webinar.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium text-gray-900">{session.title}</div>
+                          <div className="font-medium text-gray-900">{webinar.title}</div>
                           <div className="text-sm text-gray-500 truncate max-w-xs">
-                            {session.description}
+                            {webinar.description}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {new Date(session.scheduledAt).toLocaleString()}
+                          {new Date(webinar.scheduledAt).toLocaleString()}
                         </div>
                       </TableCell>
-                      <TableCell>{session.duration} min</TableCell>
+                      <TableCell>{webinar.duration} min</TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {session.currentParticipants || 0}/{session.maxParticipants || 0}
+                          {webinar.currentParticipants || 0}/{webinar.maxParticipants || 0}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={(statusColors as Record<string, string>)[session.status] || statusColors.scheduled}>
-                          {session.status === "live" && (
+                        <Badge className={(statusColors as Record<string, string>)[webinar.status] || statusColors.scheduled}>
+                          {webinar.status === "live" && (
                             <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></div>
                           )}
-                          {session.status}
+                          {webinar.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {session.status === "scheduled" && (
+                          {webinar.status === "scheduled" && (
                             <>
                               <Button
                                 size="sm"
-                                onClick={() => startSessionMutation.mutate(session.id)}
-                                disabled={startSessionMutation.isPending}
+                                onClick={() => startWebinarMutation.mutate(webinar.id)}
+                                disabled={startWebinarMutation.isPending}
                                 className="bg-green-600 hover:bg-green-700"
                               >
                                 <Play className="h-4 w-4" />
                               </Button>
-                              {!session.zoomMeetingId && (
+                              {!webinar.zoomWebinarId && (
                                 <Button
                                   size="sm"
-                                  onClick={() => createZoomMeetingMutation.mutate(session.id)}
-                                  disabled={createZoomMeetingMutation.isPending}
+                                  onClick={() => createZoomWebinarMutation.mutate(webinar.id)}
+                                  disabled={createZoomWebinarMutation.isPending}
                                   className="bg-blue-600 hover:bg-blue-700"
-                                  title="Create Zoom Meeting"
+                                  title="Create Zoom Webinar"
                                 >
                                   <Video className="h-4 w-4" />
                                 </Button>
                               )}
                             </>
                           )}
-                          {session.status === "live" && (
+                          {webinar.status === "live" && (
                             <Button
                               size="sm"
-                              onClick={() => endSessionMutation.mutate(session.id)}
-                              disabled={endSessionMutation.isPending}
+                              onClick={() => endWebinarMutation.mutate(webinar.id)}
+                              disabled={endWebinarMutation.isPending}
                               className="bg-red-600 hover:bg-red-700"
                             >
                               <Square className="h-4 w-4" />
                             </Button>
                           )}
-                          {session.zoomJoinUrl && (
+                          {webinar.zoomJoinUrl && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => window.open(session.zoomJoinUrl!, '_blank')}
+                              onClick={() => window.open(webinar.zoomJoinUrl!, '_blank')}
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Button>
@@ -495,15 +495,15 @@ export default function LiveWebinarsManagement() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleEdit(session)}
+                            onClick={() => handleEdit(webinar)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => deleteSessionMutation.mutate(session.id)}
-                            disabled={deleteSessionMutation.isPending}
+                            onClick={() => deleteWebinarMutation.mutate(webinar.id)}
+                            disabled={deleteWebinarMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -515,13 +515,13 @@ export default function LiveWebinarsManagement() {
               </Table>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">No sessions scheduled yet.</p>
+                <p className="text-gray-500">No webinars scheduled yet.</p>
                 <Button
                   onClick={() => setIsCreateModalOpen(true)}
                   className="mt-4"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Schedule Your First Session
+                  Schedule Your First Webinar
                 </Button>
               </div>
             )}
