@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -42,6 +42,11 @@ export const liveSessions = pgTable("live_sessions", {
   currentParticipants: integer("current_participants").default(0),
   status: text("status").notNull().default("scheduled"), // scheduled, live, completed, cancelled
   meetingUrl: text("meeting_url"),
+  zoomMeetingId: text("zoom_meeting_id"),
+  zoomJoinUrl: text("zoom_join_url"),
+  zoomStartUrl: text("zoom_start_url"),
+  zoomPassword: text("zoom_password"),
+  recordingUrl: text("recording_url"),
   instructorId: varchar("instructor_id").references(() => users.id),
   courseId: varchar("course_id").references(() => courses.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -61,8 +66,52 @@ export const sessionAttendees = pgTable("session_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  zoomParticipantId: text("zoom_participant_id"),
   joinedAt: timestamp("joined_at").defaultNow(),
   leftAt: timestamp("left_at"),
+  totalDuration: integer("total_duration_minutes").default(0),
+  attended: boolean("attended").default(true),
+});
+
+// New table for detailed session analytics
+export const sessionAnalytics = pgTable("session_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
+  totalParticipants: integer("total_participants").default(0),
+  avgAttendanceTime: integer("avg_attendance_minutes").default(0),
+  peakAttendance: integer("peak_attendance").default(0),
+  engagementScore: decimal("engagement_score", { precision: 3, scale: 2 }).default("0"),
+  recordingDuration: integer("recording_duration_minutes").default(0),
+  chatMessages: integer("chat_messages").default(0),
+  questionsAsked: integer("questions_asked").default(0),
+  pollResponses: integer("poll_responses").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// New table for participant engagement tracking  
+export const participantEngagement = pgTable("participant_engagement", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  speakingTime: integer("speaking_time_seconds").default(0),
+  chatMessages: integer("chat_messages").default(0),
+  reactionsCount: integer("reactions_count").default(0),
+  handRaises: integer("hand_raises").default(0),
+  pollParticipation: integer("poll_participation").default(0),
+  screenShareTime: integer("screen_share_time_seconds").default(0),
+  attentionScore: decimal("attention_score", { precision: 3, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// New table for Zoom webhook events
+export const zoomEvents = pgTable("zoom_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventType: text("event_type").notNull(),
+  sessionId: varchar("session_id").references(() => liveSessions.id),
+  zoomMeetingId: text("zoom_meeting_id"),
+  eventData: jsonb("event_data"),
+  processed: boolean("processed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const testimonials = pgTable("testimonials", {
@@ -142,3 +191,15 @@ export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export type SessionAttendee = typeof sessionAttendees.$inferSelect;
+export type InsertSessionAttendee = typeof sessionAttendees.$inferInsert;
+
+export type SessionAnalytic = typeof sessionAnalytics.$inferSelect;
+export type InsertSessionAnalytic = typeof sessionAnalytics.$inferInsert;
+
+export type ParticipantEngagement = typeof participantEngagement.$inferSelect;
+export type InsertParticipantEngagement = typeof participantEngagement.$inferInsert;
+
+export type ZoomEvent = typeof zoomEvents.$inferSelect;
+export type InsertZoomEvent = typeof zoomEvents.$inferInsert;

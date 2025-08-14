@@ -5,6 +5,7 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import { z } from "zod";
 import { insertCourseSchema, insertLiveSessionSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
+import { zoomService, startZoomService } from "./zoom";
 
 // Simple session configuration
 const MemoryStoreSession = MemoryStore(session);
@@ -269,6 +270,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create Zoom meeting for session
+  app.post("/api/admin/live-sessions/:id/create-meeting", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const session = await storage.getLiveSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const zoomMeeting = await zoomService.createZoomMeeting({
+        title: session.title,
+        startTime: session.scheduledAt,
+        duration: session.duration,
+        timezone: 'Asia/Kolkata'
+      });
+
+      // Update session with Zoom meeting details
+      await storage.updateLiveSession(sessionId, {
+        zoomMeetingId: zoomMeeting.zoomMeetingId,
+        zoomJoinUrl: zoomMeeting.joinUrl,
+        zoomStartUrl: zoomMeeting.startUrl,
+        zoomPassword: zoomMeeting.password,
+        meetingUrl: zoomMeeting.joinUrl
+      });
+
+      res.json({ success: true, meeting: zoomMeeting });
+    } catch (error) {
+      console.error("Error creating Zoom meeting:", error);
+      res.status(500).json({ error: "Failed to create Zoom meeting" });
+    }
+  });
+
+  // Get session analytics
+  app.get("/api/admin/live-sessions/:id/analytics", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const analytics = await storage.getSessionAnalytics(sessionId);
+      const attendees = await storage.getSessionAttendees(sessionId);
+      const engagement = await storage.getParticipantEngagement(sessionId);
+
+      res.json({
+        analytics,
+        attendees,
+        engagement
+      });
+    } catch (error) {
+      console.error("Error fetching session analytics:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get session recording
+  app.get("/api/admin/live-sessions/:id/recording", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const session = await storage.getLiveSession(sessionId);
+      
+      if (!session || !session.zoomMeetingId) {
+        return res.status(404).json({ error: "Session or meeting not found" });
+      }
+
+      const recording = await zoomService.getMeetingRecording(session.zoomMeetingId);
+      res.json(recording);
+    } catch (error) {
+      console.error("Error fetching recording:", error);
+      res.status(500).json({ error: "Failed to fetch recording" });
+    }
+  });
+
+  // WebSocket for real-time session updates
   const httpServer = createServer(app);
+  
+  // Initialize Zoom service when server starts
+  startZoomService().catch(console.error);
+
   return httpServer;
 }

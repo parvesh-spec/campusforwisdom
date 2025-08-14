@@ -4,16 +4,28 @@ import {
   LiveSession,
   Testimonial, 
   Enrollment,
+  SessionAttendee,
+  ParticipantEngagement,
+  ZoomEvent,
+  SessionAnalytic,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
   InsertTestimonial, 
   InsertEnrollment,
+  InsertSessionAttendee,
+  InsertParticipantEngagement,
+  InsertZoomEvent,
+  InsertSessionAnalytic,
   courses,
   users,
   liveSessions,
   testimonials,
-  enrollments
+  enrollments,
+  sessionAttendees,
+  participantEngagement,
+  zoomEvents,
+  sessionAnalytics
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -373,6 +385,53 @@ export class DatabaseStorage implements IStorage {
   async getRecentActivities(): Promise<Activity[]> {
     // For now, return empty array since activities aren't in the schema yet
     return [];
+  }
+
+  // Zoom integration methods
+  async getLiveSession(id: string): Promise<LiveSession | null> {
+    const [session] = await db.select().from(liveSessions).where(eq(liveSessions.id, id));
+    return session || null;
+  }
+
+  async getSessionAnalytics(sessionId: string): Promise<SessionAnalytic[]> {
+    return await db.select().from(sessionAnalytics).where(eq(sessionAnalytics.sessionId, sessionId));
+  }
+
+  async getSessionAttendees(sessionId: string): Promise<SessionAttendee[]> {
+    return await db.select().from(sessionAttendees).where(eq(sessionAttendees.sessionId, sessionId));
+  }
+
+  async getParticipantEngagement(sessionId: string): Promise<ParticipantEngagement[]> {
+    return await db.select().from(participantEngagement).where(eq(participantEngagement.sessionId, sessionId));
+  }
+
+  async createSessionAttendee(attendee: InsertSessionAttendee): Promise<SessionAttendee> {
+    const [newAttendee] = await db.insert(sessionAttendees).values(attendee).returning();
+    return newAttendee;
+  }
+
+  async updateSessionAttendee(id: string, data: Partial<InsertSessionAttendee>): Promise<SessionAttendee | null> {
+    const [attendee] = await db
+      .update(sessionAttendees)
+      .set(data)
+      .where(eq(sessionAttendees.id, id))
+      .returning();
+    return attendee || null;
+  }
+
+  async createParticipantEngagement(engagement: InsertParticipantEngagement): Promise<ParticipantEngagement> {
+    const [newEngagement] = await db.insert(participantEngagement).values(engagement).returning();
+    return newEngagement;
+  }
+
+  async createZoomEvent(event: InsertZoomEvent): Promise<ZoomEvent> {
+    const [newEvent] = await db.insert(zoomEvents).values(event).returning();
+    return newEvent;
+  }
+
+  async createSessionAnalytics(analytics: InsertSessionAnalytic): Promise<SessionAnalytic> {
+    const [newAnalytics] = await db.insert(sessionAnalytics).values(analytics).returning();
+    return newAnalytics;
   }
 
   // Add remaining interface methods as needed
