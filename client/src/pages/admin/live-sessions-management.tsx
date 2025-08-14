@@ -24,7 +24,7 @@ export default function LiveSessionsManagement() {
     scheduledAt: "",
     duration: "",
     maxParticipants: "100",
-    courseId: "",
+    courseId: undefined as string | undefined,
     meetingUrl: ""
   });
 
@@ -103,7 +103,7 @@ export default function LiveSessionsManagement() {
       scheduledAt: "",
       duration: "",
       maxParticipants: "100",
-      courseId: "",
+      courseId: undefined,
       meetingUrl: ""
     });
   };
@@ -132,7 +132,7 @@ export default function LiveSessionsManagement() {
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
       maxParticipants: (session.maxParticipants || 0).toString(),
-      courseId: session.courseId || "",
+      courseId: session.courseId || undefined,
       meetingUrl: session.meetingUrl || ""
     });
   };
@@ -188,8 +188,8 @@ export default function LiveSessionsManagement() {
                       Related Course
                     </label>
                     <Select
-                      value={formData.courseId}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value })}
+                      value={formData.courseId || ""}
+                      onValueChange={(value) => setFormData({ ...formData, courseId: value || undefined })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select course" />
@@ -477,8 +477,8 @@ export default function LiveSessionsManagement() {
                       Related Course
                     </label>
                     <Select
-                      value={formData.courseId}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value })}
+                      value={formData.courseId || ""}
+                      onValueChange={(value) => setFormData({ ...formData, courseId: value || undefined })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select course" />
