@@ -18,7 +18,7 @@ import Contact from "@/pages/contact";
 import AdminDashboard from "./pages/admin/dashboard";
 import CourseManagement from "./pages/admin/course-management";
 import StudentManagement from "./pages/admin/student-management";
-import LiveSessionsManagement from "./pages/admin/live-sessions-management";
+import LiveSessionsManagement from "./pages/admin/live-sessions-management-new";
 import ContentLibrary from "./pages/admin/content-library";
 import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";

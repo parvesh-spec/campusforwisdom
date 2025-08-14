@@ -14,6 +14,16 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, ExternalLink, BarChart3, TrendingUp, Activity } from "lucide-react";
 import type { LiveSession, Course } from "@shared/schema";
 
+interface FormData {
+  title: string;
+  description: string;
+  scheduledAt: string;
+  duration: number;
+  maxParticipants: number;
+  courseId: string;
+  meetingUrl: string;
+}
+
 export default function LiveSessionsManagement() {
   // Poll Zoom WebSocket status from backend
   const { data: zoomStatusData, error: zoomStatusError } = useQuery({
@@ -28,7 +38,7 @@ export default function LiveSessionsManagement() {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<LiveSession | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
     scheduledAt: "",
@@ -47,29 +57,38 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
+    mutationFn: (data: any) => apiRequest({ 
+      url: "/api/admin/live-sessions", 
+      method: "POST", 
+      body: data
+    }),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
       setIsCreateModalOpen(false);
       resetForm();
     },
-    onError: () => {
-      toast({ title: "Error creating session", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: "Error creating session", description: error.message, variant: "destructive" });
     },
   });
 
   const updateSessionMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "PUT", body: data }),
+      apiRequest({ 
+        url: `/api/admin/live-sessions/${id}`, 
+        method: "PUT", 
+        body: data
+      }),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
+      setIsCreateModalOpen(false);
       setEditingSession(null);
       resetForm();
     },
-    onError: () => {
-      toast({ title: "Error updating session", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: "Error updating session", description: error.message, variant: "destructive" });
     },
   });
 
@@ -79,34 +98,35 @@ export default function LiveSessionsManagement() {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
     },
-    onError: () => {
-      toast({ title: "Error deleting session", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: "Error deleting session", description: error.message, variant: "destructive" });
     },
   });
 
   const createZoomMeetingMutation = useMutation({
-    mutationFn: async (sessionId: string) => {
-      const response = await fetch(`/api/admin/live-sessions/${sessionId}/create-meeting`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create Zoom meeting');
-      }
-      return response.json();
-    },
+    mutationFn: (sessionId: string) => apiRequest({ 
+      url: `/api/admin/live-sessions/${sessionId}/create-meeting`, 
+      method: "POST" 
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/live-sessions'] });
       toast({ title: "Zoom meeting created successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Failed to create Zoom meeting", 
-        description: error.message,
-        variant: "destructive" 
-      });
+      console.error('Create Zoom meeting error:', error);
+      if (error.message?.includes('Meeting')) {
+        toast({ 
+          title: "Zoom meeting creation failed", 
+          description: "Please check your Zoom configuration and try again.",
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Error creating Zoom meeting", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      }
     }
   });
 
@@ -116,8 +136,8 @@ export default function LiveSessionsManagement() {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
     },
-    onError: () => {
-      toast({ title: "Error starting session", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: "Error starting session", description: error.message, variant: "destructive" });
     },
   });
 
@@ -127,31 +147,29 @@ export default function LiveSessionsManagement() {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
     },
-    onError: () => {
-      toast({ title: "Error ending session", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ title: "Error ending session", description: error.message, variant: "destructive" });
     },
   });
-
-
 
   const resetForm = () => {
     setFormData({
       title: "",
       description: "",
       scheduledAt: "",
-      duration: "",
-      maxParticipants: "100",
-      courseId: undefined,
+      duration: 60,
+      maxParticipants: 100,
+      courseId: "",
       meetingUrl: ""
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     const sessionData = {
       ...formData,
-      duration: parseInt(formData.duration),
-      maxParticipants: parseInt(formData.maxParticipants),
+      courseId: formData.courseId || null,
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
     };
 
@@ -162,51 +180,40 @@ export default function LiveSessionsManagement() {
     }
   };
 
-  const startEditing = (session: LiveSession) => {
+  const handleEdit = (session: LiveSession) => {
     setEditingSession(session);
     setFormData({
       title: session.title,
       description: session.description,
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
-      duration: session.duration.toString(),
-      maxParticipants: (session.maxParticipants || 0).toString(),
-      courseId: session.courseId || undefined,
+      duration: session.duration,
+      maxParticipants: session.maxParticipants || 100,
+      courseId: session.courseId || "",
       meetingUrl: session.meetingUrl || ""
     });
+    setIsCreateModalOpen(true);
   };
+
+  // Session categorization
+  const liveSessions = sessions?.filter(s => s.status === 'live') || [];
+  const upcomingSessions = sessions?.filter(s => s.status === 'scheduled') || [];
+  const completedSessions = sessions?.filter(s => s.status === 'completed') || [];
 
   const statusColors = {
     scheduled: "bg-blue-100 text-blue-800",
-    live: "bg-red-100 text-red-800",
-    completed: "bg-green-100 text-green-800",
-    cancelled: "bg-gray-100 text-gray-800",
-  };
-
-  const liveSessions = sessions?.filter(s => s.status === "live") || [];
-  const upcomingSessions = sessions?.filter(s => s.status === "scheduled") || [];
-  const completedSessions = sessions?.filter(s => s.status === "completed") || [];
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    } as any);
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    live: "bg-green-100 text-green-800",
+    completed: "bg-gray-100 text-gray-800",
+    cancelled: "bg-red-100 text-red-800"
   };
 
   return (
-    <div>
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Sessions with Zoom Integration</h1>
-            <p className="text-gray-600 mt-1">Manage live learning sessions with comprehensive Zoom integration and real-time analytics</p>
+            <h1 className="text-2xl font-bold text-gray-900">Live Sessions Management</h1>
+            <p className="text-sm text-gray-600 mt-1">Schedule, manage, and track live learning sessions</p>
+            
             <div className="flex items-center gap-2 mt-2">
               <Badge variant={connectionStatus === 'Connected' ? 'default' : 'destructive'}>
                 {connectionStatus === 'Connected' ? '🟢' : connectionStatus === 'Authenticating...' ? '🟡' : '🔴'} Zoom WebSocket: {connectionStatus}
@@ -218,9 +225,13 @@ export default function LiveSessionsManagement() {
               )}
             </div>
           </div>
+
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-white hover:bg-primary/90">
+              <Button onClick={() => {
+                setEditingSession(null);
+                resetForm();
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Schedule Session
               </Button>
@@ -249,15 +260,15 @@ export default function LiveSessionsManagement() {
                       Related Course
                     </label>
                     <Select
-                      value={formData.courseId || ""}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value || undefined })}
+                      value={formData.courseId}
+                      onValueChange={(value) => setFormData({ ...formData, courseId: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">No course</SelectItem>
-                        {courses?.map((course) => (
+                        {courses && courses.map((course) => (
                           <SelectItem key={course.id} value={course.id}>
                             {course.title}
                           </SelectItem>
@@ -300,7 +311,7 @@ export default function LiveSessionsManagement() {
                       required
                       type="number"
                       value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
                       placeholder="60"
                     />
                   </div>
@@ -311,7 +322,7 @@ export default function LiveSessionsManagement() {
                     <Input
                       type="number"
                       value={formData.maxParticipants}
-                      onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, maxParticipants: Number(e.target.value) })}
                       placeholder="100"
                     />
                   </div>
@@ -491,12 +502,11 @@ export default function LiveSessionsManagement() {
                               <Square className="h-4 w-4" />
                             </Button>
                           )}
-                          {session.zoomMeetingId && (
+                          {session.zoomJoinUrl && (
                             <Button
                               size="sm"
-                              onClick={() => window.open(session.meetingUrl || '', '_blank')}
-                              className="bg-indigo-600 hover:bg-indigo-700"
-                              title="Join Zoom Meeting"
+                              variant="outline"
+                              onClick={() => window.open(session.zoomJoinUrl!, '_blank')}
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Button>
@@ -504,7 +514,7 @@ export default function LiveSessionsManagement() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => startEditing(session)}
+                            onClick={() => handleEdit(session)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -523,145 +533,19 @@ export default function LiveSessionsManagement() {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-16">
-                <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions scheduled</h3>
-                <p className="text-gray-600 mb-4">Get started by scheduling your first live session.</p>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
+              <div className="text-center py-8">
+                <p className="text-gray-500">No sessions scheduled yet.</p>
+                <Button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="mt-4"
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  Schedule Session
+                  Schedule Your First Session
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Edit Session Modal */}
-        {editingSession && (
-          <Dialog open={true} onOpenChange={() => setEditingSession(null)}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Edit Session</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Title *
-                    </label>
-                    <Input
-                      required
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="ChatGPT Integration Workshop"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Related Course
-                    </label>
-                    <Select
-                      value={formData.courseId || ""}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value || undefined })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select course" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">No course</SelectItem>
-                        {courses?.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <Textarea
-                    required
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Session description and learning objectives..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Scheduled Date & Time *
-                    </label>
-                    <Input
-                      required
-                      type="datetime-local"
-                      value={formData.scheduledAt}
-                      onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (minutes) *
-                    </label>
-                    <Input
-                      required
-                      type="number"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      placeholder="60"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Participants
-                    </label>
-                    <Input
-                      type="number"
-                      value={formData.maxParticipants}
-                      onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
-                      placeholder="100"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meeting URL
-                  </label>
-                  <Input
-                    value={formData.meetingUrl}
-                    onChange={(e) => setFormData({ ...formData, meetingUrl: e.target.value })}
-                    placeholder="https://zoom.us/j/123456789"
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setEditingSession(null);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={updateSessionMutation.isPending}
-                  >
-                    Update Session
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
     </div>
   );
