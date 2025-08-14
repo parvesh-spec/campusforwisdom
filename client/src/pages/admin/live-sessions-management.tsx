@@ -16,13 +16,14 @@ import type { LiveSession, Course } from "@shared/schema";
 
 export default function LiveSessionsManagement() {
   // Poll Zoom WebSocket status from backend
-  const { data: zoomStatusData } = useQuery({
+  const { data: zoomStatusData, error: zoomStatusError } = useQuery({
     queryKey: ["/api/admin/zoom/status"],
     refetchInterval: 5000, // Poll every 5 seconds
     refetchOnWindowFocus: true,
+    retry: false, // Don't retry on auth errors
   });
   
-  const connectionStatus = zoomStatusData?.status || 'Connecting...';
+  const connectionStatus = zoomStatusError ? 'Disconnected' : (zoomStatusData?.status || 'Connecting...');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -212,7 +213,7 @@ export default function LiveSessionsManagement() {
               </Badge>
               {connectionStatus === 'Disconnected' && (
                 <p className="text-sm text-gray-600">
-                  Configure your ZOOM_WEBSOCKET_ENDPOINT_URL with the endpoint from your Zoom app's event subscription settings.
+                  {zoomStatusError ? 'Please log in to view Zoom connection status.' : 'Configure your ZOOM_WEBSOCKET_ENDPOINT_URL with the endpoint from your Zoom app settings.'}
                 </p>
               )}
             </div>
