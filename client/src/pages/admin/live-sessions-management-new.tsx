@@ -169,7 +169,7 @@ export default function LiveSessionsManagement() {
     
     const sessionData = {
       ...formData,
-      courseId: formData.courseId || null,
+      courseId: formData.courseId === "none" || formData.courseId === "" ? null : formData.courseId,
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
     };
 
@@ -188,7 +188,7 @@ export default function LiveSessionsManagement() {
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration,
       maxParticipants: session.maxParticipants || 100,
-      courseId: session.courseId || "",
+      courseId: session.courseId || "none",
       meetingUrl: session.meetingUrl || ""
     });
     setIsCreateModalOpen(true);
@@ -260,14 +260,14 @@ export default function LiveSessionsManagement() {
                       Related Course
                     </label>
                     <Select
-                      value={formData.courseId}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value })}
+                      value={formData.courseId || ""}
+                      onValueChange={(value) => setFormData({ ...formData, courseId: value || "" })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No course</SelectItem>
+                        <SelectItem value="none">No course</SelectItem>
                         {courses && courses.map((course) => (
                           <SelectItem key={course.id} value={course.id}>
                             {course.title}
