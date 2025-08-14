@@ -76,7 +76,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
+    mutationFn: (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -90,7 +90,7 @@ export default function LiveSessionsManagement() {
 
   const updateSessionMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest("PUT", `/api/admin/live-sessions/${id}`, data),
+      apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "PUT", body: data }),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -103,7 +103,7 @@ export default function LiveSessionsManagement() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/live-sessions/${id}`),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
     onSuccess: () => {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -140,7 +140,7 @@ export default function LiveSessionsManagement() {
   });
 
   const startSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("POST", `/api/admin/live-sessions/${id}/start`),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -151,7 +151,7 @@ export default function LiveSessionsManagement() {
   });
 
   const endSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("POST", `/api/admin/live-sessions/${id}/end`),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -160,6 +160,8 @@ export default function LiveSessionsManagement() {
       toast({ title: "Error ending session", variant: "destructive" });
     },
   });
+
+
 
   const resetForm = () => {
     setFormData({
@@ -481,14 +483,27 @@ export default function LiveSessionsManagement() {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {session.status === "scheduled" && (
-                            <Button
-                              size="sm"
-                              onClick={() => startSessionMutation.mutate(session.id)}
-                              disabled={startSessionMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Play className="h-4 w-4" />
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => startSessionMutation.mutate(session.id)}
+                                disabled={startSessionMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <Play className="h-4 w-4" />
+                              </Button>
+                              {!session.zoomMeetingId && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => createZoomMeetingMutation.mutate(session.id)}
+                                  disabled={createZoomMeetingMutation.isPending}
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                  title="Create Zoom Meeting"
+                                >
+                                  <Video className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </>
                           )}
                           {session.status === "live" && (
                             <Button
@@ -498,6 +513,16 @@ export default function LiveSessionsManagement() {
                               className="bg-red-600 hover:bg-red-700"
                             >
                               <Square className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {session.zoomMeetingId && (
+                            <Button
+                              size="sm"
+                              onClick={() => window.open(session.meetingUrl || '', '_blank')}
+                              className="bg-indigo-600 hover:bg-indigo-700"
+                              title="Join Zoom Meeting"
+                            >
+                              <ExternalLink className="h-4 w-4" />
                             </Button>
                           )}
                           <Button
