@@ -27,7 +27,7 @@ export default function LiveSessionsManagement() {
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
-        setConnectionStatus('Connected');
+        setConnectionStatus('Authenticating...');
       };
       
       ws.onmessage = (event) => {
@@ -35,6 +35,8 @@ export default function LiveSessionsManagement() {
           const data = JSON.parse(event.data);
           if (data.type === 'zoom-event') {
             setZoomEvents(prev => [data.payload, ...prev.slice(0, 49)]);
+          } else if (data.type === 'connection_status') {
+            setConnectionStatus(data.status);
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -238,8 +240,13 @@ export default function LiveSessionsManagement() {
             <p className="text-gray-600 mt-1">Manage live learning sessions with comprehensive Zoom integration and real-time analytics</p>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant={connectionStatus === 'Connected' ? 'default' : 'destructive'}>
-                {connectionStatus === 'Connected' ? '🟢' : '🔴'} Zoom WebSocket: {connectionStatus}
+                {connectionStatus === 'Connected' ? '🟢' : connectionStatus === 'Authenticating...' ? '🟡' : '🔴'} Zoom WebSocket: {connectionStatus}
               </Badge>
+              {connectionStatus === 'Disconnected' && (
+                <p className="text-sm text-gray-600">
+                  Authentication failing. Verify Zoom credentials are configured.
+                </p>
+              )}
             </div>
           </div>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

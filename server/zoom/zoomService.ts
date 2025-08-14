@@ -93,14 +93,28 @@ export class ZoomService {
   async connectWebSocket(): Promise<void> {
     try {
       const token = await this.getAccessToken();
-      // Replace {access_token} placeholder in the endpoint URL
-      const wsUrl = this.config.websocketEndpointUrl.replace('{access_token}', token);
+      // Use the websocket endpoint URL directly
+      const wsUrl = this.config.websocketEndpointUrl;
 
       this.wsConnection = new WebSocket(wsUrl);
 
       this.wsConnection.on('open', () => {
         console.log('🔗 Zoom WebSocket connected successfully');
         this.reconnectAttempts = 0;
+        
+        // Send authentication message immediately after connection
+        const authMessage = {
+          module: 'auth',
+          sequence: 1,
+          body: {
+            access_token: token,
+            account_id: this.config.accountId
+          }
+        };
+        
+        this.wsConnection?.send(JSON.stringify(authMessage));
+        console.log('📤 Sent authentication message to Zoom WebSocket');
+        
         this.startHeartbeat();
       });
 
@@ -178,14 +192,34 @@ export class ZoomService {
     try {
       console.log('📨 Processing Zoom event:', event);
 
-      // Validate event structure
+      // Handle authentication responses
+      if (event.module === 'auth') {
+        if (event.success) {
+          console.log('✅ Zoom WebSocket authenticated successfully');
+        } else {
+          console.log('❌ Zoom WebSocket authentication failed:', event.content);
+        }
+        return;
+      }
+
+      // Handle connection building responses
+      if (event.module === 'build_connection') {
+        if (event.success) {
+          console.log('✅ Zoom WebSocket connection established');
+        } else {
+          console.log('❌ Zoom WebSocket connection failed:', event.content);
+        }
+        return;
+      }
+
+      // Validate event structure for webhook events
       if (!event || typeof event !== 'object') {
         console.log('💓 Received non-event data (likely heartbeat response)');
         return;
       }
 
       if (!event.event || !event.payload) {
-        console.log('ℹ️ Received invalid event structure');
+        console.log('ℹ️ Received non-webhook event or invalid structure');
         return;
       }
 
