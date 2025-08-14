@@ -23,7 +23,7 @@ export default function LiveSessionsManagement() {
     retry: false, // Don't retry on auth errors
   });
   
-  const connectionStatus = zoomStatusError ? 'Disconnected' : (zoomStatusData?.status || 'Connecting...');
+  const connectionStatus = zoomStatusError ? 'Disconnected' : ((zoomStatusData as any)?.status || 'Connecting...');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
+    mutationFn: (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -60,7 +60,7 @@ export default function LiveSessionsManagement() {
   });
 
   const updateSessionMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
       apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "PUT", body: data }),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
@@ -74,7 +74,7 @@ export default function LiveSessionsManagement() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
     onSuccess: () => {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -111,7 +111,7 @@ export default function LiveSessionsManagement() {
   });
 
   const startSessionMutation = useMutation({
-    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -122,7 +122,7 @@ export default function LiveSessionsManagement() {
   });
 
   const endSessionMutation = useMutation({
-    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
