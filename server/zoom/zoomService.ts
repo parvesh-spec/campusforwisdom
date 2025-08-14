@@ -93,16 +93,10 @@ export class ZoomService {
   async connectWebSocket(): Promise<void> {
     try {
       const token = await this.getAccessToken();
-      const subscriptionId = process.env.ZOOM_SUBSCRIPTION_ID;
       
-      if (!subscriptionId) {
-        console.log('⚠️  ZOOM_SUBSCRIPTION_ID not configured - WebSocket connection disabled');
-        return;
-      }
-      
-      // Format URL with subscriptionId and access_token as parameters (Zoom's required format)
-      const wsUrl = `${this.config.websocketEndpointUrl}?subscriptionId=${subscriptionId}&access_token=${token}`;
-      console.log('🔗 Connecting to Zoom WebSocket with proper authentication...');
+      // Use the endpoint URL directly with access_token - subscriptionId is embedded in the endpoint URL
+      const wsUrl = `${this.config.websocketEndpointUrl}&access_token=${token}`;
+      console.log('🔗 Connecting to Zoom WebSocket...');
 
       this.wsConnection = new WebSocket(wsUrl);
 

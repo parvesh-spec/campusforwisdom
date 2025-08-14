@@ -244,7 +244,7 @@ export default function LiveSessionsManagement() {
               </Badge>
               {connectionStatus === 'Disconnected' && (
                 <p className="text-sm text-gray-600">
-                  Zoom WebSocket requires ZOOM_SUBSCRIPTION_ID. Configure webhook-over-WebSocket in your Zoom app settings to get the subscription ID.
+                  Configure your ZOOM_WEBSOCKET_ENDPOINT_URL with the endpoint from your Zoom app's event subscription settings.
                 </p>
               )}
             </div>
