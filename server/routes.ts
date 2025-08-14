@@ -246,6 +246,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Live Session Management
+  // Zoom WebSocket status endpoint
+  app.get("/api/admin/zoom/status", requireAdmin, (req, res) => {
+    const isConnected = zoomService.isWebSocketConnected();
+    res.json({ 
+      connected: isConnected,
+      status: isConnected ? 'Connected' : 'Disconnected'
+    });
+  });
+
   app.get("/api/admin/live-sessions", requireAdmin, async (req, res) => {
     try {
       const sessions = await storage.getLiveSessions();

@@ -15,46 +15,14 @@ import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Extern
 import type { LiveSession, Course } from "@shared/schema";
 
 export default function LiveSessionsManagement() {
-  // WebSocket connection for real-time Zoom events
-  const [zoomEvents, setZoomEvents] = useState<any[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState('Connecting...');
-
-  useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    
-    const connectWebSocket = () => {
-      const ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        setConnectionStatus('Authenticating...');
-      };
-      
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'zoom-event') {
-            setZoomEvents(prev => [data.payload, ...prev.slice(0, 49)]);
-          } else if (data.type === 'connection_status') {
-            setConnectionStatus(data.status);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-      
-      ws.onclose = () => {
-        setConnectionStatus('Disconnected');
-        setTimeout(connectWebSocket, 2000);
-      };
-      
-      ws.onerror = () => {
-        setConnectionStatus('Error');
-      };
-    };
-    
-    connectWebSocket();
-  }, []);
+  // Poll Zoom WebSocket status from backend
+  const { data: zoomStatusData } = useQuery({
+    queryKey: ["/api/admin/zoom/status"],
+    refetchInterval: 5000, // Poll every 5 seconds
+    refetchOnWindowFocus: true,
+  });
+  
+  const connectionStatus = zoomStatusData?.status || 'Connecting...';
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -78,7 +46,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
+    mutationFn: async (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -91,7 +59,7 @@ export default function LiveSessionsManagement() {
   });
 
   const updateSessionMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: async ({ id, data }: { id: string; data: any }) => 
       apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "PUT", body: data }),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
@@ -105,7 +73,7 @@ export default function LiveSessionsManagement() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
+    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
     onSuccess: () => {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -142,7 +110,7 @@ export default function LiveSessionsManagement() {
   });
 
   const startSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
+    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -153,7 +121,7 @@ export default function LiveSessionsManagement() {
   });
 
   const endSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
+    mutationFn: async (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
     onSuccess: () => {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });

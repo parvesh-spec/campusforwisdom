@@ -406,6 +406,11 @@ export class ZoomService {
     }
   }
 
+  // Check if WebSocket is connected
+  isWebSocketConnected(): boolean {
+    return this.wsConnection?.readyState === WebSocket.OPEN;
+  }
+
   // Cleanup
   async disconnect(): Promise<void> {
     this.stopHeartbeat();
