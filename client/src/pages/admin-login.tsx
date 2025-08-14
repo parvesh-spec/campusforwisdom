@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Lock, Users, BarChart3, ArrowLeft } from "lucide-react";
+import { Shield, Lock, ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminLogin() {
@@ -16,11 +16,8 @@ export default function AdminLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await apiRequest("/api/auth/login", {
-        method: "POST",
-        body: credentials,
-      });
-      return response;
+      const response = await apiRequest("POST", "/api/auth/login", credentials);
+      return await response.json();
     },
     onSuccess: (data) => {
       // Only allow admin users on this page
@@ -107,37 +104,6 @@ export default function AdminLogin() {
                 {loginMutation.isPending ? "Authenticating..." : "Access Admin Panel"}
               </Button>
             </form>
-
-            {/* Admin Features Preview */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4 text-center">Admin Dashboard Features</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-500" />
-                  <span>Student Management</span>
-                </div>
-                <div className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
-                  <BarChart3 className="h-5 w-5 text-green-500" />
-                  <span>Analytics Dashboard</span>
-                </div>
-                <div className="flex items-center gap-3 p-2 bg-purple-50 rounded-lg">
-                  <Lock className="h-5 w-5 text-purple-500" />
-                  <span>Course Management</span>
-                </div>
-                <div className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
-                  <Shield className="h-5 w-5 text-red-500" />
-                  <span>System Settings</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Admin Access:</h3>
-              <div className="text-sm text-blue-700 font-mono bg-white px-3 py-2 rounded border">
-                <strong>Username:</strong> admin<br />
-                <strong>Password:</strong> admin123
-              </div>
-            </div>
           </CardContent>
         </Card>
 
