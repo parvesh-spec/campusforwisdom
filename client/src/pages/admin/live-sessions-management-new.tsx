@@ -156,7 +156,7 @@ export default function LiveSessionsManagement() {
     const sessionData = {
       ...formData,
       courseId: formData.courseId === "none" || formData.courseId === "" ? null : formData.courseId,
-      scheduledAt: new Date(formData.scheduledAt).toISOString(),
+      scheduledAt: formData.scheduledAt, // Let Zod coerce this to Date
     };
 
     if (editingSession) {

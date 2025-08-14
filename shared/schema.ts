@@ -152,6 +152,8 @@ export const insertLiveSessionSchema = createInsertSchema(liveSessions).omit({
   id: true,
   createdAt: true,
   currentParticipants: true,
+}).extend({
+  scheduledAt: z.coerce.date(), // Allow string to Date conversion
 });
 
 export const insertEnrollmentSchema = createInsertSchema(enrollments).omit({
