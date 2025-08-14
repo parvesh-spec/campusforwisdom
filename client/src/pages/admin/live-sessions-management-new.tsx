@@ -21,7 +21,6 @@ interface FormData {
   duration: number;
   maxParticipants: number;
   courseId: string;
-  meetingUrl: string;
 }
 
 export default function LiveSessionsManagement() {
@@ -44,8 +43,7 @@ export default function LiveSessionsManagement() {
     scheduledAt: "",
     duration: 60,
     maxParticipants: 100,
-    courseId: "",
-    meetingUrl: ""
+    courseId: ""
   });
 
   const { data: sessions, isLoading } = useQuery<LiveSession[]>({
@@ -57,11 +55,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({ 
-      url: "/api/admin/live-sessions", 
-      method: "POST", 
-      body: data
-    }),
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -75,11 +69,7 @@ export default function LiveSessionsManagement() {
 
   const updateSessionMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest({ 
-        url: `/api/admin/live-sessions/${id}`, 
-        method: "PUT", 
-        body: data
-      }),
+      apiRequest("PUT", `/api/admin/live-sessions/${id}`, data),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -93,7 +83,7 @@ export default function LiveSessionsManagement() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/live-sessions/${id}`),
     onSuccess: () => {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -104,10 +94,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createZoomMeetingMutation = useMutation({
-    mutationFn: (sessionId: string) => apiRequest({ 
-      url: `/api/admin/live-sessions/${sessionId}/create-meeting`, 
-      method: "POST" 
-    }),
+    mutationFn: (sessionId: string) => apiRequest("POST", `/api/admin/live-sessions/${sessionId}/create-meeting`),
     onSuccess: () => {
       toast({ title: "Zoom meeting created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -131,7 +118,7 @@ export default function LiveSessionsManagement() {
   });
 
   const startSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-sessions/${id}/start`),
     onSuccess: () => {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -142,7 +129,7 @@ export default function LiveSessionsManagement() {
   });
 
   const endSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("PUT", `/api/admin/live-sessions/${id}/end`),
     onSuccess: () => {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -159,8 +146,7 @@ export default function LiveSessionsManagement() {
       scheduledAt: "",
       duration: 60,
       maxParticipants: 100,
-      courseId: "",
-      meetingUrl: ""
+      courseId: ""
     });
   };
 
@@ -188,8 +174,7 @@ export default function LiveSessionsManagement() {
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration,
       maxParticipants: session.maxParticipants || 100,
-      courseId: session.courseId || "none",
-      meetingUrl: session.meetingUrl || ""
+      courseId: session.courseId || "none"
     });
     setIsCreateModalOpen(true);
   };
@@ -328,15 +313,11 @@ export default function LiveSessionsManagement() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meeting URL
-                  </label>
-                  <Input
-                    value={formData.meetingUrl}
-                    onChange={(e) => setFormData({ ...formData, meetingUrl: e.target.value })}
-                    placeholder="https://zoom.us/j/123456789"
-                  />
+                {/* Note: Meeting URL is automatically generated when creating Zoom meeting */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>📝 Note:</strong> Meeting URL will be automatically generated when you create the Zoom meeting using the "Create Meeting" button after scheduling the session.
+                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">

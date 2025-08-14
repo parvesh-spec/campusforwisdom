@@ -7,6 +7,7 @@ The application is built as a full-stack web platform with a React frontend, Exp
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+User prefers Urdu/Hindi mixed with English for technical explanations.
 
 # System Architecture
 
@@ -36,10 +37,25 @@ The backend implements a clean separation between routes, storage layer, and bus
 The database schema supports:
 - User management with role-based access (student, instructor, admin)
 - Course catalog with pricing, ratings, and enrollment tracking
-- Live session scheduling and participant management
+- Live session scheduling and participant management with Zoom integration
 - Payment processing and transaction history
 - Testimonials and feedback system
 - Administrative content management
+- Zoom WebSocket event tracking and session analytics
+
+## Zoom Integration Architecture
+- **Real-time Connection**: Zoom WebSocket integration for live session monitoring
+- **Meeting Management**: Automated Zoom meeting creation via API
+- **Session Tracking**: Real-time participant tracking and engagement metrics
+- **Recording Management**: Automatic recording retrieval and storage
+- **Event Processing**: Comprehensive Zoom webhook event handling
+
+### Recent Zoom API Optimizations (January 2025)
+- Removed manual Meeting URL entry from session creation form
+- Implemented proper Zoom API response handling (join_url, start_url, password fields)
+- Fixed TypeScript errors in apiRequest function calls
+- Added automatic meeting URL generation through "Create Meeting" workflow
+- Updated form to match Zoom API requirements: title, description, scheduledAt, duration, maxParticipants, courseId
 
 ## File Storage & Media
 - **Cloud Storage**: Google Cloud Storage for handling course materials, videos, and user-generated content

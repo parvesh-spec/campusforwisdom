@@ -298,6 +298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update session with Zoom meeting details
       await storage.updateLiveSession(sessionId, {
+        title: session.title,
+        duration: session.duration,
+        description: session.description,
+        scheduledAt: session.scheduledAt,
         zoomMeetingId: zoomMeeting.zoomMeetingId,
         zoomJoinUrl: zoomMeeting.joinUrl,
         zoomStartUrl: zoomMeeting.startUrl,
