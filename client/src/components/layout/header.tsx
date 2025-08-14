@@ -53,17 +53,14 @@ export default function Header() {
           </div>
 
           <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
+            <div className="ml-4 flex items-center md:ml-6">
               <Button 
                 variant="ghost" 
                 onClick={() => setIsLoginModalOpen(true)}
-                className="text-gray-600 hover:text-primary mr-2 flex items-center gap-2"
+                className="text-gray-600 hover:text-primary flex items-center gap-2"
               >
                 <User className="h-4 w-4" />
                 Student Login
-              </Button>
-              <Button className="bg-primary text-white hover:bg-primary/90">
-                Get Started
               </Button>
             </div>
           </div>
@@ -113,9 +110,6 @@ export default function Header() {
                 >
                   <User className="h-4 w-4" />
                   Student Login
-                </Button>
-                <Button className="w-full bg-primary text-white hover:bg-primary/90">
-                  Get Started
                 </Button>
               </div>
             </div>
