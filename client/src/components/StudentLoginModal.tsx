@@ -20,11 +20,8 @@ export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentL
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await apiRequest("/api/auth/login", {
-        method: "POST",
-        body: credentials,
-      });
-      return response;
+      const response = await apiRequest("POST", "/api/auth/login", credentials);
+      return await response.json();
     },
     onSuccess: (data) => {
       // Only allow students to login through this modal
