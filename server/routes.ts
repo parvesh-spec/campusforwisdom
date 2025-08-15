@@ -839,8 +839,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/consultations", requireAdmin, async (req, res) => {
     try {
       const consultationData = insertConsultationSchema.parse(req.body);
+      
+      // Create consultation first
       const consultation = await storage.createConsultation(consultationData);
-      res.json(consultation);
+      
+      try {
+        // Get expert and student details for Zoho webinar
+        const expert = await storage.getExpert(consultationData.expertId);
+        const student = await storage.getUser(consultationData.studentId);
+        
+        if (expert && student) {
+          console.log(`🚀 Creating Zoho webinar for consultation: ${consultation.title}`);
+          
+          // Create Zoho webinar
+          const webinarResponse = await zohoAPI.createWebinar({
+            title: `AI Expert Consultation: ${consultation.title}`,
+            description: `AI Expert consultation between ${expert.name} and ${student.firstName || student.username}. ${consultation.description || ''}`,
+            scheduledAt: consultation.scheduledAt,
+            duration: consultation.duration || 60,
+            timezone: 'Asia/Calcutta',
+            participants: [student.email].filter(Boolean)
+          });
+          
+          // Update consultation with meeting URL
+          const meetingUrl = webinarResponse.session.registrationLink;
+          const startLink = `https://meeting.zoho.in${webinarResponse.session.startLink}`;
+          
+          await storage.updateConsultation(consultation.id, {
+            meetingUrl: meetingUrl,
+            // Store start link in notes for expert access
+            notes: `Expert Start Link: ${startLink}`
+          });
+          
+          console.log(`✅ Webinar created successfully for consultation ${consultation.id}`);
+          console.log(`📧 Student registration link: ${meetingUrl}`);
+          console.log(`🎯 Expert start link: ${startLink}`);
+          
+          // Return consultation with meeting URL
+          const updatedConsultation = await storage.getConsultation(consultation.id);
+          res.json(updatedConsultation);
+        } else {
+          console.warn('⚠️ Could not find expert or student for webinar creation');
+          res.json(consultation);
+        }
+      } catch (webinarError) {
+        console.error('❌ Error creating Zoho webinar:', webinarError);
+        console.log('📝 Consultation created without webinar link');
+        res.json(consultation);
+      }
     } catch (error) {
       console.error("Error creating consultation:", error);
       if (error instanceof z.ZodError) {

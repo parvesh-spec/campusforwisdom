@@ -138,6 +138,8 @@ export interface IStorage {
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
   updateConsultation(id: string, consultation: Partial<InsertConsultation>): Promise<Consultation | null>;
   deleteConsultation(id: string): Promise<boolean>;
+  getConsultation(id: string): Promise<Consultation | null>;
+  getExpert(id: string): Promise<Expert | null>;
 }
 
 // Database storage implementation
@@ -569,6 +571,22 @@ export class DatabaseStorage implements IStorage {
   async deleteConsultation(id: string): Promise<boolean> {
     const result = await db.delete(consultations).where(eq(consultations.id, id));
     return result.rowCount! > 0;
+  }
+
+  async getConsultation(id: string): Promise<Consultation | null> {
+    const [consultation] = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, id));
+    return consultation || null;
+  }
+
+  async getExpert(id: string): Promise<Expert | null> {
+    const [expert] = await db
+      .select()
+      .from(experts)
+      .where(eq(experts.id, id));
+    return expert || null;
   }
 }
 
