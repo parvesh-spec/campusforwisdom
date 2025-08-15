@@ -52,6 +52,14 @@ export class ZohoWebinarAPI {
     if (!this.clientId || !this.clientSecret || !this.refreshToken || !this.zsoid) {
       throw new Error('Missing Zoho API credentials. Please set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, and ZOHO_ZSOID environment variables.');
     }
+
+    // Log credential validation (masked for security)
+    console.log('🔐 Zoho credentials loaded:', {
+      clientId: this.clientId.length > 0 ? `${this.clientId.substring(0, 8)}...` : 'EMPTY',
+      clientSecret: this.clientSecret.length > 0 ? `${this.clientSecret.substring(0, 8)}...` : 'EMPTY',
+      refreshToken: this.refreshToken.length > 0 ? `${this.refreshToken.substring(0, 12)}...` : 'EMPTY',
+      zsoid: this.zsoid.length > 0 ? `${this.zsoid}` : 'EMPTY'
+    });
   }
 
   private async refreshAccessToken(): Promise<string> {
@@ -73,61 +81,59 @@ export class ZohoWebinarAPI {
         grant_type: 'refresh_token',
       });
 
-      console.log('🌐 Making request to Zoho token endpoint...');
+      // Try different Zoho datacenters
+      const datacenters = ['accounts.zoho.com', 'accounts.zoho.eu', 'accounts.zoho.in', 'accounts.zoho.com.au'];
       
-      const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'CampusForWisdom/1.0',
-        },
-        body: params,
-      });
+      for (const datacenter of datacenters) {
+        try {
+          console.log(`🌍 Trying datacenter: ${datacenter}`);
+          
+          const response = await fetch(`https://${datacenter}/oauth/v2/token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'CampusForWisdom/1.0',
+            },
+            body: params,
+          });
 
-      console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+          console.log(`📡 Response status: ${response.status} ${response.statusText}`);
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('❌ Zoho token refresh failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries()),
-          body: errorData
-        });
-        
-        // Check for specific error conditions
-        if (response.status === 400) {
-          throw new Error(`Invalid refresh token or client credentials. Please check your Zoho API credentials.`);
-        } else if (response.status === 401) {
-          throw new Error(`Unauthorized: Refresh token may be expired. Please regenerate Zoho API credentials.`);
-        } else {
-          throw new Error(`Failed to refresh access token: ${response.status} - ${errorData}`);
+          if (response.ok) {
+            const responseText = await response.text();
+            console.log('📄 Response body:', responseText.substring(0, 200) + '...');
+
+            try {
+              const data = JSON.parse(responseText) as ZohoTokenResponse;
+              
+              if (data.access_token) {
+                this.accessToken = data.access_token;
+                this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000;
+                
+                console.log('✅ Zoho access token refreshed successfully');
+                console.log(`🕒 Token expires in ${data.expires_in} seconds`);
+                return this.accessToken;
+              }
+            } catch (parseError) {
+              console.log(`❌ JSON parse error for ${datacenter}:`, parseError);
+              continue;
+            }
+          } else {
+            const errorData = await response.text();
+            console.log(`❌ ${datacenter} failed:`, response.status, errorData.substring(0, 100));
+            continue;
+          }
+        } catch (fetchError) {
+          console.log(`❌ Network error for ${datacenter}:`, fetchError);
+          continue;
         }
       }
-
-      const responseText = await response.text();
-      console.log('📄 Response body:', responseText);
-
-      let data: ZohoTokenResponse;
-      try {
-        data = JSON.parse(responseText) as ZohoTokenResponse;
-      } catch (parseError) {
-        throw new Error(`Invalid JSON response from Zoho: ${responseText}`);
-      }
-
-      if (!data.access_token) {
-        throw new Error(`No access token in response: ${JSON.stringify(data)}`);
-      }
-
-      this.accessToken = data.access_token;
-      this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000; // Refresh 1 minute before expiry
-
-      console.log('✅ Zoho access token refreshed successfully');
-      console.log(`🕒 Token expires in ${data.expires_in} seconds`);
-      return this.accessToken;
+      
+      // If we get here, all datacenters failed
+      throw new Error('All Zoho datacenters failed. Please check your refresh token and client credentials.');
+      
     } catch (error) {
       console.error('❌ Error refreshing Zoho access token:', error);
-      console.error('🔧 Please verify your Zoho API credentials in environment variables');
       throw error;
     }
   }
