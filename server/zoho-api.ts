@@ -83,7 +83,8 @@ export class ZohoWebinarAPI {
       });
 
       // Try different Zoho datacenters
-      const datacenters = ['accounts.zoho.com', 'accounts.zoho.eu', 'accounts.zoho.in', 'accounts.zoho.com.au'];
+      // For India users, try .in first, then fallback to others if needed
+    const datacenters = ['accounts.zoho.in', 'accounts.zoho.com', 'accounts.zoho.eu', 'accounts.zoho.com.au'];
       
       for (const datacenter of datacenters) {
         try {
@@ -158,6 +159,30 @@ export class ZohoWebinarAPI {
     return this.accessToken;
   }
 
+  async getUserDetails(): Promise<{ zuid: string }> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+      
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/user.json`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Zoho-oauthtoken ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user details: ${response.status}`);
+      }
+
+      const data = await response.json() as any;
+      // Return the first user's ZUID (usually the current user)
+      return { zuid: data.users?.[0]?.zuid || this.zsoid };
+    } catch (error) {
+      console.warn('⚠️ Could not get user ZUID, using organization ID as fallback');
+      return { zuid: this.zsoid };
+    }
+  }
+
   private formatDateTime(date: Date): string {
     // Format date to "Jun 19, 2020 07:00 PM" format expected by Zoho API
     const dateOptions: Intl.DateTimeFormatOptions = {
@@ -189,10 +214,13 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
+      // Get user details to get valid ZUID for presenter
+      const userDetails = await this.getUserDetails();
+      
       const requestBody: ZohoWebinarRequest = {
         topic: webinarData.title,
         agenda: webinarData.description,
-        presenter: this.zsoid, // Use the organization ID as presenter ZUID
+        presenter: userDetails.zuid, // Use actual user ZUID as presenter
         startTime: this.formatDateTime(webinarData.scheduledAt),
         duration: webinarData.duration * 60 * 1000, // Convert minutes to milliseconds
         timezone: webinarData.timezone || 'Asia/Calcutta',
