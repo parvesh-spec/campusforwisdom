@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Lock, X } from "lucide-react";
+import { User, Lock, X, UserPlus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import StudentRegistrationModal from "./StudentRegistrationModal";
 
 interface StudentLoginModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface StudentLoginModalProps {
 export default function StudentLoginModal({ isOpen, onClose, onOpenChange, trigger }: StudentLoginModalProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showRegistration, setShowRegistration] = useState(false);
   const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
@@ -57,6 +59,7 @@ export default function StudentLoginModal({ isOpen, onClose, onOpenChange, trigg
   const handleClose = (open: boolean) => {
     if (!open) {
       resetForm();
+      setShowRegistration(false);
       if (onClose) onClose();
       if (onOpenChange) onOpenChange(false);
     }
@@ -119,7 +122,28 @@ export default function StudentLoginModal({ isOpen, onClose, onOpenChange, trigg
             {loginMutation.isPending ? "Signing In..." : "Sign In"}
           </Button>
         </form>
+
+        {/* Registration Link */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 text-sm">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => setShowRegistration(true)}
+              className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+            >
+              Create Account
+            </button>
+          </p>
+        </div>
       </DialogContent>
+
+      {/* Registration Modal */}
+      <StudentRegistrationModal 
+        isOpen={showRegistration} 
+        onOpenChange={setShowRegistration}
+        onClose={() => setShowRegistration(false)}
+      />
     </Dialog>
   );
 }

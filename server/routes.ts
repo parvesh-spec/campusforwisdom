@@ -90,6 +90,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Student Registration route
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, username, password } = req.body;
+      
+      // Basic validation
+      if (!firstName || !lastName || !email || !phone || !username || !password) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+
+      // Create new student user
+      const newUser = await storage.createUser({
+        username,
+        email,
+        password,
+        firstName,
+        lastName,
+        phone,
+        role: "student"
+      });
+
+      // Auto-login the user after successful registration
+      const sessionUser = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+      };
+
+      (req.session as any).user = sessionUser;
+      (req.session as any).studentUser = sessionUser;
+
+      res.json({ user: sessionUser });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
     try {
