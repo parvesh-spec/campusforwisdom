@@ -7,6 +7,8 @@ import { pool } from "./db";
 import { z } from "zod";
 import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
+import multer from "multer";
+import cloudinary from "./cloudinary";
 
 // PostgreSQL session store configuration
 const PgSession = connectPgSimple(session);
@@ -812,6 +814,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching consultations:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Configure multer for file uploads
+  const upload = multer({ storage: multer.memoryStorage() });
+
+  // Image upload endpoint
+  app.post("/api/upload/image", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder: 'campus-for-wisdom/avatars',
+            transformation: [
+              { width: 400, height: 400, crop: 'fill' },
+              { quality: 'auto:good' }
+            ],
+            format: 'jpg'
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
+      });
+
+      res.json({ url: (result as any).secure_url });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ error: "Failed to upload image" });
     }
   });
 

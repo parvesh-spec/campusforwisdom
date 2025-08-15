@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Star, Users, DollarSign, Search, Filter } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 import type { Expert, InsertExpert } from "@shared/schema";
 
 export default function AIExpertsManagement() {
@@ -465,13 +466,11 @@ export default function AIExpertsManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                type="url"
+              <Label htmlFor="avatar">Avatar Image</Label>
+              <ImageUpload
                 value={formData.avatar || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, avatar: e.target.value }))}
-                placeholder="https://example.com/avatar.jpg"
+                onChange={(url) => setFormData(prev => ({ ...prev, avatar: url }))}
+                disabled={createExpertMutation.isPending || updateExpertMutation.isPending}
               />
             </div>
 
