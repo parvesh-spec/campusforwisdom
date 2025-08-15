@@ -229,20 +229,20 @@ export default function WebinarManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      AI Expert
+                      Related Course
                     </label>
                     <Select
-                      value={formData.expertId || "none"}
-                      onValueChange={(value) => setFormData({ ...formData, expertId: value === "none" ? undefined : value })}
+                      value={formData.courseId || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, courseId: value === "none" ? undefined : value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select AI Expert" />
+                        <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No expert</SelectItem>
-                        {experts?.map((expert) => (
-                          <SelectItem key={expert.id} value={expert.id}>
-                            {expert.name} - {expert.specialization}
+                        <SelectItem value="none">No course</SelectItem>
+                        {courses?.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
                           </SelectItem>
                         ))}
                       </SelectContent>

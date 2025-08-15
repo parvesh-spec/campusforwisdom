@@ -64,6 +64,7 @@ export const webinars = pgTable("webinars", {
   meetingUrl: text("meeting_url"),
   instructorId: varchar("instructor_id").references(() => users.id),
   courseId: varchar("course_id").references(() => courses.id),
+  expertId: varchar("expert_id").references(() => experts.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
