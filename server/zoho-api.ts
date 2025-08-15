@@ -42,7 +42,7 @@ export class ZohoWebinarAPI {
   private zsoid: string;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
-  private apiDomain: string = 'meeting.zoho.in'; // Default to India datacenter
+  private apiDomain: string = 'www.zohoapis.in/meeting/v1'; // Default to India datacenter
 
   constructor() {
     this.clientId = process.env.ZOHO_CLIENT_ID || '';
@@ -113,13 +113,13 @@ export class ZohoWebinarAPI {
                 
                 // Set API domain based on successful datacenter
                 if (datacenter.includes('.in')) {
-                  this.apiDomain = 'meeting.zoho.in';
+                  this.apiDomain = 'www.zohoapis.in/meeting/v1';
                 } else if (datacenter.includes('.eu')) {
-                  this.apiDomain = 'meeting.zoho.eu';
+                  this.apiDomain = 'www.zohoapis.eu/meeting/v1';
                 } else if (datacenter.includes('.com.au')) {
-                  this.apiDomain = 'meeting.zoho.com.au';
+                  this.apiDomain = 'www.zohoapis.com.au/meeting/v1';
                 } else {
-                  this.apiDomain = 'meeting.zoho.com';
+                  this.apiDomain = 'www.zohoapis.com/meeting/v1';
                 }
                 
                 console.log('✅ Zoho access token refreshed successfully');
@@ -159,17 +159,23 @@ export class ZohoWebinarAPI {
   }
 
   private formatDateTime(date: Date): string {
-    // Format date to "Jun 19, 2023 04:00 PM" format expected by Zoho
-    const options: Intl.DateTimeFormatOptions = {
+    // Format date to "Jun 19, 2020 07:00 PM" format expected by Zoho API
+    const dateOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'short',
-      day: '2-digit',
+      day: 'numeric'
+    };
+    const timeOptions: Intl.DateTimeFormatOptions = {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
       timeZone: 'Asia/Calcutta'
     };
-    return date.toLocaleDateString('en-US', options);
+    
+    const datePart = date.toLocaleDateString('en-US', dateOptions);
+    const timePart = date.toLocaleTimeString('en-US', timeOptions);
+    
+    return `${datePart} ${timePart}`;
   }
 
   async createWebinar(webinarData: {
@@ -199,13 +205,13 @@ export class ZohoWebinarAPI {
 
       console.log('🚀 Creating Zoho webinar with data:', requestBody);
 
-      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
+      const response = await fetch(`https://${this.apiDomain}/${this.zsoid}/webinars.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
         },
-        body: JSON.stringify({ session: requestBody }),
+        body: JSON.stringify({ webinar: requestBody }),
       });
 
       if (!response.ok) {
@@ -228,7 +234,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
+      const response = await fetch(`https://${this.apiDomain}/${this.zsoid}/webinars.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
