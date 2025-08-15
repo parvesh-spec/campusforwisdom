@@ -5,13 +5,14 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase } from "lucide-react";
+import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, Settings, Shield, Bell, CreditCard, HelpCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useStudentAuth } from "@/hooks/useAuth";
@@ -33,10 +34,20 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+const sidebarItems = [
+  { id: 'profile', label: 'Personal Information', icon: User },
+  { id: 'account', label: 'Account Settings', icon: Settings },
+  { id: 'security', label: 'Security', icon: Shield },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
+  { id: 'help', label: 'Help & Support', icon: HelpCircle },
+];
+
 export default function ProfileSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user: studentUser, isAuthenticated } = useStudentAuth();
+  const [activeSection, setActiveSection] = React.useState('profile');
 
   // Get current user data
   const { data: user, isLoading } = useQuery({
@@ -129,264 +140,210 @@ export default function ProfileSettings() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your personal information and preferences</p>
-        </div>
+  const renderProfileSection = () => (
+    <div className="space-y-6">
+      {/* Read-only Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Account Information
+          </CardTitle>
+          <CardDescription>
+            This information cannot be changed. Contact support if you need to update these details.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div>
+            <Label className="text-sm font-medium text-gray-700">Username</Label>
+            <Input value={user?.username || ''} disabled className="bg-gray-100" />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email Address
+            </Label>
+            <Input value={user?.email || ''} disabled className="bg-gray-100" />
+          </div>
+          {user?.phone && (
+            <div>
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                WhatsApp Number
+              </Label>
+              <Input value={user.phone} disabled className="bg-gray-100" />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <div className="grid gap-6">
-          {/* Read-only Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
-                Account Information
-              </CardTitle>
-              <CardDescription>
-                This information cannot be changed. Contact support if you need to update these details.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
+      {/* Editable Profile Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Personal Information
+          </CardTitle>
+          <CardDescription>
+            Update your personal details and preferences.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Required Fields */}
               <div>
-                <Label className="text-sm font-medium text-gray-700">Username</Label>
-                <Input value={user.username} disabled className="bg-gray-100" />
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email Address
-                </Label>
-                <Input value={user.email} disabled className="bg-gray-100" />
-              </div>
-              {user.phone && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    WhatsApp Number
-                  </Label>
-                  <Input value={user.phone} disabled className="bg-gray-100" />
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Required Information</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your first name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your last name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
 
-          {/* Editable Profile Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Personal Information
-              </CardTitle>
-              <CardDescription>
-                Update your personal details and preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Required Fields */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Required Information</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your first name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your last name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
+              <Separator />
 
-                  <Separator />
+              {/* Personal Details */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Details</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Date of Birth
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-                  {/* Personal Details */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Personal Details
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="dateOfBirth"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date of Birth</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="gender"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Gender</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select gender" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="male">Male</SelectItem>
-                                <SelectItem value="female">Female</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                                <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
+              <Separator />
 
-                  <Separator />
-
-                  {/* Address Information */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Address Information
-                    </h3>
-                    <div className="grid gap-4">
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Enter your full address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>City</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your city" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="state"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>State</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your state" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="country"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your country" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Professional Information */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                      <Briefcase className="h-5 w-5" />
-                      Professional Information
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="occupation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Occupation</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Software Engineer, Student" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="education"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Education</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Bachelor's in Computer Science" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              {/* Address Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Address Information
+                </h3>
+                <div className="grid gap-4">
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter your full address"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid gap-4 md:grid-cols-3">
                     <FormField
                       control={form.control}
-                      name="experience"
+                      name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Experience Level</FormLabel>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter city" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter state" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select your experience level" />
+                                <SelectValue />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="beginner">Beginner (0-1 years)</SelectItem>
-                              <SelectItem value="intermediate">Intermediate (1-3 years)</SelectItem>
-                              <SelectItem value="advanced">Advanced (3+ years)</SelectItem>
-                              <SelectItem value="expert">Expert (5+ years)</SelectItem>
+                              <SelectItem value="India">India</SelectItem>
+                              <SelectItem value="USA">United States</SelectItem>
+                              <SelectItem value="UK">United Kingdom</SelectItem>
+                              <SelectItem value="Canada">Canada</SelectItem>
+                              <SelectItem value="Australia">Australia</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -394,20 +351,212 @@ export default function ProfileSettings() {
                       )}
                     />
                   </div>
+                </div>
+              </div>
 
-                  <div className="flex justify-end pt-6">
-                    <Button
-                      type="submit"
-                      disabled={updateProfileMutation.isPending}
-                      className="px-8"
-                    >
-                      {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+              <Separator />
+
+              {/* Professional Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Professional Information
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="occupation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Software Engineer, Student" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="education"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Education
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Bachelor's in Computer Science" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Experience</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Tell us about your work experience, skills, or interests in AI/technology"
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end pt-6">
+                <Button 
+                  type="submit" 
+                  disabled={updateProfileMutation.isPending}
+                  className="min-w-32"
+                >
+                  {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderAccountSection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Settings</CardTitle>
+          <CardDescription>Manage your account preferences and settings.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Account settings features will be available soon.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSecuritySection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Security & Privacy</CardTitle>
+          <CardDescription>Manage your password and security preferences.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Security settings features will be available soon.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderNotificationsSection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Notifications</CardTitle>
+          <CardDescription>Choose what notifications you want to receive.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Notification settings features will be available soon.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderBillingSection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing & Payments</CardTitle>
+          <CardDescription>Manage your payment methods and billing information.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Billing features will be available soon.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderHelpSection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Help & Support</CardTitle>
+          <CardDescription>Get help with your account and learn more about our platform.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">Help and support features will be available soon.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'profile':
+        return renderProfileSection();
+      case 'account':
+        return renderAccountSection();
+      case 'security':
+        return renderSecuritySection();
+      case 'notifications':
+        return renderNotificationsSection();
+      case 'billing':
+        return renderBillingSection();
+      case 'help':
+        return renderHelpSection();
+      default:
+        return renderProfileSection();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+          <div className="p-6">
+            <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
+            <p className="text-sm text-gray-600 mt-1">Manage your account</p>
+          </div>
+          
+          <nav className="px-3">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors mb-1 ${
+                    isActive 
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="p-8">
+            <div className="max-w-4xl">
+              {renderContent()}
+            </div>
+          </div>
         </div>
       </div>
     </div>
