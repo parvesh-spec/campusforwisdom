@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square } from "lucide-react";
 import type { LiveSession, Course } from "@shared/schema";
 
-export default function LiveSessionsManagement() {
+export default function WebinarManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -38,14 +38,33 @@ export default function LiveSessionsManagement() {
 
   const createSessionMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
-    onSuccess: () => {
-      toast({ title: "Live session created successfully!" });
+    onSuccess: (response: any) => {
+      if (response.zohoData) {
+        toast({ 
+          title: "Webinar created successfully!", 
+          description: `Registration link: ${response.registrationLink}` 
+        });
+      } else if (response.warning) {
+        toast({ 
+          title: "Webinar created with warning", 
+          description: response.warning,
+          variant: "default" 
+        });
+      } else if (response.info) {
+        toast({ 
+          title: "Session created", 
+          description: response.info,
+          variant: "default" 
+        });
+      } else {
+        toast({ title: "Webinar created successfully!" });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
       setIsCreateModalOpen(false);
       resetForm();
     },
     onError: () => {
-      toast({ title: "Error creating session", variant: "destructive" });
+      toast({ title: "Error creating webinar", variant: "destructive" });
     },
   });
 
@@ -53,13 +72,13 @@ export default function LiveSessionsManagement() {
     mutationFn: ({ id, data }: { id: string; data: any }) => 
       apiRequest("PUT", `/api/admin/live-sessions/${id}`, data),
     onSuccess: () => {
-      toast({ title: "Session updated successfully!" });
+      toast({ title: "Webinar updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
       setEditingSession(null);
       resetForm();
     },
     onError: () => {
-      toast({ title: "Error updating session", variant: "destructive" });
+      toast({ title: "Error updating webinar", variant: "destructive" });
     },
   });
 
@@ -154,33 +173,33 @@ export default function LiveSessionsManagement() {
       <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Sessions Management</h1>
-            <p className="text-gray-600 mt-1">Schedule, manage, and monitor live learning sessions</p>
+            <h1 className="text-2xl font-bold text-gray-900">Webinar Management</h1>
+            <p className="text-gray-600 mt-1">Create, manage, and monitor webinars through Zoho integration</p>
           </div>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-white hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
-                Schedule Session
+                Create Webinar
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingSession ? "Edit Session" : "Schedule New Session"}
+                  {editingSession ? "Edit Webinar" : "Create New Webinar"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Title *
+                      Webinar Title *
                     </label>
                     <Input
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="ChatGPT Integration Workshop"
+                      placeholder="AI Marketing Webinar"
                     />
                   </div>
                   <div>
@@ -283,7 +302,7 @@ export default function LiveSessionsManagement() {
                     type="submit"
                     disabled={createSessionMutation.isPending || updateSessionMutation.isPending}
                   >
-                    {editingSession ? "Update Session" : "Schedule Session"}
+                    {editingSession ? "Update Session" : "Create Webinar"}
                   </Button>
                 </div>
               </form>
@@ -441,11 +460,11 @@ export default function LiveSessionsManagement() {
             ) : (
               <div className="text-center py-16">
                 <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions scheduled</h3>
-                <p className="text-gray-600 mb-4">Get started by scheduling your first live session.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No webinars scheduled</h3>
+                <p className="text-gray-600 mb-4">Get started by creating your first webinar.</p>
                 <Button onClick={() => setIsCreateModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Schedule Session
+                  Create Webinar
                 </Button>
               </div>
             )}
@@ -457,19 +476,19 @@ export default function LiveSessionsManagement() {
           <Dialog open={true} onOpenChange={() => setEditingSession(null)}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Edit Session</DialogTitle>
+                <DialogTitle>Edit Webinar</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Title *
+                      Webinar Title *
                     </label>
                     <Input
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="ChatGPT Integration Workshop"
+                      placeholder="AI Marketing Webinar"
                     />
                   </div>
                   <div>

@@ -2,16 +2,18 @@ import {
   Course, 
   User, 
   LiveSession,
+  Webinar,
   Testimonial, 
   Enrollment,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
+  InsertWebinar,
   InsertTestimonial, 
   InsertEnrollment,
   courses,
   users,
-  liveSessions,
+  webinars,
   testimonials,
   enrollments
 } from "@shared/schema";
@@ -65,13 +67,19 @@ export interface IStorage {
     category: string;
   }>>;
 
-  // Live session methods
+  // Webinar methods (keeping LiveSession methods for backward compatibility)
   getLiveSessions(): Promise<LiveSession[]>;
   createLiveSession(session: InsertLiveSession): Promise<LiveSession>;
   updateLiveSession(id: string, session: InsertLiveSession): Promise<LiveSession | null>;
   deleteLiveSession(id: string): Promise<boolean>;
   startLiveSession(id: string): Promise<LiveSession | null>;
   endLiveSession(id: string): Promise<LiveSession | null>;
+
+  // New webinar methods
+  getWebinars(): Promise<Webinar[]>;
+  createWebinar(webinar: InsertWebinar): Promise<Webinar>;
+  updateWebinar(id: string, webinar: InsertWebinar): Promise<Webinar | null>;
+  deleteWebinar(id: string): Promise<boolean>;
 
   // Testimonial methods
   getPublishedTestimonials(): Promise<TestimonialWithStudent[]>;
@@ -172,12 +180,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLiveSessions(): Promise<LiveSession[]> {
-    return await db.select().from(liveSessions).orderBy(desc(liveSessions.scheduledAt));
+    return await db.select().from(webinars).orderBy(desc(webinars.scheduledAt));
   }
 
   async createLiveSession(session: InsertLiveSession): Promise<LiveSession> {
     const [newSession] = await db
-      .insert(liveSessions)
+      .insert(webinars)
       .values({
         ...session,
         instructorId: session.instructorId || null,
@@ -193,34 +201,70 @@ export class DatabaseStorage implements IStorage {
 
   async updateLiveSession(id: string, sessionData: InsertLiveSession): Promise<LiveSession | null> {
     const [session] = await db
-      .update(liveSessions)
+      .update(webinars)
       .set(sessionData)
-      .where(eq(liveSessions.id, id))
+      .where(eq(webinars.id, id))
       .returning();
     return session || null;
   }
 
   async deleteLiveSession(id: string): Promise<boolean> {
-    const result = await db.delete(liveSessions).where(eq(liveSessions.id, id));
+    const result = await db.delete(webinars).where(eq(webinars.id, id));
     return (result.rowCount || 0) > 0;
   }
 
   async startLiveSession(id: string): Promise<LiveSession | null> {
     const [session] = await db
-      .update(liveSessions)
+      .update(webinars)
       .set({ status: "live" })
-      .where(eq(liveSessions.id, id))
+      .where(eq(webinars.id, id))
       .returning();
     return session || null;
   }
 
   async endLiveSession(id: string): Promise<LiveSession | null> {
     const [session] = await db
-      .update(liveSessions)
+      .update(webinars)
       .set({ status: "completed" })
-      .where(eq(liveSessions.id, id))
+      .where(eq(webinars.id, id))
       .returning();
     return session || null;
+  }
+
+  // New webinar methods
+  async getWebinars(): Promise<Webinar[]> {
+    return await db.select().from(webinars).orderBy(desc(webinars.scheduledAt));
+  }
+
+  async createWebinar(webinar: InsertWebinar): Promise<Webinar> {
+    const [newWebinar] = await db
+      .insert(webinars)
+      .values({
+        ...webinar,
+        instructorId: webinar.instructorId || null,
+        courseId: webinar.courseId || null,
+        maxParticipants: webinar.maxParticipants || null,
+        meetingUrl: webinar.meetingUrl || null,
+        timezone: webinar.timezone || "Asia/Calcutta",
+        currentParticipants: 0,
+        status: "scheduled",
+      })
+      .returning();
+    return newWebinar;
+  }
+
+  async updateWebinar(id: string, webinarData: InsertWebinar): Promise<Webinar | null> {
+    const [webinar] = await db
+      .update(webinars)
+      .set(webinarData)
+      .where(eq(webinars.id, id))
+      .returning();
+    return webinar || null;
+  }
+
+  async deleteWebinar(id: string): Promise<boolean> {
+    const result = await db.delete(webinars).where(eq(webinars.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   async getPublishedTestimonials(): Promise<TestimonialWithStudent[]> {
@@ -319,7 +363,7 @@ export class DatabaseStorage implements IStorage {
   }> {
     const studentCount = await db.select().from(users).where(eq(users.role, "student"));
     const activeCourses = await db.select().from(courses).where(eq(courses.isActive, true));
-    const liveSessionsCount = await db.select().from(liveSessions).where(eq(liveSessions.status, "live"));
+    const liveSessionsCount = await db.select().from(webinars).where(eq(webinars.status, "live"));
 
     return {
       totalStudents: studentCount.length,

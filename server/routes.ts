@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { z } from "zod";
-import { insertCourseSchema, insertLiveSessionSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
+import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
+import { zohoAPI } from "./zoho-api";
 
 // Simple session configuration
 const MemoryStoreSession = MemoryStore(session);
@@ -255,15 +256,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create webinar through Zoho API
   app.post("/api/admin/live-sessions", requireAdmin, async (req, res) => {
     try {
-      const sessionData = insertLiveSessionSchema.parse(req.body);
-      const session = await storage.createLiveSession(sessionData);
-      res.json(session);
+      const sessionData = insertWebinarSchema.parse(req.body);
+      
+      // Create webinar through Zoho API if available
+      if (zohoAPI) {
+        try {
+          console.log('🚀 Creating webinar through Zoho API...');
+          const zohoResponse = await zohoAPI.createWebinar({
+          title: sessionData.title,
+          description: sessionData.description,
+          scheduledAt: new Date(sessionData.scheduledAt),
+          duration: sessionData.duration,
+          timezone: sessionData.timezone || 'Asia/Calcutta',
+        });
+
+        // Store webinar in database with Zoho details
+        const webinarWithZohoData = {
+          ...sessionData,
+          meetingKey: zohoResponse.session.meetingKey,
+          registrationLink: zohoResponse.session.registrationLink,
+          startLink: zohoResponse.session.startLink,
+          webinarId: zohoResponse.session.meetingKey,
+          presenterZuid: zohoResponse.session.presenter,
+        };
+
+        const session = await storage.createLiveSession(webinarWithZohoData);
+        
+        console.log('✅ Webinar created successfully with Zoho integration');
+        res.json({
+          ...session,
+          zohoData: zohoResponse.session
+          });
+        } catch (zohoError) {
+          console.error('❌ Zoho API Error:', zohoError);
+          
+          // Fallback: create session without Zoho integration
+          console.log('⚠️ Falling back to creating session without Zoho integration');
+          const session = await storage.createLiveSession(sessionData);
+          res.json({
+            ...session,
+            warning: 'Created without Zoho integration. Please check Zoho API credentials.'
+          });
+        }
+      } else {
+        // No Zoho API available - create session without integration
+        console.log('⚠️ Creating session without Zoho integration - API not initialized');
+        const session = await storage.createLiveSession(sessionData);
+        res.json({
+          ...session,
+          info: 'Created without Zoho integration. Set up Zoho credentials to enable webinar features.'
+        });
+      }
     } catch (error) {
-      console.error("Error creating live session:", error);
+      console.error("Error creating webinar:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid session data", details: error.errors });
+        return res.status(400).json({ error: "Invalid webinar data", details: error.errors });
       }
       res.status(500).json({ error: "Internal server error" });
     }

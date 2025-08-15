@@ -32,7 +32,7 @@ export const courses = pgTable("courses", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const liveSessions = pgTable("live_sessions", {
+export const webinars = pgTable("webinars", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -41,6 +41,14 @@ export const liveSessions = pgTable("live_sessions", {
   maxParticipants: integer("max_participants").default(100),
   currentParticipants: integer("current_participants").default(0),
   status: text("status").notNull().default("scheduled"), // scheduled, live, completed, cancelled
+  // Zoho-specific fields
+  meetingKey: text("meeting_key"), // Zoho's webinar meeting key
+  registrationLink: text("registration_link"), // Zoho registration URL
+  startLink: text("start_link"), // Zoho start webinar URL
+  presenterZuid: text("presenter_zuid"), // Zoho User ID of presenter
+  webinarId: text("webinar_id"), // Zoho's internal webinar ID
+  timezone: text("timezone").default("Asia/Calcutta"),
+  // Legacy field for backward compatibility
   meetingUrl: text("meeting_url"),
   instructorId: varchar("instructor_id").references(() => users.id),
   courseId: varchar("course_id").references(() => courses.id),
@@ -57,10 +65,11 @@ export const enrollments = pgTable("enrollments", {
   completedAt: timestamp("completed_at"),
 });
 
-export const sessionAttendees = pgTable("session_attendees", {
+export const webinarAttendees = pgTable("webinar_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => liveSessions.id).notNull(),
+  webinarId: varchar("webinar_id").references(() => webinars.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  email: text("email"), // For external participants
   joinedAt: timestamp("joined_at").defaultNow(),
   leftAt: timestamp("left_at"),
 });
@@ -99,10 +108,14 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   studentsCount: true,
 });
 
-export const insertLiveSessionSchema = createInsertSchema(liveSessions).omit({
+export const insertWebinarSchema = createInsertSchema(webinars).omit({
   id: true,
   createdAt: true,
   currentParticipants: true,
+  meetingKey: true,
+  registrationLink: true,
+  startLink: true,
+  webinarId: true,
 });
 
 export const insertEnrollmentSchema = createInsertSchema(enrollments).omit({
@@ -131,8 +144,12 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 
-export type LiveSession = typeof liveSessions.$inferSelect;
-export type InsertLiveSession = z.infer<typeof insertLiveSessionSchema>;
+export type Webinar = typeof webinars.$inferSelect;
+export type InsertWebinar = z.infer<typeof insertWebinarSchema>;
+
+// Keep LiveSession for backward compatibility during migration
+export type LiveSession = Webinar;
+export type InsertLiveSession = InsertWebinar;
 
 export type Enrollment = typeof enrollments.$inferSelect;
 export type InsertEnrollment = z.infer<typeof insertEnrollmentSchema>;
