@@ -10,14 +10,30 @@ import {
   Users, 
   Video,
   LayoutDashboard,
-  GraduationCap
+  GraduationCap,
+  LogOut
 } from "lucide-react";
-import AdminLogout from "@/components/AdminLogout";
+import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAdminAuth } from "@/hooks/useAuth";
 
 export default function AdminSidebar() {
   const [location] = useLocation();
+  const queryClient = useQueryClient();
+  const { user: adminUser } = useAdminAuth();
 
   const isActive = (path: string) => location === path;
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest('POST', '/api/auth/logout/admin');
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['/api/auth/admin'], null);
+      queryClient.refetchQueries();
+    },
+  });
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -65,7 +81,28 @@ export default function AdminSidebar() {
 
       <div className="absolute bottom-4 left-4 right-4">
         <div className="pt-4 border-t border-gray-200">
-          <AdminLogout />
+          {adminUser && (
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600">
+                <div className="font-medium">
+                  {adminUser.firstName && adminUser.lastName 
+                    ? `${adminUser.firstName} ${adminUser.lastName}`
+                    : adminUser.username}
+                </div>
+                <div className="text-xs text-gray-500">Administrator</div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </aside>

@@ -27,8 +27,11 @@ export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentL
     onSuccess: (data) => {
       // Only allow students to login through this modal
       if (data.user.role === "student") {
-        // Update the auth cache with the user data
+        // Update the student auth cache with the user data
+        queryClient.setQueryData(['/api/auth/student'], data.user);
         queryClient.setQueryData(['/api/auth/user'], data.user);
+        // Refresh all queries to update UI immediately
+        queryClient.refetchQueries();
         onClose();
       } else {
         throw new Error("Please use the admin portal for administrator access.");
