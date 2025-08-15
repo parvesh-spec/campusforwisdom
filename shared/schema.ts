@@ -117,6 +117,8 @@ export const insertWebinarSchema = createInsertSchema(webinars).omit({
   registrationLink: true,
   startLink: true,
   webinarId: true,
+}).extend({
+  scheduledAt: z.string().transform((str) => new Date(str)),
 });
 
 export const insertEnrollmentSchema = createInsertSchema(enrollments).omit({

@@ -1,0 +1,49 @@
+6:08:25 AM [express] GET /api/admin/live-sessions 200 in 223ms :: [{"id":"4d6fe35c-9f6f-4f9c-af36-b0…
+Error creating webinar: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "date",
+    "received": "string",
+    "path": [
+      "scheduledAt"
+    ],
+    "message": "Expected date, received string"
+  }
+]
+    at get error [as error] (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:587:31)
+    at ZodObject.parse (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:663:22)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:262:47)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at requireAdmin (/home/runner/workspace/server/routes.ts:40:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at Immediate._onImmediate (/home/runner/workspace/node_modules/express-session/index.js:514:7)
+    at process.processImmediate (node:internal/timers:485:21) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ]
+}
+6:09:01 AM [express] POST /api/admin/live-sessions 400 in 13ms :: {"error":"Invalid webinar data","d…
