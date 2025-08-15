@@ -12,7 +12,7 @@ export default function AdminAuthWrapper({ children }: AdminAuthWrapperProps) {
   const [isChecking, setIsChecking] = useState(true);
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/auth/admin"],
     retry: false,
   });
 
@@ -25,7 +25,7 @@ export default function AdminAuthWrapper({ children }: AdminAuthWrapperProps) {
       return;
     }
 
-    if (user.role !== "admin") {
+    if (user && user.role !== "admin") {
       // User is authenticated but not an admin, redirect to admin login
       setLocation("/admin-login");
       return;

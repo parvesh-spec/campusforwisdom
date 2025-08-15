@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
@@ -22,6 +23,11 @@ export default function AdminLogin() {
     onSuccess: (data) => {
       // Only allow admin users on this page
       if (data.user.role === "admin") {
+        // Update admin auth cache
+        queryClient.setQueryData(['/api/auth/admin'], data.user);
+        queryClient.setQueryData(['/api/auth/user'], data.user);
+        // Refresh all queries to update UI immediately
+        queryClient.refetchQueries();
         setLocation("/admin");
       } else {
         throw new Error("Access denied. Admin privileges required.");
