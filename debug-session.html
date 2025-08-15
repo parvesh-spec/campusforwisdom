@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Session Data</title>
+</head>
+<body>
+    <h2>Debug Session Data</h2>
+    <button onclick="checkSession()">Check Current Session</button>
+    <button onclick="loginAsStudent()">Re-login as Student</button>
+    <button onclick="loginAsAdmin()">Re-login as Admin</button>
+    <button onclick="logoutAll()">Logout All</button>
+    
+    <div id="result" style="margin-top: 20px; white-space: pre-wrap; background: #f5f5f5; padding: 10px;"></div>
+
+    <script>
+        async function checkSession() {
+            try {
+                const [student, admin] = await Promise.all([
+                    fetch('/api/auth/student').then(r => r.json()).catch(e => ({error: e.message})),
+                    fetch('/api/auth/admin').then(r => r.json()).catch(e => ({error: e.message}))
+                ]);
+                
+                document.getElementById('result').textContent = 
+                    'Student Session:\n' + JSON.stringify(student, null, 2) + 
+                    '\n\nAdmin Session:\n' + JSON.stringify(admin, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function loginAsStudent() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'student', password: 'password' })
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = 'Student Login Response:\n' + JSON.stringify(data, null, 2);
+                setTimeout(checkSession, 1000);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Login Error: ' + error.message;
+            }
+        }
+
+        async function loginAsAdmin() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = 'Admin Login Response:\n' + JSON.stringify(data, null, 2);
+                setTimeout(checkSession, 1000);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Login Error: ' + error.message;
+            }
+        }
+
+        async function logoutAll() {
+            try {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                const data = await response.json();
+                document.getElementById('result').textContent = 'Logout Response:\n' + JSON.stringify(data, null, 2);
+                setTimeout(checkSession, 1000);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Logout Error: ' + error.message;
+            }
+        }
+
+        // Auto-check session on load
+        checkSession();
+    </script>
+</body>
+</html>

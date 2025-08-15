@@ -181,7 +181,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete (req.session as any).user;
       } else if ((req.session as any)?.adminUser) {
         // If admin is still logged in, keep general user as admin
-        (req.session as any).user = (req.session as any).adminUser;
+        (req.session as any).user = {
+          id: (req.session as any).adminUser.id,
+          username: (req.session as any).adminUser.username,
+          email: (req.session as any).adminUser.email,
+          phone: (req.session as any).adminUser.phone,
+          role: (req.session as any).adminUser.role,
+          firstName: (req.session as any).adminUser.firstName,
+          lastName: (req.session as any).adminUser.lastName,
+        };
       }
     }
     res.json({ success: true });
@@ -196,7 +204,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete (req.session as any).user;
       } else if ((req.session as any)?.studentUser) {
         // If student is still logged in, keep general user as student
-        (req.session as any).user = (req.session as any).studentUser;
+        (req.session as any).user = {
+          id: (req.session as any).studentUser.id,
+          username: (req.session as any).studentUser.username,
+          email: (req.session as any).studentUser.email,
+          phone: (req.session as any).studentUser.phone,
+          role: (req.session as any).studentUser.role,
+          firstName: (req.session as any).studentUser.firstName,
+          lastName: (req.session as any).studentUser.lastName,
+        };
       }
     }
     res.json({ success: true });
