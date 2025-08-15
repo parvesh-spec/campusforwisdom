@@ -77,24 +77,30 @@ export default function Header() {
           </div>
 
           <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6">
+            <div className="ml-4 flex items-center md:ml-6 space-x-3">
               {isLoading ? (
                 <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
-              ) : isAuthenticated && user ? (
-                user.role === 'student' ? (
-                  <StudentProfile user={user} />
-                ) : user.role === 'admin' ? (
-                  <AdminLogout />
-                ) : null
               ) : (
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="text-gray-600 hover:text-primary flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  Student Login
-                </Button>
+                <>
+                  {/* Student Login/Profile */}
+                  {isAuthenticated && user && user.role === 'student' ? (
+                    <StudentProfile user={user} />
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setIsLoginModalOpen(true)}
+                      className="text-gray-600 hover:text-primary flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      Student Login
+                    </Button>
+                  )}
+                  
+                  {/* Admin Controls */}
+                  {isAuthenticated && user && user.role === 'admin' && (
+                    <AdminLogout />
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -134,46 +140,26 @@ export default function Header() {
                 </Link>
               ))}
               <div className="flex flex-col space-y-2 pt-4">
-                {isAuthenticated && user ? (
-                  user.role === 'student' ? (
-                    <div className="px-3 py-2 border rounded-lg bg-gray-50">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user.firstName && user.lastName 
-                          ? `${user.firstName} ${user.lastName}`
-                          : user.username}
-                      </p>
-                      <p className="text-xs text-gray-500">Student</p>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={handleMobileLogout}
-                        disabled={logoutMutation.isPending}
-                        className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
-                      </Button>
-                    </div>
-                  ) : user.role === 'admin' ? (
-                    <div className="px-3 py-2 border rounded-lg bg-blue-50">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user.firstName && user.lastName 
-                          ? `${user.firstName} ${user.lastName}`
-                          : user.username}
-                      </p>
-                      <p className="text-xs text-blue-600">Admin User</p>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={handleMobileLogout}
-                        disabled={logoutMutation.isPending}
-                        className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
-                      </Button>
-                    </div>
-                  ) : null
+                {/* Student Login/Profile */}
+                {isAuthenticated && user && user.role === 'student' ? (
+                  <div className="px-3 py-2 border rounded-lg bg-gray-50">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.username}
+                    </p>
+                    <p className="text-xs text-gray-500">Student</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleMobileLogout}
+                      disabled={logoutMutation.isPending}
+                      className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
+                    </Button>
+                  </div>
                 ) : (
                   <Button 
                     variant="ghost" 
@@ -186,6 +172,28 @@ export default function Header() {
                     <User className="h-4 w-4" />
                     Student Login
                   </Button>
+                )}
+
+                {/* Admin Controls */}
+                {isAuthenticated && user && user.role === 'admin' && (
+                  <div className="px-3 py-2 border rounded-lg bg-blue-50">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.username}
+                    </p>
+                    <p className="text-xs text-blue-600">Admin User</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleMobileLogout}
+                      disabled={logoutMutation.isPending}
+                      className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
