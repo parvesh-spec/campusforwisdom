@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ interface StudentLoginModalProps {
 export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentLoginModalProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
@@ -26,8 +27,9 @@ export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentL
     onSuccess: (data) => {
       // Only allow students to login through this modal
       if (data.user.role === "student") {
+        // Update the auth cache with the user data
+        queryClient.setQueryData(['/api/auth/user'], data.user);
         onClose();
-        window.location.reload(); // Refresh to update auth state
       } else {
         throw new Error("Please use the admin portal for administrator access.");
       }

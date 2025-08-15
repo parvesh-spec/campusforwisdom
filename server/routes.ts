@@ -150,12 +150,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(user);
   });
 
-
-
-  app.get("/api/auth/user", requireAuth, (req: any, res) => {
-    res.json({ user: (req.session as any).user });
-  });
-
   // Public API routes
   
   // Get all active courses
