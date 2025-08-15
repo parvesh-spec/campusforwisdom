@@ -81,13 +81,13 @@ export default function StudentLoginModal({ isOpen, onClose, onOpenChange, trigg
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div>
-            <Label htmlFor="modal-username" className="text-gray-700 font-medium">Username</Label>
+            <Label htmlFor="modal-username" className="text-gray-700 font-medium">Username/Email/Phone</Label>
             <Input
               id="modal-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              placeholder="Enter username, email or phone"
               className="mt-2 h-11 border-2 border-gray-200 focus:border-blue-500 rounded-lg"
               required
             />

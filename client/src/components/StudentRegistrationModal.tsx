@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserPlus, Mail, Phone, User, Lock, CheckCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import UsernameAvailabilityChecker from "./UsernameAvailabilityChecker";
 
 interface StudentRegistrationModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const queryClient = useQueryClient();
 
   const registrationMutation = useMutation({
@@ -49,10 +51,9 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!firstName || !lastName || !email || !phone || !username || !password) {
-      registrationMutation.reset();
-      registrationMutation.mutate({ firstName, lastName, email, phone, username, password });
+    // Basic validation (username is optional now)
+    if (!firstName || !lastName || !email || !phone || !password) {
+      alert("Please fill all required fields!");
       return;
     }
 
@@ -63,6 +64,11 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
 
     if (password.length < 6) {
       alert("Password should be at least 6 characters long!");
+      return;
+    }
+
+    if (username && !isUsernameAvailable) {
+      alert("Please choose a different username!");
       return;
     }
 
@@ -181,7 +187,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
           {/* Username Field */}
           <div>
             <Label htmlFor="username" className="text-sm font-medium text-gray-700 mb-2 block">
-              Username *
+              Username (Optional)
             </Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -191,10 +197,16 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                placeholder="Choose a username"
-                required
+                placeholder="Auto-generated if left empty"
               />
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Leave empty to auto-generate from your name
+            </p>
+            <UsernameAvailabilityChecker 
+              username={username} 
+              onAvailabilityChange={setIsUsernameAvailable}
+            />
           </div>
 
           {/* Password Fields */}

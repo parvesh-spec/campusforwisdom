@@ -90,30 +90,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check username availability
+  app.get("/api/auth/check-username", async (req, res) => {
+    try {
+      const { username } = req.query;
+      
+      if (!username) {
+        return res.status(400).json({ error: "Username is required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username as string);
+      res.json({ available: !existingUser });
+    } catch (error) {
+      console.error("Username check error:", error);
+      res.status(500).json({ error: "Failed to check username availability" });
+    }
+  });
+
   // Student Registration route
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { firstName, lastName, email, phone, username, password } = req.body;
       
       // Basic validation
-      if (!firstName || !lastName || !email || !phone || !username || !password) {
-        return res.status(400).json({ error: "All fields are required" });
+      if (!firstName || !lastName || !email || !phone || !password) {
+        return res.status(400).json({ error: "First Name, Last Name, Email, Phone and Password are required" });
       }
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
-      }
-
+      // Check if email already exists
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
         return res.status(400).json({ error: "Email already exists" });
       }
 
+      // Check if phone already exists
+      const existingPhone = await storage.getUserByPhone(phone);
+      if (existingPhone) {
+        return res.status(400).json({ error: "Phone number already exists" });
+      }
+
+      // Generate username if not provided
+      let finalUsername = username;
+      if (!username || username.trim() === '') {
+        // Generate username from firstName + lastName + random number
+        const baseUsername = (firstName + lastName).toLowerCase().replace(/[^a-z0-9]/g, '');
+        let generatedUsername = baseUsername;
+        let counter = 1;
+        
+        // Keep checking until we find a unique username
+        while (await storage.getUserByUsername(generatedUsername)) {
+          generatedUsername = baseUsername + counter;
+          counter++;
+        }
+        finalUsername = generatedUsername;
+      } else {
+        // Check if provided username already exists
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser) {
+          return res.status(400).json({ error: "Username already exists" });
+        }
+      }
+
       // Create new student user
       const newUser = await storage.createUser({
-        username,
+        username: finalUsername,
         email,
         password,
         firstName,
@@ -149,10 +189,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ error: "Username and password are required" });
+        return res.status(400).json({ error: "Username/Email/Phone and password are required" });
       }
 
-      const user = await storage.getUserByUsername(username);
+      // Try to find user by username, email, or phone
+      let user = await storage.getUserByUsername(username);
+      if (!user) {
+        user = await storage.getUserByEmail(username);
+      }
+      if (!user) {
+        user = await storage.getUserByPhone(username);
+      }
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
