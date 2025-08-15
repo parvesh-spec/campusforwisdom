@@ -42,6 +42,7 @@ export class ZohoWebinarAPI {
   private zsoid: string;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
+  private apiDomain: string = 'meeting.zoho.in'; // Default to India datacenter
 
   constructor() {
     this.clientId = process.env.ZOHO_CLIENT_ID || '';
@@ -110,8 +111,20 @@ export class ZohoWebinarAPI {
                 this.accessToken = data.access_token;
                 this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000;
                 
+                // Set API domain based on successful datacenter
+                if (datacenter.includes('.in')) {
+                  this.apiDomain = 'meeting.zoho.in';
+                } else if (datacenter.includes('.eu')) {
+                  this.apiDomain = 'meeting.zoho.eu';
+                } else if (datacenter.includes('.com.au')) {
+                  this.apiDomain = 'meeting.zoho.com.au';
+                } else {
+                  this.apiDomain = 'meeting.zoho.com';
+                }
+                
                 console.log('✅ Zoho access token refreshed successfully');
                 console.log(`🕒 Token expires in ${data.expires_in} seconds`);
+                console.log(`🌐 Using API domain: ${this.apiDomain}`);
                 return this.accessToken;
               }
             } catch (parseError) {
@@ -186,7 +199,7 @@ export class ZohoWebinarAPI {
 
       console.log('🚀 Creating Zoho webinar with data:', requestBody);
 
-      const response = await fetch(`https://meeting.zoho.com/api/v2/${this.zsoid}/webinar.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
@@ -215,7 +228,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      const response = await fetch(`https://meeting.zoho.com/api/v2/${this.zsoid}/webinar.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
@@ -239,7 +252,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      const response = await fetch(`https://meeting.zoho.com/api/v2/${this.zsoid}/webinar/${meetingKey}.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar/${meetingKey}.json`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
@@ -264,7 +277,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
       
-      const response = await fetch(`https://meeting.zoho.com/api/v2/user.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/user.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
