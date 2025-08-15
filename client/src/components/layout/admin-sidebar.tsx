@@ -11,7 +11,8 @@ import {
   Video,
   LayoutDashboard,
   GraduationCap,
-  LogOut
+  LogOut,
+  BrainCircuit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +41,7 @@ export default function AdminSidebar() {
     { name: "Course Management", href: "/admin/courses", icon: GraduationCap },
     { name: "Students", href: "/admin/students", icon: Users },
     { name: "Webinars", href: "/admin/live-sessions", icon: Video },
+    { name: "AI Experts", href: "/admin/ai-experts", icon: BrainCircuit },
     { name: "Content Library", href: "/admin/content", icon: FolderOpen },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { name: "Communications", href: "/admin/communications", icon: MessageSquare },

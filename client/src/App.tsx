@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/admin/dashboard";
 import CourseManagement from "./pages/admin/course-management";
 import StudentManagement from "./pages/admin/student-management";
 import LiveSessionsManagement from "./pages/admin/live-sessions-management";
+import AIExpertsManagement from "./pages/admin/ai-experts-management";
 import ContentLibrary from "./pages/admin/content-library";
 import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
@@ -117,6 +118,11 @@ function Router() {
       <Route path="/admin/live-sessions">
         <AdminLayout>
           <LiveSessionsManagement />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/ai-experts">
+        <AdminLayout>
+          <AIExpertsManagement />
         </AdminLayout>
       </Route>
       <Route path="/admin/content">
