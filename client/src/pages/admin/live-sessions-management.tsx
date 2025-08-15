@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,22 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, ExternalLink, BarChart3, TrendingUp, Activity } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square } from "lucide-react";
 import type { LiveSession, Course } from "@shared/schema";
 
 export default function LiveSessionsManagement() {
-  // Poll Zoom WebSocket status from backend
-  const { data: zoomStatusData, error: zoomStatusError } = useQuery({
-    queryKey: ["/api/admin/zoom/status"],
-    refetchInterval: 5000, // Poll every 5 seconds
-    refetchOnWindowFocus: true,
-    retry: false, // Don't retry on auth errors
-  });
-  
-  const connectionStatus = zoomStatusError ? 'Disconnected' : ((zoomStatusData as any)?.status || 'Connecting...');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -32,9 +22,9 @@ export default function LiveSessionsManagement() {
     title: "",
     description: "",
     scheduledAt: "",
-    duration: 60,
-    maxParticipants: 100,
-    courseId: "",
+    duration: "",
+    maxParticipants: "100",
+    courseId: undefined as string | undefined,
     meetingUrl: ""
   });
 
@@ -47,7 +37,7 @@ export default function LiveSessionsManagement() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({ url: "/api/admin/live-sessions", method: "POST", body: data }),
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
     onSuccess: () => {
       toast({ title: "Live session created successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -61,7 +51,7 @@ export default function LiveSessionsManagement() {
 
   const updateSessionMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "PUT", body: data }),
+      apiRequest("PUT", `/api/admin/live-sessions/${id}`, data),
     onSuccess: () => {
       toast({ title: "Session updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -74,7 +64,7 @@ export default function LiveSessionsManagement() {
   });
 
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}`, method: "DELETE" }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/live-sessions/${id}`),
     onSuccess: () => {
       toast({ title: "Session deleted successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -84,34 +74,8 @@ export default function LiveSessionsManagement() {
     },
   });
 
-  const createZoomMeetingMutation = useMutation({
-    mutationFn: async (sessionId: string) => {
-      const response = await fetch(`/api/admin/live-sessions/${sessionId}/create-meeting`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create Zoom meeting');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/live-sessions'] });
-      toast({ title: "Zoom meeting created successfully!" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to create Zoom meeting", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    }
-  });
-
   const startSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/start`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("POST", `/api/admin/live-sessions/${id}/start`),
     onSuccess: () => {
       toast({ title: "Session started successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -122,7 +86,7 @@ export default function LiveSessionsManagement() {
   });
 
   const endSessionMutation = useMutation({
-    mutationFn: (id: string) => apiRequest({ url: `/api/admin/live-sessions/${id}/end`, method: "PUT" }),
+    mutationFn: (id: string) => apiRequest("POST", `/api/admin/live-sessions/${id}/end`),
     onSuccess: () => {
       toast({ title: "Session ended successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
@@ -131,8 +95,6 @@ export default function LiveSessionsManagement() {
       toast({ title: "Error ending session", variant: "destructive" });
     },
   });
-
-
 
   const resetForm = () => {
     setFormData({
@@ -186,37 +148,14 @@ export default function LiveSessionsManagement() {
   const upcomingSessions = sessions?.filter(s => s.status === "scheduled") || [];
   const completedSessions = sessions?.filter(s => s.status === "completed") || [];
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    } as any);
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
-
   return (
     <div>
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Live Sessions with Zoom Integration</h1>
-            <p className="text-gray-600 mt-1">Manage live learning sessions with comprehensive Zoom integration and real-time analytics</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant={connectionStatus === 'Connected' ? 'default' : 'destructive'}>
-                {connectionStatus === 'Connected' ? '🟢' : connectionStatus === 'Authenticating...' ? '🟡' : '🔴'} Zoom WebSocket: {connectionStatus}
-              </Badge>
-              {connectionStatus === 'Disconnected' && (
-                <p className="text-sm text-gray-600">
-                  {zoomStatusError ? 'Please log in to view Zoom connection status.' : 'Configure your ZOOM_WEBSOCKET_ENDPOINT_URL with the endpoint from your Zoom app settings.'}
-                </p>
-              )}
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Live Sessions Management</h1>
+            <p className="text-gray-600 mt-1">Schedule, manage, and monitor live learning sessions</p>
           </div>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
@@ -459,27 +398,14 @@ export default function LiveSessionsManagement() {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {session.status === "scheduled" && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => startSessionMutation.mutate(session.id)}
-                                disabled={startSessionMutation.isPending}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <Play className="h-4 w-4" />
-                              </Button>
-                              {!session.zoomMeetingId && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => createZoomMeetingMutation.mutate(session.id)}
-                                  disabled={createZoomMeetingMutation.isPending}
-                                  className="bg-blue-600 hover:bg-blue-700"
-                                  title="Create Zoom Meeting"
-                                >
-                                  <Video className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </>
+                            <Button
+                              size="sm"
+                              onClick={() => startSessionMutation.mutate(session.id)}
+                              disabled={startSessionMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
                           )}
                           {session.status === "live" && (
                             <Button
@@ -489,16 +415,6 @@ export default function LiveSessionsManagement() {
                               className="bg-red-600 hover:bg-red-700"
                             >
                               <Square className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {session.zoomMeetingId && (
-                            <Button
-                              size="sm"
-                              onClick={() => window.open(session.meetingUrl || '', '_blank')}
-                              className="bg-indigo-600 hover:bg-indigo-700"
-                              title="Join Zoom Meeting"
-                            >
-                              <ExternalLink className="h-4 w-4" />
                             </Button>
                           )}
                           <Button

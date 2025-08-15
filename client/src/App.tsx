@@ -18,14 +18,12 @@ import Contact from "@/pages/contact";
 import AdminDashboard from "./pages/admin/dashboard";
 import CourseManagement from "./pages/admin/course-management";
 import StudentManagement from "./pages/admin/student-management";
-import LiveSessionsManagement from "./pages/admin/live-sessions-management-new";
-import { WebinarRegistrationPage } from "./pages/webinar-registration";
+import LiveSessionsManagement from "./pages/admin/live-sessions-management";
 import ContentLibrary from "./pages/admin/content-library";
 import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
 import Payments from "./pages/admin/payments";
 import Settings from "./pages/admin/settings";
-
 
 // Layouts
 import Header from "@/components/layout/header";
@@ -85,9 +83,6 @@ function Router() {
           <Contact />
         </PublicLayout>
       </Route>
-      <Route path="/webinar/:id/register">
-        <WebinarRegistrationPage />
-      </Route>
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={() => <AdminLogin />} />
 
@@ -112,7 +107,6 @@ function Router() {
           <LiveSessionsManagement />
         </AdminLayout>
       </Route>
-
       <Route path="/admin/content">
         <AdminLayout>
           <ContentLibrary />
