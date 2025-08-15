@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 export interface ZohoWebinarRequest {
   topic: string;
   agenda: string;
-  presenter?: string;
+  presenter: string; // Required ZUID of the presenter
   startTime: string; // Format: "Jun 19, 2023 04:00 PM"
   duration: number; // Duration in milliseconds
   timezone?: string;
@@ -121,6 +121,7 @@ export class ZohoWebinarAPI {
       const requestBody: ZohoWebinarRequest = {
         topic: webinarData.title,
         agenda: webinarData.description,
+        presenter: this.zsoid, // Use the organization ID as presenter ZUID
         startTime: this.formatDateTime(webinarData.scheduledAt),
         duration: webinarData.duration * 60 * 1000, // Convert minutes to milliseconds
         timezone: webinarData.timezone || 'Asia/Calcutta',

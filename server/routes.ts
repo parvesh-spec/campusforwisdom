@@ -271,6 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           scheduledAt: new Date(sessionData.scheduledAt),
           duration: sessionData.duration,
           timezone: sessionData.timezone || 'Asia/Calcutta',
+          participants: sessionData.participants || [],
         });
 
         // Store webinar in database with Zoho details

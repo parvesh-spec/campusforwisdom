@@ -48,6 +48,7 @@ export const webinars = pgTable("webinars", {
   presenterZuid: text("presenter_zuid"), // Zoho User ID of presenter
   webinarId: text("webinar_id"), // Zoho's internal webinar ID
   timezone: text("timezone").default("Asia/Calcutta"),
+  participants: text("participants").array().default([]), // Array of participant emails
   // Legacy field for backward compatibility
   meetingUrl: text("meeting_url"),
   instructorId: varchar("instructor_id").references(() => users.id),

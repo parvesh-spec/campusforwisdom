@@ -22,10 +22,10 @@ export default function WebinarManagement() {
     title: "",
     description: "",
     scheduledAt: "",
-    duration: "",
-    maxParticipants: "100",
-    courseId: undefined as string | undefined,
-    meetingUrl: ""
+    duration: "60",
+    timezone: "Asia/Calcutta",
+    participantEmails: "",
+    courseId: undefined as string | undefined
   });
 
   const { data: sessions, isLoading } = useQuery<LiveSession[]>({
@@ -120,20 +120,30 @@ export default function WebinarManagement() {
       title: "",
       description: "",
       scheduledAt: "",
-      duration: "",
-      maxParticipants: "100",
-      courseId: undefined,
-      meetingUrl: ""
+      duration: "60",
+      timezone: "Asia/Calcutta",
+      participantEmails: "",
+      courseId: undefined
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Parse participant emails
+    const participants = formData.participantEmails
+      .split(',')
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+    
     const sessionData = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
       duration: parseInt(formData.duration),
-      maxParticipants: parseInt(formData.maxParticipants),
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
+      timezone: formData.timezone,
+      participants,
+      courseId: formData.courseId === "none" ? undefined : formData.courseId
     };
 
     if (editingSession) {
@@ -150,9 +160,9 @@ export default function WebinarManagement() {
       description: session.description,
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
-      maxParticipants: (session.maxParticipants || 0).toString(),
-      courseId: session.courseId || undefined,
-      meetingUrl: session.meetingUrl || ""
+      timezone: session.timezone || "Asia/Calcutta",
+      participantEmails: "",
+      courseId: session.courseId || undefined
     });
   };
 
@@ -264,26 +274,39 @@ export default function WebinarManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Participants
+                      Timezone
                     </label>
-                    <Input
-                      type="number"
-                      value={formData.maxParticipants}
-                      onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
-                      placeholder="100"
-                    />
+                    <Select
+                      value={formData.timezone}
+                      onValueChange={(value) => setFormData({ ...formData, timezone: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Asia/Calcutta">Asia/Calcutta (IST)</SelectItem>
+                        <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
+                        <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                        <SelectItem value="Australia/Sydney">Australia/Sydney (AEST)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meeting URL
+                    Participant Emails (optional)
                   </label>
-                  <Input
-                    value={formData.meetingUrl}
-                    onChange={(e) => setFormData({ ...formData, meetingUrl: e.target.value })}
-                    placeholder="https://zoom.us/j/123456789"
+                  <Textarea
+                    value={formData.participantEmails}
+                    onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
+                    placeholder="Enter participant emails separated by commas (e.g., user1@example.com, user2@example.com)"
+                    rows={3}
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Leave empty to create an open webinar that anyone can register for
+                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -403,7 +426,6 @@ export default function WebinarManagement() {
                       <TableCell>{session.duration} min</TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {session.currentParticipants || 0}/{session.maxParticipants || 0}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -557,8 +579,6 @@ export default function WebinarManagement() {
                     </label>
                     <Input
                       type="number"
-                      value={formData.maxParticipants}
-                      onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
                       placeholder="100"
                     />
                   </div>
@@ -569,8 +589,6 @@ export default function WebinarManagement() {
                     Meeting URL
                   </label>
                   <Input
-                    value={formData.meetingUrl}
-                    onChange={(e) => setFormData({ ...formData, meetingUrl: e.target.value })}
                     placeholder="https://zoom.us/j/123456789"
                   />
                 </div>
