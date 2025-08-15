@@ -163,7 +163,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
       
-      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/user.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/user.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
@@ -175,8 +175,9 @@ export class ZohoWebinarAPI {
       }
 
       const data = await response.json() as any;
-      // Return the first user's ZUID (usually the current user)
-      return { zuid: data.users?.[0]?.zuid || this.zsoid };
+      console.log('👤 User details response:', data);
+      // Extract ZUID from userDetails object
+      return { zuid: data.userDetails?.zuid?.toString() || this.zsoid };
     } catch (error) {
       console.warn('⚠️ Could not get user ZUID, using organization ID as fallback');
       return { zuid: this.zsoid };
