@@ -229,7 +229,9 @@ export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 export type Expert = typeof experts.$inferSelect;
 export type InsertExpert = z.infer<typeof insertExpertSchema>;
 
-export type Consultation = typeof consultations.$inferSelect;
+export type Consultation = typeof consultations.$inferSelect & {
+  expert?: Expert;
+};
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 
 export type Payment = typeof payments.$inferSelect;
