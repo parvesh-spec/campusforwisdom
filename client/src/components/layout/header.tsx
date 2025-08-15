@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import StudentProfile from "@/components/StudentProfile";
+import AdminLogout from "@/components/AdminLogout";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Header() {
@@ -80,7 +81,11 @@ export default function Header() {
               {isLoading ? (
                 <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
               ) : isAuthenticated && user ? (
-                <StudentProfile user={user} />
+                user.role === 'student' ? (
+                  <StudentProfile user={user} />
+                ) : user.role === 'admin' ? (
+                  <AdminLogout />
+                ) : null
               ) : (
                 <Button 
                   variant="ghost" 
@@ -130,24 +135,45 @@ export default function Header() {
               ))}
               <div className="flex flex-col space-y-2 pt-4">
                 {isAuthenticated && user ? (
-                  <div className="px-3 py-2 border rounded-lg bg-gray-50">
-                    <p className="text-sm font-medium text-gray-900">
-                      {user.firstName && user.lastName 
-                        ? `${user.firstName} ${user.lastName}`
-                        : user.username}
-                    </p>
-                    <p className="text-xs text-gray-500">Student</p>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={handleMobileLogout}
-                      disabled={logoutMutation.isPending}
-                      className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
-                    </Button>
-                  </div>
+                  user.role === 'student' ? (
+                    <div className="px-3 py-2 border rounded-lg bg-gray-50">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.firstName && user.lastName 
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.username}
+                      </p>
+                      <p className="text-xs text-gray-500">Student</p>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={handleMobileLogout}
+                        disabled={logoutMutation.isPending}
+                        className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
+                      </Button>
+                    </div>
+                  ) : user.role === 'admin' ? (
+                    <div className="px-3 py-2 border rounded-lg bg-blue-50">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.firstName && user.lastName 
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.username}
+                      </p>
+                      <p className="text-xs text-blue-600">Admin User</p>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={handleMobileLogout}
+                        disabled={logoutMutation.isPending}
+                        className="w-full mt-2 text-red-600 hover:text-red-700 justify-start"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
+                      </Button>
+                    </div>
+                  ) : null
                 ) : (
                   <Button 
                     variant="ghost" 
