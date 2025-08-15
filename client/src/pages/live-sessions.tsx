@@ -3,17 +3,45 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SessionCard from "@/components/ui/session-card";
-import { Calendar, Clock, Users, Video } from "lucide-react";
-import type { LiveSession } from "@shared/schema";
+import StudentLoginModal from "@/components/StudentLoginModal";
+import { Calendar, Clock, Users, Video, LogIn } from "lucide-react";
+import type { LiveSession, User } from "@shared/schema";
 
 export default function LiveSessions() {
+  const [viewMode, setViewMode] = useState<"all" | "my">("all");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   const { data: sessions, isLoading } = useQuery<LiveSession[]>({
     queryKey: ["/api/live-sessions"],
   });
 
-  const liveSessions = sessions?.filter(s => s.status === "live") || [];
-  const upcomingSessions = sessions?.filter(s => s.status === "scheduled") || [];
-  const completedSessions = sessions?.filter(s => s.status === "completed") || [];
+  // Check if user is logged in as student
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/auth/student"],
+  });
+
+  const isLoggedIn = !!user;
+
+  // Filter sessions based on view mode
+  const filteredSessions = sessions?.filter(session => {
+    if (viewMode === "my" && isLoggedIn) {
+      // Show only sessions user has joined/registered for
+      return session.participants?.includes(user.id);
+    }
+    return true; // Show all sessions for "all" mode
+  }) || [];
+
+  const liveSessions = filteredSessions.filter(s => s.status === "live");
+  const upcomingSessions = filteredSessions.filter(s => s.status === "scheduled");
+  const completedSessions = filteredSessions.filter(s => s.status === "completed");
+
+  const handleMySessionsClick = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    } else {
+      setViewMode("my");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-20">
@@ -51,45 +79,73 @@ export default function LiveSessions() {
           </div>
         </div>
 
-        {/* Sessions Tabs */}
-        <Tabs defaultValue="live" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="live" className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span>Live Now ({liveSessions.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="upcoming">
-              Upcoming ({upcomingSessions.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Completed ({completedSessions.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* View Mode Selection */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg p-1 shadow-md">
+            <Button
+              onClick={() => setViewMode("all")}
+              variant={viewMode === "all" ? "default" : "ghost"}
+              className="px-6 py-2 mr-1"
+            >
+              All Sessions
+            </Button>
+            <Button
+              onClick={handleMySessionsClick}
+              variant={viewMode === "my" ? "default" : "ghost"}
+              className="px-6 py-2 flex items-center space-x-2"
+            >
+              {!isLoggedIn && <LogIn className="h-4 w-4" />}
+              <span>My Sessions</span>
+            </Button>
+          </div>
+        </div>
 
-          <TabsContent value="live" className="mt-8">
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(2)].map((_, i) => (
-                  <div key={i} className="animate-pulse bg-gray-200 rounded-xl h-64"></div>
-                ))}
-              </div>
-            ) : liveSessions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {liveSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="text-6xl mb-4">📹</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No live sessions right now</h3>
-                <p className="text-gray-600 mb-6">
-                  Check back later or browse our upcoming sessions to reserve your spot.
+        {/* Login prompt for My Sessions when not logged in */}
+        {viewMode === "my" && !isLoggedIn && (
+          <div className="text-center py-16 bg-white rounded-xl shadow-lg mb-8">
+            <div className="text-6xl mb-4">🔐</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Login Required</h3>
+            <p className="text-gray-600 mb-6">
+              Please login to view your registered sessions and participation history.
+            </p>
+            <Button onClick={() => setShowLoginModal(true)} className="flex items-center space-x-2">
+              <LogIn className="h-4 w-4" />
+              <span>Login Now</span>
+            </Button>
+          </div>
+        )}
+
+        {/* Sessions Tabs - Only show when user is logged in for My Sessions or always for All Sessions */}
+        {(viewMode === "all" || (viewMode === "my" && isLoggedIn)) && (
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upcoming">
+                Upcoming ({upcomingSessions.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed ({completedSessions.length})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Live Sessions Banner - Show at top if any live sessions exist */}
+            {liveSessions.length > 0 && (
+              <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <h3 className="text-lg font-semibold text-red-800">
+                      {liveSessions.length} Live Session{liveSessions.length > 1 ? 's' : ''} Now
+                    </h3>
+                  </div>
+                  <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-100">
+                    Join Live
+                  </Button>
+                </div>
+                <p className="text-red-700 mt-2">
+                  Don't miss out! Join the live sessions happening right now.
                 </p>
-                <Button>Browse Upcoming Sessions</Button>
               </div>
             )}
-          </TabsContent>
 
           <TabsContent value="upcoming" className="mt-8">
             {isLoading ? (
@@ -107,11 +163,16 @@ export default function LiveSessions() {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">📅</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No upcoming sessions scheduled</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {viewMode === "my" ? "No upcoming sessions in your schedule" : "No upcoming sessions scheduled"}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  New sessions are added regularly. Sign up for notifications to stay updated.
+                  {viewMode === "my" 
+                    ? "Register for sessions to see them here when they're scheduled." 
+                    : "New sessions are added regularly. Sign up for notifications to stay updated."
+                  }
                 </p>
-                <Button>Get Notified</Button>
+                {viewMode === "all" && <Button>Get Notified</Button>}
               </div>
             )}
           </TabsContent>
@@ -132,14 +193,20 @@ export default function LiveSessions() {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No completed sessions yet</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {viewMode === "my" ? "No completed sessions in your history" : "No completed sessions yet"}
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  Recordings of completed sessions will appear here for review.
+                  {viewMode === "my" 
+                    ? "Sessions you attend will appear here after completion with recordings and resources." 
+                    : "Recordings of completed sessions will appear here for review."
+                  }
                 </p>
               </div>
             )}
           </TabsContent>
         </Tabs>
+        )}
 
         {/* CTA Section */}
         <div className="mt-20 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white text-center">
@@ -151,6 +218,13 @@ export default function LiveSessions() {
             Become an Instructor
           </Button>
         </div>
+
+        {/* Login Modal */}
+        <StudentLoginModal 
+          isOpen={showLoginModal} 
+          onOpenChange={setShowLoginModal}
+          onClose={() => setShowLoginModal(false)}
+        />
       </div>
     </div>
   );
