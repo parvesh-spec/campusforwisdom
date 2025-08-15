@@ -335,12 +335,37 @@ export default function ConsultationsManagement() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {consultation.meetingUrl && (
-                    <div className="flex flex-col gap-2 mt-3">
+                <div className="flex items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(consultation)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteConsultationMutation.mutate(consultation.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Meeting Section - Full Width Below */}
+              {consultation.meetingUrl && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-sm font-medium text-gray-700">Join Meeting Link:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Join Meeting:</span>
-                        <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all">{consultation.meetingUrl}</code>
+                        <code className="flex-1 text-xs bg-white px-3 py-2 rounded border break-all select-all">
+                          {consultation.meetingUrl}
+                        </code>
                         <Button
                           variant="outline"
                           size="sm"
@@ -348,54 +373,41 @@ export default function ConsultationsManagement() {
                             navigator.clipboard.writeText(consultation.meetingUrl!);
                             toast({ title: "Join link copied!", description: "Meeting join link copied to clipboard" });
                           }}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-green-600 hover:text-green-700 shrink-0"
                         >
-                          <Copy className="h-3 w-3" />
+                          <Copy className="h-4 w-4" />
                         </Button>
                       </div>
-                      {consultation.startUrl && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => window.open(consultation.startUrl!, '_blank')}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Video className="h-4 w-4 mr-1" />
-                            Start Meeting
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              navigator.clipboard.writeText(consultation.startUrl!);
-                              toast({ title: "Start link copied!", description: "Meeting start link copied to clipboard" });
-                            }}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
                     </div>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(consultation)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deleteConsultationMutation.mutate(consultation.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    
+                    {consultation.startUrl && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => window.open(consultation.startUrl!, '_blank')}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Video className="h-4 w-4 mr-2" />
+                          Start Meeting
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(consultation.startUrl!);
+                            toast({ title: "Start link copied!", description: "Meeting start link copied to clipboard" });
+                          }}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Copy Start Link"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         ))}
