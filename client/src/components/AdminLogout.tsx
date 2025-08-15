@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface AdminLogoutProps {
-  user: {
+  user?: {
     id: string;
     username: string;
     role: string;
@@ -22,6 +22,7 @@ interface AdminLogoutProps {
 }
 
 export default function AdminLogout({ user }: AdminLogoutProps) {
+  if (!user) return null;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -40,9 +41,9 @@ export default function AdminLogout({ user }: AdminLogoutProps) {
     logoutMutation.mutate();
   };
 
-  const displayName = user.firstName && user.lastName 
+  const displayName = (user?.firstName && user?.lastName) 
     ? `${user.firstName} ${user.lastName}`
-    : user.username;
+    : user?.username || 'Admin';
 
   return (
     <DropdownMenu>
