@@ -42,7 +42,7 @@ export class ZohoWebinarAPI {
   private zsoid: string;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
-  private apiDomain: string = 'www.zohoapis.in/meeting/v1'; // Default to India datacenter
+  private apiDomain: string = 'meeting.zoho.in'; // Default to India datacenter
 
   constructor() {
     this.clientId = process.env.ZOHO_CLIENT_ID || '';
@@ -113,13 +113,13 @@ export class ZohoWebinarAPI {
                 
                 // Set API domain based on successful datacenter
                 if (datacenter.includes('.in')) {
-                  this.apiDomain = 'www.zohoapis.in/meeting/v1';
+                  this.apiDomain = 'meeting.zoho.in';
                 } else if (datacenter.includes('.eu')) {
-                  this.apiDomain = 'www.zohoapis.eu/meeting/v1';
+                  this.apiDomain = 'meeting.zoho.eu';
                 } else if (datacenter.includes('.com.au')) {
-                  this.apiDomain = 'www.zohoapis.com.au/meeting/v1';
+                  this.apiDomain = 'meeting.zoho.com.au';
                 } else {
-                  this.apiDomain = 'www.zohoapis.com/meeting/v1';
+                  this.apiDomain = 'meeting.zoho.com';
                 }
                 
                 console.log('✅ Zoho access token refreshed successfully');
@@ -205,13 +205,13 @@ export class ZohoWebinarAPI {
 
       console.log('🚀 Creating Zoho webinar with data:', requestBody);
 
-      const response = await fetch(`https://${this.apiDomain}/${this.zsoid}/webinars.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
         },
-        body: JSON.stringify({ webinar: requestBody }),
+        body: JSON.stringify({ session: requestBody }),
       });
 
       if (!response.ok) {
@@ -234,7 +234,7 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      const response = await fetch(`https://${this.apiDomain}/${this.zsoid}/webinars.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/webinar.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
