@@ -153,7 +153,7 @@ export default function ProfileSettings() {
             This information cannot be changed. Contact support if you need to update these details.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <CardContent className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <div>
             <Label className="text-sm font-medium text-gray-700">Username</Label>
             <Input value={user?.username || ''} disabled className="bg-gray-100" />
@@ -165,15 +165,13 @@ export default function ProfileSettings() {
             </Label>
             <Input value={user?.email || ''} disabled className="bg-gray-100" />
           </div>
-          {user?.phone && (
-            <div>
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                WhatsApp Number
-              </Label>
-              <Input value={user.phone} disabled className="bg-gray-100" />
-            </div>
-          )}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              WhatsApp Number
+            </Label>
+            <Input value={user?.phone || 'Not provided'} disabled className="bg-gray-100" />
+          </div>
         </CardContent>
       </Card>
 
@@ -194,7 +192,7 @@ export default function ProfileSettings() {
               {/* Required Fields */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Required Information</h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="firstName"
@@ -229,7 +227,7 @@ export default function ProfileSettings() {
               {/* Personal Details */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Details</h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="dateOfBirth"
@@ -298,7 +296,7 @@ export default function ProfileSettings() {
                       </FormItem>
                     )}
                   />
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <FormField
                       control={form.control}
                       name="city"
@@ -362,7 +360,7 @@ export default function ProfileSettings() {
                   <Briefcase className="h-5 w-5" />
                   Professional Information
                 </h3>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="occupation"
@@ -519,9 +517,9 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
+      <div className="flex h-screen">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+        <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex-shrink-0">
           <div className="p-6">
             <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
             <p className="text-sm text-gray-600 mt-1">Manage your account</p>
@@ -551,9 +549,9 @@ export default function ProfileSettings() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
-          <div className="p-8">
-            <div className="max-w-4xl">
+        <div className="flex-1 overflow-auto">
+          <div className="p-6 lg:p-8">
+            <div className="max-w-5xl mx-auto">
               {renderContent()}
             </div>
           </div>
