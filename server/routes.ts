@@ -5,7 +5,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { z } from "zod";
-import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
+import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
 
 // PostgreSQL session store configuration
@@ -692,6 +692,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: error instanceof Error ? error.message : 'Unknown error occurred',
         suggestion: 'Please check your Zoho API credentials and server logs.'
       });
+    }
+  });
+
+  // ===== EXPERTS & CONSULTATIONS API =====
+
+  // Get all experts
+  app.get("/api/experts", async (req, res) => {
+    try {
+      const experts = await storage.getExperts();
+      res.json(experts);
+    } catch (error) {
+      console.error("Error fetching experts:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get student consultations
+  app.get("/api/student/consultations", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const consultations = await storage.getStudentConsultations(studentUser.id);
+      res.json(consultations);
+    } catch (error) {
+      console.error("Error fetching student consultations:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Book consultation
+  app.post("/api/student/consultations", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const consultationData = insertConsultationSchema.parse({
+        ...req.body,
+        studentId: studentUser.id
+      });
+
+      const consultation = await storage.createConsultation(consultationData);
+      res.json(consultation);
+    } catch (error) {
+      console.error("Error booking consultation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid consultation data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ===== ADMIN EXPERTS MANAGEMENT =====
+
+  // Get all experts for admin
+  app.get("/api/admin/experts", requireAdmin, async (req, res) => {
+    try {
+      const experts = await storage.getExperts();
+      res.json(experts);
+    } catch (error) {
+      console.error("Error fetching experts:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Create expert
+  app.post("/api/admin/experts", requireAdmin, async (req, res) => {
+    try {
+      const expertData = insertExpertSchema.parse(req.body);
+      const expert = await storage.createExpert(expertData);
+      res.json(expert);
+    } catch (error) {
+      console.error("Error creating expert:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid expert data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update expert
+  app.put("/api/admin/experts/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const expertData = insertExpertSchema.parse(req.body);
+      const expert = await storage.updateExpert(id, expertData);
+      res.json(expert);
+    } catch (error) {
+      console.error("Error updating expert:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid expert data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete expert
+  app.delete("/api/admin/experts/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteExpert(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting expert:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get all consultations for admin
+  app.get("/api/admin/consultations", requireAdmin, async (req, res) => {
+    try {
+      const consultations = await storage.getAllConsultations();
+      res.json(consultations);
+    } catch (error) {
+      console.error("Error fetching consultations:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 

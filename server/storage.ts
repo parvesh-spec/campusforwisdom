@@ -5,17 +5,23 @@ import {
   Webinar,
   Testimonial, 
   Enrollment,
+  Expert,
+  Consultation,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
   InsertWebinar,
   InsertTestimonial, 
   InsertEnrollment,
+  InsertExpert,
+  InsertConsultation,
   courses,
   users,
   webinars,
   testimonials,
-  enrollments
+  enrollments,
+  experts,
+  consultations
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -118,6 +124,17 @@ export interface IStorage {
   // Settings methods
   getSettings(): Promise<any>;
   updateSettings(category: string, data: any): Promise<void>;
+
+  // Expert methods
+  getExperts(): Promise<Expert[]>;
+  createExpert(expert: InsertExpert): Promise<Expert>;
+  updateExpert(id: string, expert: Partial<InsertExpert>): Promise<Expert>;
+  deleteExpert(id: string): Promise<boolean>;
+
+  // Consultation methods
+  getStudentConsultations(studentId: string): Promise<Consultation[]>;
+  getAllConsultations(): Promise<Consultation[]>;
+  createConsultation(consultation: InsertConsultation): Promise<Consultation>;
 }
 
 // Database storage implementation
@@ -460,6 +477,64 @@ export class DatabaseStorage implements IStorage {
 
   async updateSettings(category: string, data: any): Promise<void> {
     // Placeholder - implement when settings schema is ready
+  }
+
+  // Expert methods
+  async getExperts(): Promise<Expert[]> {
+    const expertList = await db.select().from(experts).orderBy(desc(experts.createdAt));
+    return expertList;
+  }
+
+  async createExpert(insertExpert: InsertExpert): Promise<Expert> {
+    const [expert] = await db
+      .insert(experts)
+      .values(insertExpert)
+      .returning();
+    return expert;
+  }
+
+  async updateExpert(id: string, expertData: Partial<InsertExpert>): Promise<Expert> {
+    const [expert] = await db
+      .update(experts)
+      .set(expertData)
+      .where(eq(experts.id, id))
+      .returning();
+    
+    if (!expert) {
+      throw new Error("Expert not found");
+    }
+    return expert;
+  }
+
+  async deleteExpert(id: string): Promise<boolean> {
+    const result = await db.delete(experts).where(eq(experts.id, id));
+    return result.rowCount! > 0;
+  }
+
+  // Consultation methods
+  async getStudentConsultations(studentId: string): Promise<Consultation[]> {
+    const consultationList = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.studentId, studentId))
+      .orderBy(desc(consultations.createdAt));
+    return consultationList;
+  }
+
+  async getAllConsultations(): Promise<Consultation[]> {
+    const consultationList = await db
+      .select()
+      .from(consultations)
+      .orderBy(desc(consultations.createdAt));
+    return consultationList;
+  }
+
+  async createConsultation(insertConsultation: InsertConsultation): Promise<Consultation> {
+    const [consultation] = await db
+      .insert(consultations)
+      .values(insertConsultation)
+      .returning();
+    return consultation;
   }
 }
 

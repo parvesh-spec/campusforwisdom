@@ -107,6 +107,42 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const experts = pgTable("experts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  bio: text("bio").notNull(),
+  avatar: text("avatar"),
+  specialization: text("specialization").notNull(), // AI Software Development, AI Video Creation, Presentation Design, etc.
+  experience: text("experience").notNull(), // years of experience
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
+  totalSessions: integer("total_sessions").default(0),
+  hourlyRate: decimal("hourly_rate", { precision: 8, scale: 2 }).notNull(),
+  availability: text("availability"), // JSON string for availability schedule
+  skills: text("skills").array().default([]), // Array of skills
+  languages: text("languages").array().default(["Hindi", "English"]),
+  timezone: text("timezone").default("Asia/Calcutta"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const consultations = pgTable("consultations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").references(() => users.id).notNull(),
+  expertId: varchar("expert_id").references(() => experts.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  duration: integer("duration_minutes").notNull().default(60), // duration in minutes
+  status: text("status").notNull().default("scheduled"), // scheduled, in-progress, completed, cancelled
+  amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
+  meetingUrl: text("meeting_url"),
+  notes: text("notes"), // Expert's notes after session
+  rating: integer("rating"), // Student's rating (1-5)
+  feedback: text("feedback"), // Student's feedback
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -140,6 +176,24 @@ export const insertEnrollmentSchema = createInsertSchema(enrollments).omit({
   completedAt: true,
 });
 
+export const insertExpertSchema = createInsertSchema(experts).omit({
+  id: true,
+  createdAt: true,
+  rating: true,
+  totalSessions: true,
+});
+
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  rating: true,
+  feedback: true,
+  notes: true,
+}).extend({
+  scheduledAt: z.string().transform((str) => new Date(str)),
+});
+
 export const insertTestimonialSchema = createInsertSchema(testimonials).omit({
   id: true,
   createdAt: true,
@@ -170,6 +224,12 @@ export type InsertEnrollment = z.infer<typeof insertEnrollmentSchema>;
 
 export type Testimonial = typeof testimonials.$inferSelect;
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+
+export type Expert = typeof experts.$inferSelect;
+export type InsertExpert = z.infer<typeof insertExpertSchema>;
+
+export type Consultation = typeof consultations.$inferSelect;
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
