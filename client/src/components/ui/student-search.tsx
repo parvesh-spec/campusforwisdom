@@ -28,6 +28,13 @@ export default function StudentSearch({
 
   const { data: students = [], isLoading } = useQuery<UserType[]>({
     queryKey: ["/api/admin/students/search", searchTerm],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/students/search?q=${encodeURIComponent(searchTerm)}`);
+      if (!response.ok) {
+        throw new Error('Failed to search students');
+      }
+      return response.json();
+    },
     enabled: searchTerm.length >= 2,
   });
 
