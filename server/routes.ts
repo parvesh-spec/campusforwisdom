@@ -37,7 +37,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const requireAdmin = (req: any, res: any, next: any) => {
-    if (!(req.session as any)?.user || (req.session as any).user.role !== 'admin') {
+    const adminUser = (req.session as any)?.adminUser;
+    if (!adminUser || adminUser.role !== 'admin') {
       return res.status(401).json({ error: 'Admin access required' });
     }
     next();
