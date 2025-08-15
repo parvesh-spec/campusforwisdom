@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy } from "lucide-react";
 import type { LiveSession, Course } from "@shared/schema";
 
 export default function WebinarManagement() {
@@ -18,6 +18,8 @@ export default function WebinarManagement() {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<LiveSession | null>(null);
+  const [managingParticipants, setManagingParticipants] = useState<LiveSession | null>(null);
+  const [newParticipantEmail, setNewParticipantEmail] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -418,6 +420,7 @@ export default function WebinarManagement() {
                     <TableHead>Webinar</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
+                    <TableHead>Registration Link</TableHead>
                     <TableHead>Participants</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -441,7 +444,44 @@ export default function WebinarManagement() {
                       </TableCell>
                       <TableCell>{session.duration} min</TableCell>
                       <TableCell>
+                        {session.registrationLink ? (
+                          <div className="flex items-center space-x-2">
+                            <a
+                              href={session.registrationLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm truncate max-w-[150px] block"
+                              title={session.registrationLink}
+                            >
+                              {session.registrationLink.replace('https://', '')}
+                            </a>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => navigator.clipboard.writeText(session.registrationLink || '')}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">No link available</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="text-sm">
+                          <div className="flex items-center justify-between">
+                            <span>{session.currentParticipants || 0}/{session.maxParticipants || 100}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setManagingParticipants(session)}
+                              className="p-1 h-6 w-6 ml-2"
+                              title="Manage Participants"
+                            >
+                              <Users className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -651,6 +691,138 @@ export default function WebinarManagement() {
                   </Button>
                 </div>
               </form>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Participant Management Modal */}
+        {managingParticipants && (
+          <Dialog open={true} onOpenChange={() => setManagingParticipants(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Manage Participants - {managingParticipants.title}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Registration Link Section */}
+                <div className="border rounded-lg p-4 bg-blue-50">
+                  <h3 className="font-medium text-gray-900 mb-2">Registration Link</h3>
+                  {managingParticipants.registrationLink ? (
+                    <div className="flex items-center space-x-2">
+                      <Input 
+                        value={managingParticipants.registrationLink} 
+                        readOnly 
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(managingParticipants.registrationLink || '');
+                          toast({ title: "Registration link copied!" });
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(managingParticipants.registrationLink, '_blank')}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Registration link not available</p>
+                  )}
+                </div>
+
+                {/* Current Participants */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Current Participants</h3>
+                  <div className="border rounded-lg p-3 bg-gray-50 min-h-[100px]">
+                    {managingParticipants.participants && managingParticipants.participants.length > 0 ? (
+                      <div className="space-y-2">
+                        {managingParticipants.participants.map((email, index) => (
+                          <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                            <span className="text-sm">{email}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                // TODO: Add remove participant functionality
+                                toast({ title: "Remove participant feature coming soon!" });
+                              }}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center">No participants registered yet</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Add Participant */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Add Participant</h3>
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="participant@example.com"
+                      value={newParticipantEmail}
+                      onChange={(e) => setNewParticipantEmail(e.target.value)}
+                      type="email"
+                    />
+                    <Button
+                      onClick={() => {
+                        if (newParticipantEmail) {
+                          // TODO: Add participant functionality
+                          toast({ title: "Add participant feature coming soon!" });
+                          setNewParticipantEmail("");
+                        }
+                      }}
+                      disabled={!newParticipantEmail}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Add participants manually or share the registration link for self-registration
+                  </p>
+                </div>
+
+                {/* Webinar Stats */}
+                <div className="border-t pt-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {managingParticipants.currentParticipants || 0}
+                      </p>
+                      <p className="text-sm text-gray-600">Registered</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {managingParticipants.maxParticipants || 100}
+                      </p>
+                      <p className="text-sm text-gray-600">Max Capacity</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {managingParticipants.duration}min
+                      </p>
+                      <p className="text-sm text-gray-600">Duration</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <Button onClick={() => setManagingParticipants(null)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
         )}
