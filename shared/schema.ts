@@ -136,7 +136,8 @@ export const consultations = pgTable("consultations", {
   duration: integer("duration_minutes").notNull().default(60), // duration in minutes
   status: text("status").notNull().default("scheduled"), // scheduled, in-progress, completed, cancelled
   amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
-  meetingUrl: text("meeting_url"),
+  meetingUrl: text("meeting_url"), // Join link for students
+  startUrl: text("start_url"), // Start link for experts
   notes: text("notes"), // Expert's notes after session
   rating: integer("rating"), // Student's rating (1-5)
   feedback: text("feedback"), // Student's feedback

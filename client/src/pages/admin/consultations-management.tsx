@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Calendar, Clock, User, DollarSign, Search, Filter, MessageSquare } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Clock, User, DollarSign, Search, Filter, MessageSquare, Copy, Video, ExternalLink } from "lucide-react";
 import type { Consultation, Expert, InsertConsultation } from "@shared/schema";
 import StudentSearch from "@/components/ui/student-search";
 
@@ -151,8 +151,8 @@ export default function ConsultationsManagement() {
       expertId: consultation.expertId,
       studentId: consultation.studentId,
       title: consultation.title,
-      description: consultation.description,
-      scheduledAt: consultation.scheduledAt,
+      description: consultation.description || "",
+      scheduledAt: new Date(consultation.scheduledAt).toISOString().slice(0, 16),
       duration: consultation.duration,
       status: consultation.status,
       amount: consultation.amount,
@@ -295,7 +295,7 @@ export default function ConsultationsManagement() {
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={consultation.expert?.avatar} />
+                      <AvatarImage src={consultation.expert?.avatar || undefined} />
                       <AvatarFallback>
                         {consultation.expert?.name?.charAt(0) || "E"}
                       </AvatarFallback>
@@ -337,14 +337,36 @@ export default function ConsultationsManagement() {
                 
                 <div className="flex items-center gap-2">
                   {consultation.meetingUrl && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(consultation.meetingUrl, '_blank')}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(consultation.meetingUrl!);
+                          toast({ title: "Join link copied!", description: "Meeting join link copied to clipboard" });
+                        }}
+                        className="text-green-600 hover:text-green-700"
+                        title="Copy Join Meeting Link"
+                      >
+                        <Video className="h-4 w-4 mr-1" />
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      {consultation.startUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(consultation.startUrl!);
+                            toast({ title: "Start link copied!", description: "Meeting start link copied to clipboard" });
+                          }}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Copy Start Meeting Link"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   )}
                   <Button
                     variant="outline"

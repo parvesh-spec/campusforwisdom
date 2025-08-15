@@ -848,8 +848,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const expert = await storage.getExpert(consultationData.expertId);
         const student = await storage.getUser(consultationData.studentId);
         
-        if (expert && student) {
-          console.log(`🚀 Creating Zoho webinar for consultation: ${consultation.title}`);
+        if (expert && student && zohoAPI) {
+          console.log(`🚀 Creating Zoho meeting for consultation: ${consultation.title}`);
           
           // Create Zoho meeting (for 1-to-1 consultation)
           const meetingResponse = await zohoAPI.createMeeting({
@@ -866,7 +866,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const startLink = meetingResponse.session.startLink;
           
           await storage.updateConsultation(consultation.id, {
-            meetingUrl: joinLink
+            meetingUrl: joinLink,
+            startUrl: startLink
           });
           
           console.log(`✅ Meeting created successfully for consultation ${consultation.id}`);
