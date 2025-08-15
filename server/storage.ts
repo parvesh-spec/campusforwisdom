@@ -51,7 +51,7 @@ export type Activity = {
   timestamp: Date;
 };
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -61,6 +61,7 @@ export interface IStorage {
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(id: string, profile: Partial<User>): Promise<User>;
+  searchStudentsByName(searchTerm: string): Promise<User[]>;
 
   // Course methods
   getCourses(): Promise<Course[]>;
@@ -135,6 +136,8 @@ export interface IStorage {
   getStudentConsultations(studentId: string): Promise<Consultation[]>;
   getAllConsultations(): Promise<Consultation[]>;
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
+  updateConsultation(id: string, consultation: Partial<InsertConsultation>): Promise<Consultation | null>;
+  deleteConsultation(id: string): Promise<boolean>;
 }
 
 // Database storage implementation
@@ -188,6 +191,22 @@ export class DatabaseStorage implements IStorage {
     }
     
     return user;
+  }
+
+  async searchStudentsByName(searchTerm: string): Promise<User[]> {
+    const students = await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          ilike(users.firstName, `%${searchTerm}%`),
+          ilike(users.lastName, `%${searchTerm}%`),
+          ilike(users.username, `%${searchTerm}%`)
+        )
+      )
+      .limit(10);
+    
+    return students.filter(user => user.role === 'student');
   }
 
   async getCourses(): Promise<Course[]> {
@@ -535,6 +554,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertConsultation)
       .returning();
     return consultation;
+  }
+
+  async updateConsultation(id: string, consultationData: Partial<InsertConsultation>): Promise<Consultation | null> {
+    const [consultation] = await db
+      .update(consultations)
+      .set(consultationData)
+      .where(eq(consultations.id, id))
+      .returning();
+    return consultation || null;
+  }
+
+  async deleteConsultation(id: string): Promise<boolean> {
+    const result = await db.delete(consultations).where(eq(consultations.id, id));
+    return result.rowCount! > 0;
   }
 }
 

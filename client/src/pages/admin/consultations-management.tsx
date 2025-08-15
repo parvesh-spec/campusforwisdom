@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Calendar, Clock, User, DollarSign, Search, Filter, MessageSquare } from "lucide-react";
 import type { Consultation, Expert, InsertConsultation } from "@shared/schema";
+import StudentSearch from "@/components/ui/student-search";
 
 export default function ConsultationsManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +25,7 @@ export default function ConsultationsManagement() {
   const queryClient = useQueryClient();
 
   // Form state for creating/editing consultation
-  const [formData, setFormData] = useState<Partial<InsertConsultation>>({
+  const [formData, setFormData] = useState({
     expertId: "",
     studentId: "",
     title: "",
@@ -34,6 +35,8 @@ export default function ConsultationsManagement() {
     status: "scheduled",
     amount: "",
   });
+
+  const [selectedStudentName, setSelectedStudentName] = useState("");
 
   const { data: consultations, isLoading } = useQuery<Consultation[]>({
     queryKey: ["/api/admin/consultations"],
@@ -51,7 +54,7 @@ export default function ConsultationsManagement() {
   });
 
   const createConsultationMutation = useMutation({
-    mutationFn: async (data: Partial<InsertConsultation>) => {
+    mutationFn: async (data: any) => {
       return await apiRequest('POST', '/api/admin/consultations', data);
     },
     onSuccess: () => {
@@ -73,7 +76,7 @@ export default function ConsultationsManagement() {
   });
 
   const updateConsultationMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertConsultation> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       return await apiRequest('PUT', `/api/admin/consultations/${id}`, data);
     },
     onSuccess: () => {
@@ -126,6 +129,7 @@ export default function ConsultationsManagement() {
       status: "scheduled",
       amount: "",
     });
+    setSelectedStudentName("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -153,6 +157,7 @@ export default function ConsultationsManagement() {
       status: consultation.status,
       amount: consultation.amount,
     });
+    setSelectedStudentName(""); // Will be populated by the StudentSearch component
     setShowCreateModal(true);
   };
 
@@ -298,7 +303,7 @@ export default function ConsultationsManagement() {
                     <div>
                       <h3 className="font-semibold text-lg">{consultation.title}</h3>
                       <p className="text-sm text-gray-600">
-                        Expert: {consultation.expert?.name} | Student ID: {consultation.studentId}
+                        Expert: {consultation.expert?.name || "Unknown"} | Student ID: {consultation.studentId}
                       </p>
                     </div>
                   </div>
@@ -399,13 +404,15 @@ export default function ConsultationsManagement() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="studentId">Student ID *</Label>
-                <Input
-                  id="studentId"
-                  required
+                <StudentSearch
                   value={formData.studentId || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, studentId: e.target.value }))}
-                  placeholder="student-id-123"
+                  onChange={(studentId, studentName) => {
+                    setFormData(prev => ({ ...prev, studentId }));
+                    setSelectedStudentName(studentName);
+                  }}
+                  placeholder="Search student by name..."
+                  label="Student"
+                  required
                 />
               </div>
             </div>
@@ -439,7 +446,7 @@ export default function ConsultationsManagement() {
                   id="scheduledAt"
                   type="datetime-local"
                   required
-                  value={formData.scheduledAt || ""}
+                  value={formData.scheduledAt}
                   onChange={(e) => setFormData(prev => ({ ...prev, scheduledAt: e.target.value }))}
                 />
               </div>

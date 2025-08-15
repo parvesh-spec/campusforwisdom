@@ -763,6 +763,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search students by name
+  app.get("/api/admin/students/search", requireAdmin, async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.json([]);
+      }
+      
+      const students = await storage.searchStudentsByName(q);
+      res.json(students);
+    } catch (error) {
+      console.error("Error searching students:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Create expert
   app.post("/api/admin/experts", requireAdmin, async (req, res) => {
     try {
@@ -806,6 +822,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== ADMIN CONSULTATIONS MANAGEMENT =====
+
   // Get all consultations for admin
   app.get("/api/admin/consultations", requireAdmin, async (req, res) => {
     try {
@@ -813,6 +831,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(consultations);
     } catch (error) {
       console.error("Error fetching consultations:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Create consultation
+  app.post("/api/admin/consultations", requireAdmin, async (req, res) => {
+    try {
+      const consultationData = insertConsultationSchema.parse(req.body);
+      const consultation = await storage.createConsultation(consultationData);
+      res.json(consultation);
+    } catch (error) {
+      console.error("Error creating consultation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid consultation data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update consultation
+  app.put("/api/admin/consultations/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const consultationData = insertConsultationSchema.parse(req.body);
+      const consultation = await storage.updateConsultation(id, consultationData);
+      
+      if (!consultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+      
+      res.json(consultation);
+    } catch (error) {
+      console.error("Error updating consultation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid consultation data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete consultation
+  app.delete("/api/admin/consultations/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteConsultation(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+      
+      res.json({ message: "Consultation deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting consultation:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
