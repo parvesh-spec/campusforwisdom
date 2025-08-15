@@ -163,9 +163,9 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
       
-      console.log('📡 Calling user API:', `https://${this.apiDomain}/api/v2/user.json`);
+      console.log('📡 Calling organization users API:', `https://${this.apiDomain}/api/v2/${this.zsoid}/user`);
       
-      const response = await fetch(`https://${this.apiDomain}/api/v2/user.json`, {
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/user`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
@@ -181,10 +181,11 @@ export class ZohoWebinarAPI {
       }
 
       const data = await response.json() as any;
-      console.log('👤 User details full response:', JSON.stringify(data, null, 2));
+      console.log('👤 Organization users full response:', JSON.stringify(data, null, 2));
       
-      // Extract ZUID from userDetails object
-      const zuid = data.userDetails?.zuid?.toString() || this.zsoid;
+      // Extract ZUID from first user in representation array
+      const firstUser = data.representation?.[0];
+      const zuid = firstUser?.zuid?.toString() || firstUser?.userId?.toString() || this.zsoid;
       console.log('🎯 Extracted ZUID:', zuid);
       
       return { zuid };
