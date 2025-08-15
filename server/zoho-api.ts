@@ -219,6 +219,59 @@ export class ZohoWebinarAPI {
     return `${datePart} ${timePart}`;
   }
 
+  // Create Meeting (for 1-to-1 consultations)
+  async createMeeting(meetingData: {
+    title: string;
+    description: string;
+    scheduledAt: Date;
+    duration: number; // Duration in minutes
+    timezone?: string;
+    participants?: string[]; // Array of email addresses
+  }): Promise<any> {
+    try {
+      const accessToken = await this.getValidAccessToken();
+
+      const requestBody = {
+        topic: meetingData.title,
+        agenda: meetingData.description,
+        presenter: this.userZuid,
+        startTime: this.formatDateTime(meetingData.scheduledAt),
+        duration: meetingData.duration * 60 * 1000, // Convert minutes to milliseconds
+        timezone: meetingData.timezone || 'Asia/Calcutta',
+      };
+
+      // Add participants if provided
+      if (meetingData.participants && meetingData.participants.length > 0) {
+        (requestBody as any).participants = meetingData.participants.map(email => ({ email }));
+      }
+
+      console.log('🚀 Creating Zoho meeting with data:', requestBody);
+
+      const response = await fetch(`https://${this.apiDomain}/api/v2/${this.zsoid}/sessions.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+          'Authorization': `Zoho-oauthtoken ${accessToken}`,
+        },
+        body: JSON.stringify({ session: requestBody }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Zoho Meeting API Error:', response.status, errorData);
+        throw new Error(`Failed to create meeting: ${response.status} ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Meeting created successfully:', result.session.meetingKey);
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Error creating meeting:', error);
+      throw error;
+    }
+  }
+
   async createWebinar(webinarData: {
     title: string;
     description: string;

@@ -851,8 +851,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (expert && student) {
           console.log(`🚀 Creating Zoho webinar for consultation: ${consultation.title}`);
           
-          // Create Zoho webinar
-          const webinarResponse = await zohoAPI.createWebinar({
+          // Create Zoho meeting (for 1-to-1 consultation)
+          const meetingResponse = await zohoAPI.createMeeting({
             title: `AI Expert Consultation: ${consultation.title}`,
             description: `AI Expert consultation between ${expert.name} and ${student.firstName || student.username}. ${consultation.description || ''}`,
             scheduledAt: consultation.scheduledAt,
@@ -862,17 +862,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           // Update consultation with meeting URL
-          const meetingUrl = webinarResponse.session.registrationLink;
-          const startLink = `https://meeting.zoho.in${webinarResponse.session.startLink}`;
+          const joinLink = meetingResponse.session.joinLink;
+          const startLink = meetingResponse.session.startLink;
           
           await storage.updateConsultation(consultation.id, {
-            meetingUrl: meetingUrl,
-            // Store start link in notes for expert access
-            notes: `Expert Start Link: ${startLink}`
+            meetingUrl: joinLink
           });
           
-          console.log(`✅ Webinar created successfully for consultation ${consultation.id}`);
-          console.log(`📧 Student registration link: ${meetingUrl}`);
+          console.log(`✅ Meeting created successfully for consultation ${consultation.id}`);
+          console.log(`🔗 Meeting join link (both parties): ${joinLink}`);
           console.log(`🎯 Expert start link: ${startLink}`);
           
           // Return consultation with meeting URL
@@ -882,9 +880,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn('⚠️ Could not find expert or student for webinar creation');
           res.json(consultation);
         }
-      } catch (webinarError) {
-        console.error('❌ Error creating Zoho webinar:', webinarError);
-        console.log('📝 Consultation created without webinar link');
+      } catch (meetingError) {
+        console.error('❌ Error creating Zoho meeting:', meetingError);
+        console.log('📝 Consultation created without meeting link');
         res.json(consultation);
       }
     } catch (error) {

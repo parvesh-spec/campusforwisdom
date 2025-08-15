@@ -323,6 +323,12 @@ export default function ConsultationsManagement() {
                       <DollarSign className="h-4 w-4 text-gray-400" />
                       ₹{consultation.amount}
                     </div>
+                    {consultation.meetingUrl && (
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-green-600 text-xs">Meeting Ready</span>
+                      </div>
+                    )}
                     <Badge className={getStatusColor(consultation.status)}>
                       {consultation.status}
                     </Badge>
@@ -330,6 +336,16 @@ export default function ConsultationsManagement() {
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {consultation.meetingUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(consultation.meetingUrl, '_blank')}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
