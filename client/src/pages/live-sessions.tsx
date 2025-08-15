@@ -79,24 +79,54 @@ export default function LiveSessions() {
           </div>
         </div>
 
-        {/* View Mode Selection */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-lg p-1 shadow-md">
-            <Button
-              onClick={() => setViewMode("all")}
-              variant={viewMode === "all" ? "default" : "ghost"}
-              className="px-6 py-2 mr-1"
-            >
-              All Sessions
-            </Button>
-            <Button
-              onClick={handleMySessionsClick}
-              variant={viewMode === "my" ? "default" : "ghost"}
-              className="px-6 py-2 flex items-center space-x-2"
-            >
-              {!isLoggedIn && <LogIn className="h-4 w-4" />}
-              <span>My Sessions</span>
-            </Button>
+        {/* View Mode Selection - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* All Sessions Column */}
+          <div className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all ${viewMode === "all" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">All Sessions</h3>
+              <Button
+                onClick={() => setViewMode("all")}
+                variant={viewMode === "all" ? "default" : "outline"}
+                size="sm"
+              >
+                View All
+              </Button>
+            </div>
+            <p className="text-gray-600 text-sm">
+              Browse all available sessions from our expert instructors. Join upcoming sessions or watch recordings.
+            </p>
+          </div>
+
+          {/* My Sessions Column */}
+          <div className={`bg-white rounded-xl p-6 shadow-lg border-2 transition-all ${viewMode === "my" ? "border-green-500 bg-green-50" : "border-gray-200"}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                {!isLoggedIn && <LogIn className="h-5 w-5 text-gray-400" />}
+                <span>My Sessions</span>
+              </h3>
+              <Button
+                onClick={handleMySessionsClick}
+                variant={viewMode === "my" ? "default" : "outline"}
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                {!isLoggedIn ? (
+                  <>
+                    <LogIn className="h-3 w-3" />
+                    <span>Login</span>
+                  </>
+                ) : (
+                  <span>View Mine</span>
+                )}
+              </Button>
+            </div>
+            <p className="text-gray-600 text-sm">
+              {isLoggedIn 
+                ? "Your registered sessions and participation history. Track your learning progress."
+                : "Login to view your registered sessions and track your learning journey."
+              }
+            </p>
           </div>
         </div>
 
