@@ -167,9 +167,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout/student", (req, res) => {
     if ((req.session as any)?.studentUser) {
       delete (req.session as any).studentUser;
-      // Update general user field if it was a student
-      if ((req.session as any)?.user?.role === 'student') {
+      // Only update general user field if there's no admin logged in
+      if ((req.session as any)?.user?.role === 'student' && !(req.session as any)?.adminUser) {
         delete (req.session as any).user;
+      } else if ((req.session as any)?.adminUser) {
+        // If admin is still logged in, keep general user as admin
+        (req.session as any).user = (req.session as any).adminUser;
       }
     }
     res.json({ success: true });
@@ -179,9 +182,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout/admin", (req, res) => {
     if ((req.session as any)?.adminUser) {
       delete (req.session as any).adminUser;
-      // Update general user field if it was an admin
-      if ((req.session as any)?.user?.role === 'admin') {
+      // Only update general user field if there's no student logged in
+      if ((req.session as any)?.user?.role === 'admin' && !(req.session as any)?.studentUser) {
         delete (req.session as any).user;
+      } else if ((req.session as any)?.studentUser) {
+        // If student is still logged in, keep general user as student
+        (req.session as any).user = (req.session as any).studentUser;
       }
     }
     res.json({ success: true });

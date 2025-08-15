@@ -14,13 +14,13 @@ export default function StudentProfile({ user }: StudentProfileProps) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('POST', '/api/auth/logout');
+      await apiRequest('POST', '/api/auth/logout/student');
     },
     onSuccess: () => {
-      // Clear the user query cache
-      queryClient.setQueryData(['/api/auth/user'], null);
-      // Optionally reload the page to reset state
-      window.location.reload();
+      // Clear only student cache
+      queryClient.setQueryData(['/api/auth/student'], null);
+      // Refresh queries to update UI
+      queryClient.refetchQueries();
     },
   });
 
