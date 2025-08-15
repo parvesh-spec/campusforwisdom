@@ -34,6 +34,11 @@ export type EnrollmentWithDetails = Enrollment & {
   course: Course;
 };
 
+export type ConsultationWithDetails = Consultation & {
+  expert?: Expert | null;
+  student?: User | null;
+};
+
 export type PaymentWithDetails = {
   id: string;
   amount: number;
@@ -134,7 +139,7 @@ export interface IStorage {
 
   // Consultation methods
   getStudentConsultations(studentId: string): Promise<Consultation[]>;
-  getAllConsultations(): Promise<Consultation[]>;
+  getAllConsultations(): Promise<ConsultationWithDetails[]>;
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
   updateConsultation(id: string, consultation: Partial<InsertConsultation>): Promise<Consultation | null>;
   deleteConsultation(id: string): Promise<boolean>;
@@ -543,12 +548,29 @@ export class DatabaseStorage implements IStorage {
     return consultationList;
   }
 
-  async getAllConsultations(): Promise<Consultation[]> {
+  async getAllConsultations(): Promise<ConsultationWithDetails[]> {
     const consultationList = await db
       .select()
       .from(consultations)
       .orderBy(desc(consultations.createdAt));
-    return consultationList;
+    
+    // Fetch expert and student details for each consultation
+    const consultationsWithDetails: ConsultationWithDetails[] = await Promise.all(
+      consultationList.map(async (consultation) => {
+        const [expert, student] = await Promise.all([
+          consultation.expertId ? this.getExpert(consultation.expertId) : null,
+          consultation.studentId ? this.getUser(consultation.studentId) : null
+        ]);
+        
+        return {
+          ...consultation,
+          expert,
+          student
+        };
+      })
+    );
+    
+    return consultationsWithDetails;
   }
 
   async createConsultation(insertConsultation: InsertConsultation): Promise<Consultation> {

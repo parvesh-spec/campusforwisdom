@@ -11,8 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Calendar, Clock, User, DollarSign, Search, Filter, MessageSquare, Copy, Video, ExternalLink } from "lucide-react";
-import type { Consultation, Expert, InsertConsultation } from "@shared/schema";
+import { Plus, Edit, Trash2, Calendar, Clock, User as UserIcon, DollarSign, Search, Filter, MessageSquare, Copy, Video, ExternalLink } from "lucide-react";
+import type { Consultation, Expert, User, InsertConsultation } from "@shared/schema";
+
+// Extended consultation type with joined data
+type ConsultationWithDetails = Consultation & {
+  expert?: Expert | null;
+  student?: User | null;
+};
 import StudentSearch from "@/components/ui/student-search";
 
 export default function ConsultationsManagement() {
@@ -38,7 +44,7 @@ export default function ConsultationsManagement() {
 
   const [selectedStudentName, setSelectedStudentName] = useState("");
 
-  const { data: consultations, isLoading } = useQuery<Consultation[]>({
+  const { data: consultations, isLoading } = useQuery<ConsultationWithDetails[]>({
     queryKey: ["/api/admin/consultations"],
   });
 
@@ -303,7 +309,11 @@ export default function ConsultationsManagement() {
                     <div>
                       <h3 className="font-semibold text-lg">{consultation.title}</h3>
                       <p className="text-sm text-gray-600">
-                        Expert: {consultation.expert?.name || "Unknown"} | Student ID: {consultation.studentId}
+                        Expert: {consultation.expert?.name || "Unknown"} | Student: {
+                          consultation.student?.firstName && consultation.student?.lastName 
+                            ? `${consultation.student.firstName} ${consultation.student.lastName}`
+                            : consultation.student?.username || "Unknown"
+                        }
                       </p>
                     </div>
                   </div>
