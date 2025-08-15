@@ -163,6 +163,8 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
       
+      console.log('📡 Calling user API:', `https://${this.apiDomain}/api/v2/user.json`);
+      
       const response = await fetch(`https://${this.apiDomain}/api/v2/user.json`, {
         method: 'GET',
         headers: {
@@ -170,14 +172,22 @@ export class ZohoWebinarAPI {
         },
       });
 
+      console.log('📡 User API Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(`Failed to get user details: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ User API Error Response:', errorText);
+        throw new Error(`Failed to get user details: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json() as any;
-      console.log('👤 User details response:', data);
+      console.log('👤 User details full response:', JSON.stringify(data, null, 2));
+      
       // Extract ZUID from userDetails object
-      return { zuid: data.userDetails?.zuid?.toString() || this.zsoid };
+      const zuid = data.userDetails?.zuid?.toString() || this.zsoid;
+      console.log('🎯 Extracted ZUID:', zuid);
+      
+      return { zuid };
     } catch (error) {
       console.error('❌ Error getting user details:', error);
       console.warn('⚠️ Could not get user ZUID, using organization ID as fallback');
@@ -216,10 +226,13 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
+      // Get user details to get valid ZUID for presenter
+      const userDetails = await this.getUserDetails();
+      
       const requestBody: ZohoWebinarRequest = {
         topic: webinarData.title,
         agenda: webinarData.description,
-        // Skip presenter field to let Zoho use the authenticated user automatically
+        presenter: userDetails.zuid, // Use actual user ZUID as presenter
         startTime: this.formatDateTime(webinarData.scheduledAt),
         duration: webinarData.duration * 60 * 1000, // Convert minutes to milliseconds
         timezone: webinarData.timezone || 'Asia/Calcutta',
