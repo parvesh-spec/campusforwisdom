@@ -2,26 +2,29 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
+import { pool } from "./db";
 import { z } from "zod";
 import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
 
-// Simple session configuration
-const MemoryStoreSession = MemoryStore(session);
+// PostgreSQL session store configuration
+const PgSession = connectPgSimple(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure sessions
+  // Configure sessions with PostgreSQL store
   app.use(session({
     secret: 'campus-for-wisdom-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    store: new PgSession({
+      pool: pool,
+      tableName: 'session',
+      createTableIfMissing: true,
     }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }
   }));
 
