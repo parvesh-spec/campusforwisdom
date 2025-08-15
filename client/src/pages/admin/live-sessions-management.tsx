@@ -39,32 +39,42 @@ export default function WebinarManagement() {
   const createSessionMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/admin/live-sessions", data),
     onSuccess: (response: any) => {
-      if (response.zohoData) {
+      if (response.zohoIntegrated && response.zohoData) {
         toast({ 
-          title: "Webinar created successfully!", 
-          description: `Registration link: ${response.registrationLink}` 
+          title: "✅ Webinar created successfully in Zoho!", 
+          description: `Meeting Key: ${response.zohoData.meetingKey}` 
         });
-      } else if (response.warning) {
-        toast({ 
-          title: "Webinar created with warning", 
-          description: response.warning,
-          variant: "default" 
-        });
-      } else if (response.info) {
-        toast({ 
-          title: "Session created", 
-          description: response.info,
-          variant: "default" 
-        });
-      } else {
+      } else if (response.success) {
         toast({ title: "Webinar created successfully!" });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/live-sessions"] });
       setIsCreateModalOpen(false);
       resetForm();
     },
-    onError: () => {
-      toast({ title: "Error creating webinar", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Webinar creation error:', error);
+      
+      // Handle specific Zoho API errors
+      if (error?.response?.status === 422) {
+        const errorData = error.response.data;
+        toast({ 
+          title: "❌ " + (errorData.error || "Zoho Integration Failed"),
+          description: errorData.message + (errorData.suggestion ? `\n\n${errorData.suggestion}` : ''),
+          variant: "destructive" 
+        });
+      } else if (error?.response?.status === 400) {
+        toast({ 
+          title: "❌ Invalid Data", 
+          description: "Please check all required fields and try again.",
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "❌ Error creating webinar", 
+          description: "Please check your connection and try again.",
+          variant: "destructive" 
+        });
+      }
     },
   });
 

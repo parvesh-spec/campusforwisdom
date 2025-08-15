@@ -306,63 +306,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/live-sessions", requireAdmin, async (req, res) => {
     try {
       const sessionData = insertWebinarSchema.parse(req.body);
+      console.log('📝 Creating webinar with data:', {
+        title: sessionData.title,
+        scheduledAt: sessionData.scheduledAt,
+        duration: sessionData.duration
+      });
       
       // Create webinar through Zoho API if available
       if (zohoAPI) {
         try {
-          console.log('🚀 Creating webinar through Zoho API...');
-          const zohoResponse = await zohoAPI.createWebinar({
-          title: sessionData.title,
-          description: sessionData.description,
-          scheduledAt: new Date(sessionData.scheduledAt),
-          duration: sessionData.duration,
-          timezone: sessionData.timezone || 'Asia/Calcutta',
-          participants: sessionData.participants || [],
-        });
-
-        // Store webinar in database with Zoho details
-        const webinarWithZohoData = {
-          ...sessionData,
-          meetingKey: zohoResponse.session.meetingKey,
-          registrationLink: zohoResponse.session.registrationLink,
-          startLink: zohoResponse.session.startLink,
-          webinarId: zohoResponse.session.meetingKey,
-          presenterZuid: zohoResponse.session.presenter,
-        };
-
-        const session = await storage.createLiveSession(webinarWithZohoData);
-        
-        console.log('✅ Webinar created successfully with Zoho integration');
-        res.json({
-          ...session,
-          zohoData: zohoResponse.session
-          });
-        } catch (zohoError) {
-          console.error('❌ Zoho API Error:', zohoError);
+          console.log('🚀 Attempting to create webinar through Zoho API...');
           
-          // Fallback: create session without Zoho integration
-          console.log('⚠️ Falling back to creating session without Zoho integration');
-          const session = await storage.createLiveSession(sessionData);
+          // Test connection first
+          const connectionTest = await zohoAPI.testConnection();
+          if (!connectionTest) {
+            throw new Error('Zoho API connection test failed. Please check your credentials.');
+          }
+          
+          const zohoResponse = await zohoAPI.createWebinar({
+            title: sessionData.title,
+            description: sessionData.description,
+            scheduledAt: new Date(sessionData.scheduledAt),
+            duration: sessionData.duration,
+            timezone: sessionData.timezone || 'Asia/Calcutta',
+            participants: sessionData.participants || [],
+          });
+
+          // Store webinar in database with Zoho details
+          const webinarWithZohoData = {
+            ...sessionData,
+            meetingKey: zohoResponse.session.meetingKey,
+            registrationLink: zohoResponse.session.registrationLink,
+            startLink: zohoResponse.session.startLink,
+            webinarId: zohoResponse.session.meetingKey,
+            presenterZuid: zohoResponse.session.presenter,
+          };
+
+          const session = await storage.createLiveSession(webinarWithZohoData);
+          
+          console.log('✅ Webinar created successfully with Zoho integration');
+          console.log('📊 Zoho Response:', {
+            meetingKey: zohoResponse.session.meetingKey,
+            registrationLink: zohoResponse.session.registrationLink
+          });
+          
           res.json({
             ...session,
-            warning: 'Created without Zoho integration. Please check Zoho API credentials.'
+            success: true,
+            zohoIntegrated: true,
+            zohoData: {
+              meetingKey: zohoResponse.session.meetingKey,
+              registrationLink: zohoResponse.session.registrationLink,
+              startLink: zohoResponse.session.startLink
+            }
+          });
+        } catch (zohoError) {
+          console.error('❌ Zoho API Error Details:', {
+            message: zohoError instanceof Error ? zohoError.message : 'Unknown error',
+            stack: zohoError instanceof Error ? zohoError.stack : undefined
+          });
+          
+          // Return error to frontend instead of fallback
+          return res.status(422).json({
+            error: 'Zoho Webinar Creation Failed',
+            message: zohoError instanceof Error ? zohoError.message : 'Failed to create webinar in Zoho',
+            zohoIntegrated: false,
+            suggestion: 'Please check your Zoho API credentials and try again.'
           });
         }
       } else {
-        // No Zoho API available - create session without integration
-        console.log('⚠️ Creating session without Zoho integration - API not initialized');
-        const session = await storage.createLiveSession(sessionData);
-        res.json({
-          ...session,
-          info: 'Created without Zoho integration. Set up Zoho credentials to enable webinar features.'
+        // No Zoho API available - return error instead of creating without integration
+        console.log('❌ Zoho API not initialized - missing credentials');
+        return res.status(422).json({
+          error: 'Zoho Integration Required',
+          message: 'Zoho API credentials are not configured. Cannot create webinar.',
+          zohoIntegrated: false,
+          suggestion: 'Please configure ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, and ZOHO_ZSOID environment variables.'
         });
       }
     } catch (error) {
       console.error("Error creating webinar:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid webinar data", details: error.errors });
+        return res.status(400).json({ 
+          error: "Invalid webinar data", 
+          details: error.errors 
+        });
       }
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
+  // Debug endpoint to test Zoho API connection
+  app.get("/api/admin/zoho-test", requireAdmin, async (req, res) => {
+    try {
+      if (!zohoAPI) {
+        return res.status(422).json({
+          success: false,
+          message: 'Zoho API not initialized - missing credentials',
+          suggestion: 'Please set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, and ZOHO_ZSOID environment variables.'
+        });
+      }
+
+      console.log('🧪 Testing Zoho API connection...');
+      const connectionTest = await zohoAPI.testConnection();
+      
+      if (connectionTest) {
+        res.json({
+          success: true,
+          message: 'Zoho API connection successful',
+          zohoIntegrated: true
+        });
+      } else {
+        res.status(422).json({
+          success: false,
+          message: 'Zoho API connection failed',
+          suggestion: 'Please check your Zoho API credentials and try again.'
+        });
+      }
+    } catch (error) {
+      console.error('❌ Zoho API test error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        suggestion: 'Please check your Zoho API credentials and server logs.'
+      });
     }
   });
 
