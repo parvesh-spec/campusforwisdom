@@ -140,6 +140,8 @@ export default function ProfileSettings() {
     );
   }
 
+
+
   const renderProfileSection = () => (
     <div className="space-y-6">
       {/* Desktop Layout */}

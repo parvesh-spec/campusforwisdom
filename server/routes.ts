@@ -114,6 +114,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).adminUser = {
           id: user.id,
           username: user.username,
+          email: user.email,
+          phone: user.phone,
           role: user.role,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -122,6 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).studentUser = {
           id: user.id,
           username: user.username,
+          email: user.email,
+          phone: user.phone,
           role: user.role,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -132,6 +136,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (req.session as any).user = {
         id: user.id,
         username: user.username,
+        email: user.email,
+        phone: user.phone,
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -141,6 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: user.id,
           username: user.username,
+          email: user.email,
+          phone: user.phone,
           role: user.role,
           firstName: user.firstName,
           lastName: user.lastName,

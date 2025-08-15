@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 export interface User {
   id: string;
   username: string;
+  email?: string;
+  phone?: string;
   role: 'student' | 'instructor' | 'admin';
   firstName?: string;
   lastName?: string;
