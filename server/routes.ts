@@ -40,6 +40,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  // Zoho OAuth callback route
+  app.get("/auth/zoho/callback", async (req, res) => {
+    try {
+      const { code, error } = req.query;
+      
+      if (error) {
+        return res.status(400).send(`
+          <html>
+            <head><title>Zoho OAuth Error</title></head>
+            <body>
+              <h2>OAuth Error: ${error}</h2>
+              <p>Please try again.</p>
+            </body>
+          </html>
+        `);
+      }
+      
+      if (code) {
+        return res.send(`
+          <html>
+            <head><title>Zoho OAuth Success</title></head>
+            <body>
+              <h2>Authorization Code Received!</h2>
+              <p><strong>Copy this code:</strong></p>
+              <pre style="background: #f5f5f5; padding: 10px; font-family: monospace; border: 1px solid #ddd;">${code}</pre>
+              <p>Use this code to generate your refresh token.</p>
+            </body>
+          </html>
+        `);
+      }
+      
+      res.status(400).send(`
+        <html>
+          <head><title>Zoho OAuth</title></head>
+          <body>
+            <h2>No authorization code received</h2>
+            <p>Please try the OAuth flow again.</p>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Zoho OAuth callback error:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/login", async (req, res) => {
     try {
