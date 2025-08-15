@@ -703,15 +703,15 @@ export default function ProfileSettings() {
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex h-screen">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen sticky top-0">
+        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-gray-200 h-screen sticky top-0">
           <div className="p-6 pt-20">
             <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
             <p className="text-sm text-gray-600 mt-1">Manage your account</p>
           </div>
           
-          <nav className="px-3">
+          <nav className="px-3 overflow-y-auto h-full pb-32">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
@@ -735,8 +735,8 @@ export default function ProfileSettings() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 w-full">
-          <div className="pt-32 lg:pt-6 p-4 lg:p-8">
+        <div className="flex-1 w-full h-screen overflow-hidden">
+          <div className="h-full pt-32 lg:pt-6 p-4 lg:p-8 overflow-y-auto">
             <div className="w-full max-w-none">
               {renderContent()}
             </div>
