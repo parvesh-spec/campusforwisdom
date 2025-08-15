@@ -40,6 +40,7 @@ export class ZohoWebinarAPI {
   private clientSecret: string;
   private refreshToken: string;
   private zsoid: string;
+  private userZuid: string;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
   private apiDomain: string = 'meeting.zoho.in'; // Default to India datacenter
@@ -49,9 +50,10 @@ export class ZohoWebinarAPI {
     this.clientSecret = process.env.ZOHO_CLIENT_SECRET || '';
     this.refreshToken = process.env.ZOHO_REFRESH_TOKEN || '';
     this.zsoid = process.env.ZOHO_ZSOID || '';
+    this.userZuid = process.env.ZOHO_USER_ZUID || '';
 
-    if (!this.clientId || !this.clientSecret || !this.refreshToken || !this.zsoid) {
-      throw new Error('Missing Zoho API credentials. Please set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, and ZOHO_ZSOID environment variables.');
+    if (!this.clientId || !this.clientSecret || !this.refreshToken || !this.zsoid || !this.userZuid) {
+      throw new Error('Missing Zoho API credentials. Please set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, ZOHO_ZSOID, and ZOHO_USER_ZUID environment variables.');
     }
 
     // Log credential validation (masked for security)
@@ -59,7 +61,8 @@ export class ZohoWebinarAPI {
       clientId: this.clientId.length > 0 ? `${this.clientId.substring(0, 8)}...` : 'EMPTY',
       clientSecret: this.clientSecret.length > 0 ? `${this.clientSecret.substring(0, 8)}...` : 'EMPTY',
       refreshToken: this.refreshToken.length > 0 ? `${this.refreshToken.substring(0, 12)}...` : 'EMPTY',
-      zsoid: this.zsoid.length > 0 ? `${this.zsoid}` : 'EMPTY'
+      zsoid: this.zsoid.length > 0 ? `${this.zsoid}` : 'EMPTY',
+      userZuid: this.userZuid.length > 0 ? `${this.userZuid}` : 'EMPTY'
     });
   }
 
@@ -227,13 +230,10 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      // Get user details to get valid ZUID for presenter
-      const userDetails = await this.getUserDetails();
-      
       const requestBody: ZohoWebinarRequest = {
         topic: webinarData.title,
         agenda: webinarData.description,
-        presenter: userDetails.zuid, // Use actual user ZUID as presenter
+        presenter: this.userZuid, // Use provided user ZUID as presenter
         startTime: this.formatDateTime(webinarData.scheduledAt),
         duration: webinarData.duration * 60 * 1000, // Convert minutes to milliseconds
         timezone: webinarData.timezone || 'Asia/Calcutta',
