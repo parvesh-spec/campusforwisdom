@@ -380,17 +380,17 @@ export default function ConsultationsManagement() {
                       </div>
                     </div>
                     
-                    {consultation.startUrl && (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => window.open(consultation.startUrl!, '_blank')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Video className="h-4 w-4 mr-2" />
-                          Start Meeting
-                        </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => window.open(consultation.startUrl || consultation.meetingUrl!, '_blank')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Start Meeting
+                      </Button>
+                      {consultation.startUrl && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -403,8 +403,8 @@ export default function ConsultationsManagement() {
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
