@@ -56,6 +56,7 @@ export default function Header() {
   };
 
   const isActive = (path: string) => location === path;
+  const isAdminPage = location.startsWith('/admin');
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -118,8 +119,8 @@ export default function Header() {
                     </Button>
                   )}
                   
-                  {/* Admin Controls */}
-                  {isAdminAuthenticated && adminUser && (
+                  {/* Admin Controls - only show on admin pages */}
+                  {isAdminAuthenticated && adminUser && isAdminPage && (
                     <AdminLogout user={adminUser} />
                   )}
                 </>
@@ -196,8 +197,8 @@ export default function Header() {
                   </Button>
                 )}
 
-                {/* Admin Controls */}
-                {isAdminAuthenticated && adminUser && (
+                {/* Admin Controls - only show on admin pages */}
+                {isAdminAuthenticated && adminUser && isAdminPage && (
                   <div className="px-3 py-2 border rounded-lg bg-blue-50">
                     <p className="text-sm font-medium text-gray-900">
                       {adminUser.firstName && adminUser.lastName 
