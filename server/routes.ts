@@ -297,6 +297,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Student routes (protected)
+  
+  // Update student profile
+  app.put("/api/student/profile", requireAuth, async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const {
+        firstName,
+        lastName,
+        dateOfBirth,
+        gender,
+        address,
+        city,
+        state,
+        country,
+        occupation,
+        education,
+        experience,
+      } = req.body;
+
+      const updatedUser = await storage.updateUserProfile(studentUser.id, {
+        firstName,
+        lastName,
+        dateOfBirth,
+        gender,
+        address,
+        city,
+        state,
+        country,
+        occupation,
+        education,
+        experience,
+      });
+
+      // Update session data
+      (req.session as any).studentUser = {
+        ...studentUser,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        dateOfBirth: updatedUser.dateOfBirth,
+        gender: updatedUser.gender,
+        address: updatedUser.address,
+        city: updatedUser.city,
+        state: updatedUser.state,
+        country: updatedUser.country,
+        occupation: updatedUser.occupation,
+        education: updatedUser.education,
+        experience: updatedUser.experience,
+      };
+
+      // Also update general user field if it's the student
+      if ((req.session as any)?.user?.id === studentUser.id) {
+        (req.session as any).user = {
+          ...(req.session as any).user,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+        };
+      }
+
+      res.json({
+        message: "Profile updated successfully",
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Admin routes (protected)
   
   // Dashboard stats

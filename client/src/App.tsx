@@ -13,6 +13,7 @@ import Courses from "@/pages/courses";
 import LiveSessions from "@/pages/live-sessions";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
+import ProfileSettings from "@/pages/profile-settings";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/dashboard";
@@ -85,6 +86,11 @@ function Router() {
       </Route>
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={() => <AdminLogin />} />
+      <Route path="/profile-settings">
+        <PublicLayout>
+          <ProfileSettings />
+        </PublicLayout>
+      </Route>
 
       {/* Admin routes */}
       <Route path="/admin">

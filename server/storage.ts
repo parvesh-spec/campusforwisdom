@@ -52,6 +52,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: string, profile: Partial<User>): Promise<User>;
 
   // Course methods
   getCourses(): Promise<Course[]>;
@@ -140,6 +141,23 @@ export class DatabaseStorage implements IStorage {
         role: insertUser.role || "student",
       })
       .returning();
+    return user;
+  }
+
+  async updateUserProfile(id: string, profile: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        ...profile,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
     return user;
   }
 

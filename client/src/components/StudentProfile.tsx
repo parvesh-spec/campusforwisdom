@@ -50,7 +50,7 @@ export default function StudentProfile({ user }: StudentProfileProps) {
           <BookOpen className="h-4 w-4 mr-2" />
           My Courses
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={() => window.open('/profile-settings', '_self')}>
           <Settings className="h-4 w-4 mr-2" />
           Profile Settings
         </DropdownMenuItem>

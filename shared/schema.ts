@@ -11,8 +11,19 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("student"), // student, instructor, admin
   firstName: text("first_name"),
   lastName: text("last_name"),
+  phone: text("phone"), // WhatsApp number
+  dateOfBirth: text("date_of_birth"),
+  gender: text("gender"), // male, female, other
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  country: text("country").default("India"),
+  occupation: text("occupation"),
+  education: text("education"),
+  experience: text("experience"), // beginner, intermediate, advanced
   avatar: text("avatar"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const courses = pgTable("courses", {
