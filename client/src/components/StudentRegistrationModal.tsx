@@ -26,6 +26,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const queryClient = useQueryClient();
 
   const registrationMutation = useMutation({
@@ -50,27 +51,64 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
     },
   });
 
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    // Required fields validation
+    if (!firstName.trim()) newErrors.firstName = "First name is required";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!email.trim()) newErrors.email = "Email is required";
+    if (!phone.trim()) newErrors.phone = "Phone number is required";
+    if (!password) newErrors.password = "Password is required";
+    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Phone validation - must start with country code and have max 10 digits after
+    const phoneRegex = /^\+\d{1,4}\d{1,10}$/;
+    if (phone && !phone.startsWith('+')) {
+      newErrors.phone = "Phone number must include country code (e.g., +91)";
+    } else if (phone && !phoneRegex.test(phone)) {
+      newErrors.phone = "Invalid phone format. Use +[country code][max 10 digits]";
+    } else if (phone && phone.startsWith('+')) {
+      // Extract digits after country code
+      const phoneDigits = phone.slice(1);
+      const countryCodeMatch = phoneDigits.match(/^(\d{1,4})/);
+      if (countryCodeMatch) {
+        const remainingDigits = phoneDigits.slice(countryCodeMatch[1].length);
+        if (remainingDigits.length > 10) {
+          newErrors.phone = "Phone number cannot have more than 10 digits after country code";
+        }
+      }
+    }
+
+    // Password validation
+    if (password && password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+
+    // Confirm password validation
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    // Username availability validation
+    if (username && !isUsernameAvailable) {
+      newErrors.username = "This username is not available";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation (username is optional now)
-    if (!firstName || !lastName || !email || !phone || !password) {
-      alert("Please fill all required fields!");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("Password should be at least 6 characters long!");
-      return;
-    }
-
-    if (username && !isUsernameAvailable) {
-      alert("Please choose a different username!");
+    if (!validateForm()) {
       return;
     }
 
@@ -88,6 +126,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
     setShowPassword(false);
     setShowConfirmPassword(false);
     setIsUsernameAvailable(true);
+    setErrors({});
     registrationMutation.reset();
   };
 
@@ -126,11 +165,12 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className={`pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.firstName ? 'border-red-500' : ''}`}
                   placeholder="Enter first name"
                   required
                 />
               </div>
+              {errors.firstName && <p className="text-xs text-red-600 mt-1">{errors.firstName}</p>}
             </div>
             <div>
               <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 mb-2 block">
@@ -143,11 +183,12 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className={`pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.lastName ? 'border-red-500' : ''}`}
                   placeholder="Enter last name"
                   required
                 />
               </div>
+              {errors.lastName && <p className="text-xs text-red-600 mt-1">{errors.lastName}</p>}
             </div>
           </div>
 
@@ -163,11 +204,12 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                className={`pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.email ? 'border-red-500' : ''}`}
                 placeholder="Enter your email"
                 required
               />
             </div>
+            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
           </div>
 
           {/* WhatsApp Number Field */}
@@ -182,11 +224,12 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                placeholder="Enter WhatsApp number"
+                className={`pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.phone ? 'border-red-500' : ''}`}
+                placeholder="+91XXXXXXXXXX"
                 required
               />
             </div>
+            {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
           </div>
 
           {/* Username Field */}
@@ -201,13 +244,14 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                className={`pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.username ? 'border-red-500' : ''}`}
                 placeholder="Enter username"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Leave empty to auto-generate from your name
             </p>
+            {errors.username && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
             <UsernameAvailabilityChecker 
               username={username} 
               onAvailabilityChange={setIsUsernameAvailable}
@@ -227,7 +271,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className={`pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.password ? 'border-red-500' : ''}`}
                   placeholder="Create a password"
                   required
                 />
@@ -239,6 +283,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
             </div>
             <div>
               <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 mb-2 block">
@@ -251,7 +296,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className={`pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   placeholder="Confirm your password"
                   required
                 />
@@ -263,6 +308,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {errors.confirmPassword && <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>}
             </div>
           </div>
 
