@@ -5,9 +5,22 @@ import SessionCard from "@/components/ui/session-card";
 import TestimonialCard from "@/components/ui/testimonial-card";
 import { ArrowRight, Play, Calendar, Users, Star, BookOpen, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
+import StudentLoginModal from "@/components/StudentLoginModal";
 import type { Course, LiveSession, Testimonial, User } from "@shared/schema";
 
 export default function Home() {
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Check URL params for login trigger
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('showLogin') === 'true') {
+      setShowLoginModal(true);
+      // Clean URL after opening modal
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
   const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
   });
@@ -223,6 +236,12 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Student Login Modal */}
+      <StudentLoginModal 
+        isOpen={showLoginModal} 
+        onOpenChange={setShowLoginModal} 
+      />
     </div>
   );
 }

@@ -129,15 +129,9 @@ export default function ProfileSettings() {
   }
 
   if (!isAuthenticated || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Alert className="max-w-md">
-          <AlertDescription>
-            Please <Link href="/login" className="text-blue-600 underline">log in</Link> to access your profile settings.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+    // Redirect to home page with login trigger
+    window.location.href = '/?showLogin=true';
+    return null;
   }
 
 
