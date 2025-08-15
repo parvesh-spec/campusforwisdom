@@ -10,11 +10,12 @@ import { apiRequest } from "@/lib/queryClient";
 
 interface StudentLoginModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
 }
 
-export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentLoginModalProps) {
+export default function StudentLoginModal({ isOpen, onClose, onOpenChange, trigger }: StudentLoginModalProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const queryClient = useQueryClient();
@@ -32,7 +33,8 @@ export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentL
         queryClient.setQueryData(['/api/auth/user'], data.user);
         // Refresh all queries to update UI immediately
         queryClient.refetchQueries();
-        onClose();
+        if (onClose) onClose();
+        if (onOpenChange) onOpenChange(false);
       } else {
         throw new Error("Please use the admin portal for administrator access.");
       }
@@ -52,9 +54,12 @@ export default function StudentLoginModal({ isOpen, onClose, trigger }: StudentL
     loginMutation.reset();
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      resetForm();
+      if (onClose) onClose();
+      if (onOpenChange) onOpenChange(false);
+    }
   };
 
   return (
