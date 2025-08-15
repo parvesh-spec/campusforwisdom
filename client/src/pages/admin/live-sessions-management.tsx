@@ -203,14 +203,17 @@ export default function WebinarManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Webinar Title *
+                      Webinar Topic *
                     </label>
                     <Input
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="AI Marketing Webinar"
+                      placeholder="AI Marketing Strategies"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      The main topic or title of your webinar
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -237,15 +240,18 @@ export default function WebinarManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
+                    Webinar Agenda *
                   </label>
                   <Textarea
                     required
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Session description and learning objectives..."
+                    placeholder="Detailed agenda covering key topics, objectives, and learning outcomes..."
                     rows={3}
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Provide a comprehensive agenda that participants will see
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -296,16 +302,16 @@ export default function WebinarManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Participant Emails (optional)
+                    Pre-registered Participants (optional)
                   </label>
                   <Textarea
                     value={formData.participantEmails}
                     onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
-                    placeholder="Enter participant emails separated by commas (e.g., user1@example.com, user2@example.com)"
+                    placeholder="Enter participant emails separated by commas (e.g., john@company.com, sarah@company.com)"
                     rows={3}
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Leave empty to create an open webinar that anyone can register for
+                    Pre-register specific participants. Leave empty for open registration via Zoho's registration link.
                   </p>
                 </div>
 
@@ -385,21 +391,21 @@ export default function WebinarManagement() {
           </Card>
         </div>
 
-        {/* Sessions Table */}
+        {/* Webinars Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Sessions</CardTitle>
+            <CardTitle>All Webinars</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">Loading sessions...</p>
+                <p className="text-gray-500">Loading webinars...</p>
               </div>
             ) : sessions && sessions.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Session</TableHead>
+                    <TableHead>Webinar</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
                     <TableHead>Participants</TableHead>
@@ -504,14 +510,17 @@ export default function WebinarManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Webinar Title *
+                      Webinar Topic *
                     </label>
                     <Input
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="AI Marketing Webinar"
+                      placeholder="AI Marketing Strategies"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      The main topic or title of your webinar
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -538,15 +547,18 @@ export default function WebinarManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
+                    Webinar Agenda *
                   </label>
                   <Textarea
                     required
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Session description and learning objectives..."
+                    placeholder="Detailed agenda covering key topics, objectives, and learning outcomes..."
                     rows={3}
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Provide a comprehensive agenda that participants will see
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -575,22 +587,39 @@ export default function WebinarManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Participants
+                      Timezone
                     </label>
-                    <Input
-                      type="number"
-                      placeholder="100"
-                    />
+                    <Select
+                      value={formData.timezone}
+                      onValueChange={(value) => setFormData({ ...formData, timezone: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Asia/Calcutta">Asia/Calcutta (IST)</SelectItem>
+                        <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
+                        <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                        <SelectItem value="Australia/Sydney">Australia/Sydney (AEST)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meeting URL
+                    Pre-registered Participants (optional)
                   </label>
-                  <Input
-                    placeholder="https://zoom.us/j/123456789"
+                  <Textarea
+                    value={formData.participantEmails}
+                    onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
+                    placeholder="Enter participant emails separated by commas (e.g., john@company.com, sarah@company.com)"
+                    rows={3}
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Pre-register specific participants. Leave empty for open registration via Zoho's registration link.
+                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -608,7 +637,7 @@ export default function WebinarManagement() {
                     type="submit"
                     disabled={updateSessionMutation.isPending}
                   >
-                    Update Session
+                    Update Webinar
                   </Button>
                 </div>
               </form>
