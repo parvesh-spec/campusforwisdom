@@ -25,3 +25,33 @@ export function useAuth() {
     error,
   };
 }
+
+export function useStudentAuth() {
+  const { data: studentUser, isLoading, error } = useQuery<User>({
+    queryKey: ['/api/auth/student'],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    user: studentUser,
+    isLoading,
+    isAuthenticated: !!studentUser,
+    error,
+  };
+}
+
+export function useAdminAuth() {
+  const { data: adminUser, isLoading, error } = useQuery<User>({
+    queryKey: ['/api/auth/admin'],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    user: adminUser,
+    isLoading,
+    isAuthenticated: !!adminUser,
+    error,
+  };
+}

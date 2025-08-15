@@ -11,19 +11,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function AdminLogout() {
+interface AdminLogoutProps {
+  user: {
+    id: string;
+    username: string;
+    role: string;
+    firstName?: string;
+    lastName?: string;
+  };
+}
+
+export default function AdminLogout({ user }: AdminLogoutProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/auth/logout");
+      await apiRequest("POST", "/api/auth/logout/admin");
     },
     onSuccess: () => {
-      // Clear the user query cache
-      queryClient.setQueryData(["/api/auth/user"], null);
-      // Redirect to admin login
-      setLocation("/admin-login");
+      // Clear the admin query cache
+      queryClient.setQueryData(["/api/auth/admin"], null);
+      queryClient.refetchQueries();
     },
   });
 
@@ -31,21 +40,26 @@ export default function AdminLogout() {
     logoutMutation.mutate();
   };
 
+  const displayName = user.firstName && user.lastName 
+    ? `${user.firstName} ${user.lastName}`
+    : user.username;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="flex items-center gap-2">
           <User className="h-4 w-4" />
-          Admin User
+          {displayName}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={handleLogout}
           className="text-red-600 focus:text-red-600 cursor-pointer"
+          disabled={logoutMutation.isPending}
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Logout
+          {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

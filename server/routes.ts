@@ -108,7 +108,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Store user in session
+      // Store user in session based on role
+      if (user.role === 'admin') {
+        (req.session as any).adminUser = {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        };
+      } else {
+        (req.session as any).studentUser = {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        };
+      }
+
+      // Also maintain the general user field for backward compatibility
       (req.session as any).user = {
         id: user.id,
         username: user.username,
@@ -132,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logout route
+  // Logout route (logs out all users)
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
@@ -144,13 +163,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Get current user route
+  // Logout student only
+  app.post("/api/auth/logout/student", (req, res) => {
+    if ((req.session as any)?.studentUser) {
+      delete (req.session as any).studentUser;
+      // Update general user field if it was a student
+      if ((req.session as any)?.user?.role === 'student') {
+        delete (req.session as any).user;
+      }
+    }
+    res.json({ success: true });
+  });
+
+  // Logout admin only
+  app.post("/api/auth/logout/admin", (req, res) => {
+    if ((req.session as any)?.adminUser) {
+      delete (req.session as any).adminUser;
+      // Update general user field if it was an admin
+      if ((req.session as any)?.user?.role === 'admin') {
+        delete (req.session as any).user;
+      }
+    }
+    res.json({ success: true });
+  });
+
+  // Get current user route (returns the last logged in user for backward compatibility)
   app.get("/api/auth/user", (req, res) => {
     const user = (req.session as any)?.user;
     if (!user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     res.json(user);
+  });
+
+  // Get current student user
+  app.get("/api/auth/student", (req, res) => {
+    const studentUser = (req.session as any)?.studentUser;
+    if (!studentUser) {
+      return res.status(401).json({ error: "Student not authenticated" });
+    }
+    res.json(studentUser);
+  });
+
+  // Get current admin user  
+  app.get("/api/auth/admin", (req, res) => {
+    const adminUser = (req.session as any)?.adminUser;
+    if (!adminUser) {
+      return res.status(401).json({ error: "Admin not authenticated" });
+    }
+    res.json(adminUser);
   });
 
   // Public API routes
