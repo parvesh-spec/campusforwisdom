@@ -317,11 +317,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           console.log('🚀 Attempting to create webinar through Zoho API...');
           
-          // Test connection first
-          const connectionTest = await zohoAPI.testConnection();
-          if (!connectionTest) {
-            throw new Error('Zoho API connection test failed. Please check your credentials.');
-          }
+          // Skip connection test and directly try webinar creation
+          console.log('⏭️ Skipping connection test, attempting direct webinar creation...');
           
           const zohoResponse = await zohoAPI.createWebinar({
             title: sessionData.title,

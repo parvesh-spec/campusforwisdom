@@ -277,19 +277,31 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
       
+      console.log(`🧪 Testing connection with URL: https://${this.apiDomain}/api/v2/user.json`);
+      console.log(`🔐 Using access token: ${accessToken?.substring(0, 20)}...`);
+      
       const response = await fetch(`https://${this.apiDomain}/api/v2/user.json`, {
         method: 'GET',
         headers: {
           'Authorization': `Zoho-oauthtoken ${accessToken}`,
+          'Content-Type': 'application/json',
         },
       });
 
+      console.log(`📡 Test connection response: ${response.status} ${response.statusText}`);
+      
       if (response.ok) {
         const data = await response.json() as { users?: Array<{ emailId?: string }> };
         console.log('✅ Zoho API connection test successful:', data.users?.[0]?.emailId || 'Connected');
         return true;
       } else {
-        console.error('❌ Zoho API connection test failed:', response.status);
+        const errorData = await response.text();
+        console.error('❌ Zoho API connection test failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: errorData?.substring(0, 300)
+        });
         return false;
       }
     } catch (error) {
