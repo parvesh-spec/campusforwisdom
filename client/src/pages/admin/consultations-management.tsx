@@ -337,34 +337,45 @@ export default function ConsultationsManagement() {
                 
                 <div className="flex items-center gap-2">
                   {consultation.meetingUrl && (
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(consultation.meetingUrl!);
-                          toast({ title: "Join link copied!", description: "Meeting join link copied to clipboard" });
-                        }}
-                        className="text-green-600 hover:text-green-700"
-                        title="Copy Join Meeting Link"
-                      >
-                        <Video className="h-4 w-4 mr-1" />
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      {consultation.startUrl && (
+                    <div className="flex flex-col gap-2 mt-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Join Meeting:</span>
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all">{consultation.meetingUrl}</code>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            navigator.clipboard.writeText(consultation.startUrl!);
-                            toast({ title: "Start link copied!", description: "Meeting start link copied to clipboard" });
+                            navigator.clipboard.writeText(consultation.meetingUrl!);
+                            toast({ title: "Join link copied!", description: "Meeting join link copied to clipboard" });
                           }}
-                          className="text-blue-600 hover:text-blue-700"
-                          title="Copy Start Meeting Link"
+                          className="text-green-600 hover:text-green-700"
                         >
-                          <ExternalLink className="h-4 w-4 mr-1" />
                           <Copy className="h-3 w-3" />
                         </Button>
+                      </div>
+                      {consultation.startUrl && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => window.open(consultation.startUrl!, '_blank')}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Video className="h-4 w-4 mr-1" />
+                            Start Meeting
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(consultation.startUrl!);
+                              toast({ title: "Start link copied!", description: "Meeting start link copied to clipboard" });
+                            }}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   )}
