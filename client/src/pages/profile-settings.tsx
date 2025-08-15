@@ -677,41 +677,41 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Mobile Header for Settings */}
-        <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 p-4 z-10">
-          <h1 className="text-xl font-semibold text-gray-900">Profile Settings</h1>
-          <div className="flex gap-2 mt-2 overflow-x-auto">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSection === item.id;
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive 
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                      : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
+      {/* Mobile Header for Settings */}
+      <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 p-4 z-10">
+        <h1 className="text-xl font-semibold text-gray-900">Profile Settings</h1>
+        <div className="flex gap-2 mt-2 overflow-x-auto">
+          {sidebarItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  isActive 
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                {item.label}
+              </button>
+            );
+          })}
         </div>
+      </div>
 
+      <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-gray-200 fixed left-0 top-0 h-screen z-20">
+        <div className="hidden lg:block w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen sticky top-0">
           <div className="p-6 pt-20">
             <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
             <p className="text-sm text-gray-600 mt-1">Manage your account</p>
           </div>
           
-          <nav className="px-3 overflow-y-auto h-full pb-20">
+          <nav className="px-3">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
@@ -735,8 +735,8 @@ export default function ProfileSettings() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 w-full lg:ml-64">
-          <div className="pt-32 lg:pt-6 p-4 lg:p-8 min-h-screen overflow-y-auto">
+        <div className="flex-1 w-full">
+          <div className="pt-32 lg:pt-6 p-4 lg:p-8">
             <div className="w-full max-w-none">
               {renderContent()}
             </div>
