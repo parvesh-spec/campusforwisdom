@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 export interface ZohoWebinarRequest {
   topic: string;
   agenda: string;
-  presenter: string; // Required ZUID of the presenter
+  presenter?: string; // Optional ZUID of the presenter - if not provided, uses authenticated user
   startTime: string; // Format: "Jun 19, 2023 04:00 PM"
   duration: number; // Duration in milliseconds
   timezone?: string;
@@ -179,6 +179,7 @@ export class ZohoWebinarAPI {
       // Extract ZUID from userDetails object
       return { zuid: data.userDetails?.zuid?.toString() || this.zsoid };
     } catch (error) {
+      console.error('❌ Error getting user details:', error);
       console.warn('⚠️ Could not get user ZUID, using organization ID as fallback');
       return { zuid: this.zsoid };
     }
@@ -215,13 +216,10 @@ export class ZohoWebinarAPI {
     try {
       const accessToken = await this.getValidAccessToken();
 
-      // Get user details to get valid ZUID for presenter
-      const userDetails = await this.getUserDetails();
-      
       const requestBody: ZohoWebinarRequest = {
         topic: webinarData.title,
         agenda: webinarData.description,
-        presenter: userDetails.zuid, // Use actual user ZUID as presenter
+        // Skip presenter field to let Zoho use the authenticated user automatically
         startTime: this.formatDateTime(webinarData.scheduledAt),
         duration: webinarData.duration * 60 * 1000, // Convert minutes to milliseconds
         timezone: webinarData.timezone || 'Asia/Calcutta',
