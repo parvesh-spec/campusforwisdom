@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserPlus, Mail, Phone, User, Lock, CheckCircle } from "lucide-react";
+import { UserPlus, Mail, Phone, User, Lock, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import UsernameAvailabilityChecker from "./UsernameAvailabilityChecker";
 
@@ -24,6 +24,8 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const queryClient = useQueryClient();
 
   const registrationMutation = useMutation({
@@ -83,6 +85,9 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
     setUsername("");
     setPassword("");
     setConfirmPassword("");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setIsUsernameAvailable(true);
     registrationMutation.reset();
   };
 
@@ -197,7 +202,7 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                placeholder="Auto-generated if left empty"
+                placeholder="Enter username"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -219,13 +224,20 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
                   placeholder="Create a password"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
             <div>
@@ -236,13 +248,20 @@ export default function StudentRegistrationModal({ isOpen, onClose, onOpenChange
                 <CheckCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
                   placeholder="Confirm your password"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
           </div>
