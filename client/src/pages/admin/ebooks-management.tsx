@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { BookOpen, Plus, Edit, Trash2, Download, Star, Calendar, FileText, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Plus, Edit, Trash2, Download, Star, Calendar, FileText, Eye, EyeOff, Upload, Image, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Ebook, Expert, InsertEbook } from "@shared/schema";
@@ -36,6 +36,9 @@ export default function EbooksManagement() {
     isActive: true,
     isFeatured: false,
   });
+
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -172,6 +175,130 @@ export default function EbooksManagement() {
   const handleTagChange = (tagString: string) => {
     const tags = tagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     setNewEbook({ ...newEbook, tags });
+  };
+
+  // Cover image upload handler
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Cover image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingCover(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'ebooks/covers');
+
+    try {
+      const response = await fetch('/api/cloudinary/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      setNewEbook({ ...newEbook, coverImage: data.secure_url });
+      
+      toast({
+        title: "Cover image uploaded",
+        description: "Cover image has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Cover upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload cover image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  // PDF file upload handler
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a PDF file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "File too large", 
+        description: "PDF file must be less than 50MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingFile(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'ebooks/files');
+
+    try {
+      const response = await fetch('/api/cloudinary/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      
+      setNewEbook({ 
+        ...newEbook, 
+        fileUrl: data.secure_url,
+        fileSize: fileSizeInMB
+      });
+      
+      toast({
+        title: "PDF uploaded",
+        description: "PDF file has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload PDF file. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFile(false);
+    }
   };
 
   if (ebooksLoading || expertsLoading) {
@@ -448,25 +575,112 @@ export default function EbooksManagement() {
               />
             </div>
 
-            {/* File URL and Cover Image */}
+            {/* File Upload and Cover Image Upload */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="fileUrl">File URL</Label>
-                <Input
-                  id="fileUrl"
-                  value={newEbook.fileUrl}
-                  onChange={(e) => setNewEbook({ ...newEbook, fileUrl: e.target.value })}
-                  placeholder="PDF download link"
-                />
+                <Label>PDF File</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileUpload}
+                      disabled={uploadingFile}
+                      className="hidden"
+                      id="pdf-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('pdf-upload')?.click()}
+                      disabled={uploadingFile}
+                      className="w-full"
+                    >
+                      {uploadingFile ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload PDF
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {newEbook.fileUrl && (
+                    <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md">
+                      <FileText className="h-4 w-4 text-green-600" />
+                      <span className="text-sm text-green-600">PDF uploaded successfully</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setNewEbook({ ...newEbook, fileUrl: "", fileSize: "" })}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="coverImage">Cover Image URL</Label>
-                <Input
-                  id="coverImage"
-                  value={newEbook.coverImage}
-                  onChange={(e) => setNewEbook({ ...newEbook, coverImage: e.target.value })}
-                  placeholder="Cover image URL"
-                />
+                <Label>Cover Image</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverImageUpload}
+                      disabled={uploadingCover}
+                      className="hidden"
+                      id="cover-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('cover-upload')?.click()}
+                      disabled={uploadingCover}
+                      className="w-full"
+                    >
+                      {uploadingCover ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Image className="h-4 w-4 mr-2" />
+                          Upload Cover
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {newEbook.coverImage && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md">
+                        <Image className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-600">Cover uploaded successfully</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setNewEbook({ ...newEbook, coverImage: "" })}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="w-full h-32 bg-gray-100 rounded-md overflow-hidden">
+                        <img
+                          src={newEbook.coverImage}
+                          alt="Cover preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -487,8 +701,9 @@ export default function EbooksManagement() {
                 <Input
                   id="fileSize"
                   value={newEbook.fileSize}
-                  onChange={(e) => setNewEbook({ ...newEbook, fileSize: e.target.value })}
-                  placeholder="e.g., 5MB"
+                  readOnly
+                  placeholder="Auto-calculated when PDF uploaded"
+                  className="bg-gray-50"
                 />
               </div>
               <div className="grid gap-2">

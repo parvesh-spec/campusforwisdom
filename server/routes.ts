@@ -13,6 +13,14 @@ import cloudinary from "./cloudinary";
 // PostgreSQL session store configuration
 const PgSession = connectPgSimple(session);
 
+// Multer configuration for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure sessions with PostgreSQL store
   app.use(session({
@@ -1089,10 +1097,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Configure multer for file uploads
-  const upload = multer({ storage: multer.memoryStorage() });
+  // Cloudinary upload endpoint for files
+  app.post("/api/cloudinary/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
 
-  // Image upload endpoint
+      const folder = req.body.folder || 'campus-for-wisdom/general';
+      const fileType = req.file.mimetype;
+
+      let uploadOptions: any = {
+        folder: `campus-for-wisdom/${folder}`,
+        resource_type: 'auto',
+      };
+
+      // Add specific options for different file types
+      if (fileType.startsWith('image/')) {
+        uploadOptions.transformation = [
+          { quality: 'auto:good' }
+        ];
+      } else if (fileType === 'application/pdf') {
+        uploadOptions.format = 'pdf';
+        uploadOptions.resource_type = 'raw';
+      }
+
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          uploadOptions,
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error:", error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        ).end(req.file.buffer);
+      });
+
+      res.json({ 
+        secure_url: (result as any).secure_url,
+        public_id: (result as any).public_id,
+        format: (result as any).format,
+        resource_type: (result as any).resource_type,
+        bytes: (result as any).bytes
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Legacy image upload endpoint (keeping for backward compatibility)
   app.post("/api/upload/image", upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
