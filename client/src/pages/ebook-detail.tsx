@@ -207,9 +207,10 @@ export default function EbookDetail() {
               <CardContent>
                 {ebook.indexContent ? (
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed">
-                      {ebook.indexContent}
-                    </pre>
+                    <div 
+                      className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: ebook.indexContent }}
+                    />
                   </div>
                 ) : (
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -231,7 +232,10 @@ export default function EbookDetail() {
               <CardContent>
                 {ebook.summary ? (
                   <div className="prose prose-gray max-w-none">
-                    <p className="text-gray-700 leading-relaxed text-base">{ebook.summary}</p>
+                    <div 
+                      className="text-gray-700 leading-relaxed text-base"
+                      dangerouslySetInnerHTML={{ __html: ebook.summary }}
+                    />
                   </div>
                 ) : (
                   <div className="bg-gray-50 rounded-lg p-4 text-center">

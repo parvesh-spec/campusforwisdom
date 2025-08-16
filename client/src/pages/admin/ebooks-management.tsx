@@ -590,24 +590,28 @@ export default function EbooksManagement() {
             {/* Index Content */}
             <div className="grid gap-2">
               <Label htmlFor="indexContent">Index/Table of Contents</Label>
+              <p className="text-sm text-gray-500">Supports HTML formatting (e.g., &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;)</p>
               <Textarea
                 id="indexContent"
                 value={newEbook.indexContent || ""}
                 onChange={(e) => setNewEbook({ ...newEbook, indexContent: e.target.value })}
-                placeholder="Enter the index or table of contents"
-                rows={4}
+                placeholder="Example: <h3>Chapter 1: Introduction</h3><p>Overview of AI basics</p><ul><li>What is AI?</li><li>History of AI</li></ul>"
+                rows={6}
+                className="font-mono text-sm"
               />
             </div>
 
             {/* Summary */}
             <div className="grid gap-2">
               <Label htmlFor="summary">Summary</Label>
+              <p className="text-sm text-gray-500">Supports HTML formatting (e.g., &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;)</p>
               <Textarea
                 id="summary"
                 value={newEbook.summary || ""}
                 onChange={(e) => setNewEbook({ ...newEbook, summary: e.target.value })}
-                placeholder="Enter a brief summary of the eBook"
-                rows={3}
+                placeholder="Example: <p>This comprehensive guide covers <strong>AI fundamentals</strong> including machine learning, neural networks, and practical applications.</p>"
+                rows={4}
+                className="font-mono text-sm"
               />
             </div>
 
