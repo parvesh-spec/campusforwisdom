@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StudentLoginModal from "@/components/StudentLoginModal";
-import { Star, Clock, Users, Calendar, MapPin, MessageSquare, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
+import { Star, Clock, Users, Calendar, MapPin, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -213,10 +213,6 @@ export default function ExpertProfile() {
                     <Button size="lg" onClick={handleBookConsultation}>
                       <Calendar className="w-4 h-4 mr-2" />
                       Book Consultation
-                    </Button>
-                    <Button size="lg" variant="outline">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Message
                     </Button>
                   </div>
                 </div>
