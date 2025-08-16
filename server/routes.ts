@@ -382,11 +382,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get live sessions
+  // Get live sessions with booking status
   app.get("/api/live-sessions", async (req, res) => {
     try {
       const sessions = await storage.getLiveSessions();
-      res.json(sessions);
+      const studentUser = (req.session as any)?.studentUser;
+      
+      // If user is logged in, add booking status to each session
+      if (studentUser?.role === 'student') {
+        const sessionsWithBookingStatus = await Promise.all(
+          sessions.map(async (session) => {
+            const attendee = await storage.getWebinarAttendee(session.id, studentUser.id);
+            return {
+              ...session,
+              isBooked: !!attendee,
+              registrationLink: attendee ? session.registrationLink : undefined
+            };
+          })
+        );
+        res.json(sessionsWithBookingStatus);
+      } else {
+        res.json(sessions);
+      }
     } catch (error) {
       console.error("Error fetching live sessions:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -1130,7 +1147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get student's booked live sessions
+  // Get student's booked live sessions with booking details
   app.get("/api/student/live-sessions", async (req, res) => {
     try {
       const studentUser = (req.session as any)?.studentUser;

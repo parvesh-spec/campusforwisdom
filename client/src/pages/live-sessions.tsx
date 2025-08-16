@@ -25,8 +25,8 @@ export default function LiveSessions() {
   // Filter sessions based on view mode
   const filteredSessions = sessions?.filter(session => {
     if (viewMode === "my" && isLoggedIn) {
-      // Show only sessions user has joined/registered for
-      return session.participants?.includes(user.id);
+      // Show only sessions user has booked
+      return (session as any).isBooked;
     }
     return true; // Show all sessions for "all" mode
   }) || [];

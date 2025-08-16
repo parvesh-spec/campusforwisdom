@@ -9,7 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 interface SessionCardProps {
-  session: LiveSession;
+  session: LiveSession & { 
+    expert?: Expert;
+    isBooked?: boolean;
+    registrationLink?: string;
+  };
   onJoin?: (sessionId: string) => void;
   onBook?: (sessionId: string) => void;
   onLoginRequired?: () => void;
@@ -231,30 +235,53 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                   Join Live
                 </Button>
               ) : isScheduled && showBooking ? (
-                <Button 
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
-                  onClick={handleBookSession}
-                  disabled={spotsLeft <= 0 || isBooking}
-                >
-                  {isBooking ? (
-                    <>
-                      <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                      Booking...
-                    </>
-                  ) : spotsLeft <= 0 ? (
-                    "Fully Booked"
-                  ) : !studentUser ? (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Login to Book
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Book Seat
-                    </>
-                  )}
-                </Button>
+                session.isBooked ? (
+                  <div className="flex flex-col items-end space-y-1">
+                    <Button 
+                      variant="outline"
+                      className="border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
+                      disabled
+                    >
+                      ✓ Booked
+                    </Button>
+                    {session.registrationLink && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-800 h-6 px-2 text-xs"
+                        onClick={() => window.open(session.registrationLink, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Join Meeting
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
+                    onClick={handleBookSession}
+                    disabled={spotsLeft <= 0 || isBooking}
+                  >
+                    {isBooking ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                        Booking...
+                      </>
+                    ) : spotsLeft <= 0 ? (
+                      "Fully Booked"
+                    ) : !studentUser ? (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Login to Book
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Book Seat
+                      </>
+                    )}
+                  </Button>
+                )
               ) : (
                 <Button variant="outline" disabled className="cursor-not-allowed">
                   {session.status === "completed" ? "Session Ended" : "Unavailable"}
