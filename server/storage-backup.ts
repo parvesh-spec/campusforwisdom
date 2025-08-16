@@ -839,7 +839,6 @@ export class DatabaseStorage implements IStorage {
 
   async createEbook(ebook: InsertEbook): Promise<Ebook> {
     try {
-      console.log("Creating ebook with data:", ebook);
       // Generate UUID for the ebook
       const ebookId = `ebook-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
@@ -874,13 +873,11 @@ export class DatabaseStorage implements IStorage {
       ]);
       
       const row = result.rows[0];
-      console.log("Database row returned:", row);
       return {
         id: row.id,
         title: row.title,
+        description: row.description,
         shortDescription: row.short_description,
-        indexContent: row.index_content,
-        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -890,8 +887,8 @@ export class DatabaseStorage implements IStorage {
         pageCount: row.page_count,
         language: row.language,
         price: row.price,
-        rating: row.rating || 0,
-        downloadCount: row.download_count || 0,
+        rating: row.rating,
+        downloadCount: row.download_count,
         isActive: row.is_active,
         isFeatured: row.is_featured,
         publishedAt: row.published_at,
@@ -914,13 +911,9 @@ export class DatabaseStorage implements IStorage {
         fields.push(`title = $${index++}`);
         values.push(ebook.title);
       }
-      if (ebook.indexContent !== undefined) {
-        fields.push(`index_content = $${index++}`);
-        values.push(ebook.indexContent);
-      }
-      if (ebook.summary !== undefined) {
-        fields.push(`summary = $${index++}`);
-        values.push(ebook.summary);
+      if (ebook.description !== undefined) {
+        fields.push(`description = $${index++}`);
+        values.push(ebook.description);
       }
       if (ebook.shortDescription !== undefined) {
         fields.push(`short_description = $${index++}`);
@@ -995,9 +988,8 @@ export class DatabaseStorage implements IStorage {
       return {
         id: row.id,
         title: row.title,
+        description: row.description,
         shortDescription: row.short_description,
-        indexContent: row.index_content,
-        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -1007,8 +999,8 @@ export class DatabaseStorage implements IStorage {
         pageCount: row.page_count,
         language: row.language,
         price: row.price,
-        rating: row.rating || 0,
-        downloadCount: row.download_count || 0,
+        rating: row.rating,
+        downloadCount: row.download_count,
         isActive: row.is_active,
         isFeatured: row.is_featured,
         publishedAt: row.published_at,

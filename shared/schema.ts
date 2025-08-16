@@ -148,8 +148,9 @@ export const consultations = pgTable("consultations", {
 export const ebooks = pgTable("ebooks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
-  description: text("description").notNull(),
   shortDescription: text("short_description"),
+  indexContent: text("index_content"), // Table of contents/index
+  summary: text("summary"), // Brief summary of the ebook
   authorId: varchar("author_id").references(() => experts.id).notNull(), // Expert who wrote the ebook
   category: text("category").notNull(), // AI Development, Video Creation, etc.
   tags: text("tags").array().default([]), // Array of tags for filtering

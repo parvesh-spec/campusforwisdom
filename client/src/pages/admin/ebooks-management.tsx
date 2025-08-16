@@ -22,8 +22,9 @@ export default function EbooksManagement() {
   const [deletingEbook, setDeletingEbook] = useState<Ebook | null>(null);
   const [newEbook, setNewEbook] = useState<Partial<InsertEbook>>({
     title: "",
-    description: "",
     shortDescription: "",
+    indexContent: "",
+    summary: "",
     authorId: "",
     category: "",
     tags: [],
@@ -124,8 +125,9 @@ export default function EbooksManagement() {
   const resetForm = () => {
     setNewEbook({
       title: "",
-      description: "",
       shortDescription: "",
+      indexContent: "",
+      summary: "",
       authorId: "",
       category: "",
       tags: [],
@@ -144,7 +146,7 @@ export default function EbooksManagement() {
     console.log("Submitting eBook data:", newEbook);
     
     // Basic validation
-    if (!newEbook.title || !newEbook.description || !newEbook.authorId || !newEbook.category) {
+    if (!newEbook.title || !newEbook.authorId || !newEbook.category) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -176,8 +178,9 @@ export default function EbooksManagement() {
     setEditingEbook(ebook);
     setNewEbook({
       title: ebook.title,
-      description: ebook.description,
       shortDescription: ebook.shortDescription || "",
+      indexContent: ebook.indexContent || "",
+      summary: ebook.summary || "",
       authorId: ebook.authorId,
       category: ebook.category,
       tags: ebook.tags || [],
@@ -584,15 +587,27 @@ export default function EbooksManagement() {
               />
             </div>
 
-            {/* Description */}
+            {/* Index Content */}
             <div className="grid gap-2">
-              <Label htmlFor="description">Full Description</Label>
+              <Label htmlFor="indexContent">Index/Table of Contents</Label>
               <Textarea
-                id="description"
-                value={newEbook.description}
-                onChange={(e) => setNewEbook({ ...newEbook, description: e.target.value })}
-                placeholder="Detailed description"
+                id="indexContent"
+                value={newEbook.indexContent}
+                onChange={(e) => setNewEbook({ ...newEbook, indexContent: e.target.value })}
+                placeholder="Enter the index or table of contents"
                 rows={4}
+              />
+            </div>
+
+            {/* Summary */}
+            <div className="grid gap-2">
+              <Label htmlFor="summary">Summary</Label>
+              <Textarea
+                id="summary"
+                value={newEbook.summary}
+                onChange={(e) => setNewEbook({ ...newEbook, summary: e.target.value })}
+                placeholder="Enter a brief summary of the eBook"
+                rows={3}
               />
             </div>
 
