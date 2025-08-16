@@ -624,19 +624,25 @@ export default function ExpertProfile() {
                                  consultation.status === 'completed' ? 'Completed' : consultation.status}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                {(() => {
+{(() => {
                                   // Parse as IST directly since database stores IST times
                                   const date = new Date(consultation.scheduledAt);
+                                  console.log('Original timestamp:', consultation.scheduledAt);
+                                  console.log('Parsed date:', date.toString());
+                                  
                                   const dateStr = date.toLocaleDateString('en-IN');
                                   
                                   // Extract hours and minutes directly without timezone conversion
                                   const hours = date.getHours();
                                   const minutes = date.getMinutes();
+                                  console.log('Extracted hours:', hours, 'minutes:', minutes);
+                                  
                                   const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
                                   const ampm = hours >= 12 ? 'PM' : 'AM';
                                   const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
                                   
-                                  return `${dateStr} at ${timeStr} IST`;
+                                  console.log('Final time string:', timeStr);
+                                  return `${dateStr} at ${timeStr} IST [FIXED]`;
                                 })()}
                               </span>
                             </div>
