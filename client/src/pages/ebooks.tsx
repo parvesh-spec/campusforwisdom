@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, Download, Star, Search, Filter, FileText, User, Eye } from "lucide-react";
-import type { Ebook } from "@shared/schema";
+import { BookOpen, Download, Star, Search, Filter, FileText, User as UserIcon, Eye, LogIn } from "lucide-react";
+import StudentLoginModal from "@/components/StudentLoginModal";
+import type { Ebook, User } from "@shared/schema";
 
 export default function EbooksPage() {
+  const [viewMode, setViewMode] = useState<"all" | "my">("all");
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
@@ -20,8 +23,31 @@ export default function EbooksPage() {
     queryKey: ["/api/ebooks"],
   });
 
+  // Check if user is logged in as student
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/auth/student"],
+  });
+
+  // Fetch user's downloaded/purchased ebooks if logged in
+  const { data: userEbooks } = useQuery({
+    queryKey: ["/api/student/ebooks"],
+    enabled: !!user,
+  });
+
+  const isLoggedIn = !!user;
+
+  // Filter ebooks based on view mode
+  const viewFilteredEbooks = ebooks.filter(ebook => {
+    if (viewMode === "my" && isLoggedIn && userEbooks) {
+      // Show only ebooks user has downloaded/purchased
+      const userEbookIds = Array.isArray(userEbooks) ? userEbooks.map((userEbook: any) => userEbook.ebookId) : [];
+      return userEbookIds.includes(ebook.id);
+    }
+    return true; // Show all ebooks for "all" mode
+  });
+
   // Filter ebooks based on search and filters
-  const filteredEbooks = ebooks.filter((ebook) => {
+  const filteredEbooks = viewFilteredEbooks.filter((ebook) => {
     const matchesSearch = ebook.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ebook.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ebook.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,6 +58,14 @@ export default function EbooksPage() {
     
     return matchesSearch && matchesCategory && matchesLanguage;
   });
+
+  const handleMyEbooksClick = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    } else {
+      setViewMode("my");
+    }
+  };
 
   // Get unique categories and languages for filters
   const categories = Array.from(new Set(ebooks.map(ebook => ebook.category)));
@@ -68,6 +102,42 @@ export default function EbooksPage() {
             video creation, presentation design, and more.
           </p>
         </div>
+
+        {/* View Mode Selection */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg p-1 shadow-md flex">
+            <Button
+              onClick={() => setViewMode("all")}
+              variant={viewMode === "all" ? "default" : "ghost"}
+              className="px-6 py-2 mr-1"
+            >
+              All eBooks
+            </Button>
+            <Button
+              onClick={handleMyEbooksClick}
+              variant={viewMode === "my" ? "default" : "ghost"}
+              className="px-6 py-2 flex items-center space-x-2"
+            >
+              {!isLoggedIn && <LogIn className="h-4 w-4" />}
+              <span>My eBooks</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Login prompt for My eBooks when not logged in */}
+        {viewMode === "my" && !isLoggedIn && (
+          <div className="text-center py-16 bg-white rounded-xl shadow-lg mb-8">
+            <div className="text-6xl mb-4">🔐</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Login Required</h3>
+            <p className="text-gray-600 mb-6">
+              Please login to view your downloaded eBooks and track your reading progress.
+            </p>
+            <Button onClick={() => setShowLoginModal(true)} className="flex items-center space-x-2">
+              <LogIn className="h-4 w-4" />
+              <span>Login to View My eBooks</span>
+            </Button>
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="mb-8">
@@ -106,8 +176,8 @@ export default function EbooksPage() {
                 <SelectContent>
                   <SelectItem value="all">All Languages</SelectItem>
                   {languages.map((language) => (
-                    <SelectItem key={language} value={language}>
-                      {language}
+                    <SelectItem key={language} value={language || ""}>
+                      {language || "Unknown"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -131,7 +201,11 @@ export default function EbooksPage() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-600">
-            {filteredEbooks.length} eBook{filteredEbooks.length !== 1 ? 's' : ''} found
+            {viewMode === "my" && isLoggedIn ? (
+              filteredEbooks.length === 1 ? "1 eBook in your library" : `${filteredEbooks.length} eBooks in your library`
+            ) : (
+              filteredEbooks.length === 1 ? "1 eBook found" : `${filteredEbooks.length} eBooks found`
+            )}
           </p>
         </div>
 
@@ -253,6 +327,12 @@ export default function EbooksPage() {
             </p>
           </div>
         )}
+
+        {/* Student Login Modal */}
+        <StudentLoginModal 
+          isOpen={showLoginModal} 
+          onClose={() => setShowLoginModal(false)} 
+        />
       </div>
     </div>
   );
