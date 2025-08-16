@@ -49,6 +49,7 @@ export const webinars = pgTable("webinars", {
   description: text("description").notNull(),
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration_minutes").notNull(), // duration in minutes
+  price: varchar("price").default("0"), // Session price
   maxParticipants: integer("max_participants").default(100),
   currentParticipants: integer("current_participants").default(0),
   status: text("status").notNull().default("scheduled"), // scheduled, live, completed, cancelled

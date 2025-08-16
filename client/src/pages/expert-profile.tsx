@@ -93,6 +93,28 @@ export default function ExpertProfile() {
     }
   };
 
+  const handleSessionEnrollment = async (sessionId: string) => {
+    try {
+      const response = await apiRequest("POST", `/api/student/sessions/${sessionId}/enroll`, {});
+      if (response.ok) {
+        toast({
+          title: "Successfully Enrolled!",
+          description: "You have been enrolled in the live session.",
+        });
+        // Refresh enrolled sessions data
+        queryClient.invalidateQueries({ queryKey: [`/api/student/sessions`] });
+      } else {
+        throw new Error("Failed to enroll");
+      }
+    } catch (error) {
+      toast({
+        title: "Enrollment Failed",
+        description: "Unable to enroll in the session. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Function to fetch booked slots for expert and date
   const fetchBookedSlots = async (expertId: string, date: string) => {
     try {
@@ -555,40 +577,61 @@ export default function ExpertProfile() {
               {expertSessions.length > 0 ? (
                 <div className="grid gap-4">
                   {expertSessions.map((session) => (
-                    <Card key={session.id}>
+                    <Card key={session.id} className="border hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
+                        <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-lg">{session.title}</h4>
-                            <p className="text-gray-600 mt-1">{session.description}</p>
-                            <div className="flex items-center space-x-4 mt-3">
-                              <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
-                                {session.status}
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm font-medium text-blue-600">Session</span>
+                              <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+                                Upcoming
                               </Badge>
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-500">
-                                  {new Date(session.scheduledAt).toLocaleDateString('en-IN')} at {new Date(session.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}
+                            </div>
+                            
+                            <h4 className="font-semibold text-lg text-gray-900 mb-1">{session.title}</h4>
+                            <p className="text-gray-600 text-sm mb-3">{session.description}</p>
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                <span>
+                                  {new Date(session.scheduledAt).toLocaleDateString('en-IN', { 
+                                    day: '2-digit', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                  })} at {new Date(session.scheduledAt).toLocaleTimeString('en-IN', {
+                                    hour: '2-digit', 
+                                    minute:'2-digit'
+                                  })}
                                 </span>
                               </div>
-                              <div className="flex items-center space-x-1">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-500">
-                                  {session.duration} mins
-                                </span>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{session.duration} min</span>
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-primary">₹{session.price}</p>
-                            {session.status === 'scheduled' && session.meetingUrl && (
-                              <Button size="sm" className="mt-2" asChild>
-                                <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
-                                  <Video className="w-4 h-4 mr-1" />
-                                  Join Session
-                                </a>
-                              </Button>
-                            )}
+                          
+                          <div className="text-right ml-4">
+                            <div className="mb-3">
+                              <div className="text-xs text-gray-500 mb-1">Session Fee</div>
+                              <div className="text-lg font-semibold text-gray-900">₹{session.price}</div>
+                            </div>
+                            
+                            <Button 
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                              onClick={() => {
+                                if (!isLoggedIn) {
+                                  setShowLoginModal(true);
+                                } else {
+                                  // Handle session enrollment
+                                  handleSessionEnrollment(session.id);
+                                }
+                              }}
+                            >
+                              Book Seat
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -597,9 +640,10 @@ export default function ExpertProfile() {
                 </div>
               ) : (
                 <Card>
-                  <CardContent className="p-8 text-center">
-                    <Video className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600">No live sessions available yet.</p>
+                  <CardContent className="p-12 text-center">
+                    <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions Available</h4>
+                    <p className="text-gray-600">This expert hasn't scheduled any live sessions yet. Check back later!</p>
                   </CardContent>
                 </Card>
               )}
@@ -832,7 +876,7 @@ export default function ExpertProfile() {
 
                         {/* Description */}
                         <CardDescription className="line-clamp-3">
-                          {ebook.shortDescription || ebook.description}
+                          {ebook.shortDescription || ebook.summary}
                         </CardDescription>
 
                         {/* Stats */}
@@ -866,9 +910,9 @@ export default function ExpertProfile() {
                             {ebook.price === "0" ? "FREE" : `₹${ebook.price}`}
                           </div>
                           <div className="flex space-x-2">
-                            {ebook.pdfFile && (
+                            {ebook.fileUrl && (
                               <Button size="sm" variant="outline" asChild>
-                                <a href={ebook.pdfFile} target="_blank" rel="noopener noreferrer">
+                                <a href={ebook.fileUrl} target="_blank" rel="noopener noreferrer">
                                   <Eye className="h-4 w-4 mr-1" />
                                   Preview
                                 </a>
