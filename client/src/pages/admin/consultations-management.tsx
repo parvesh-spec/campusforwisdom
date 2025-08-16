@@ -443,22 +443,36 @@ export default function ConsultationsManagement() {
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-gray-400" />
 {(() => {
-                        // Database stores IST timestamps without timezone info
-                        // Parse as local IST time by treating as YYYY-MM-DD HH:mm format
-                        const timestamp = consultation.scheduledAt;
-                        const [datePart, timePart] = timestamp.split(' ');
-                        const [year, month, day] = datePart.split('-');
-                        const [hours, minutes] = timePart.split(':');
+                        if (!consultation.scheduledAt) return 'Time not set';
                         
-                        // Create date directly with IST values (no conversion)
-                        const istDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
-                        
-                        const dateStr = istDate.toLocaleDateString('en-IN');
-                        const hour12 = parseInt(hours) === 0 ? 12 : parseInt(hours) > 12 ? parseInt(hours) - 12 : parseInt(hours);
-                        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-                        const timeStr = `${hour12}:${minutes} ${ampm}`;
-                        
-                        return `${dateStr} at ${timeStr} IST`;
+                        try {
+                          // Database stores IST timestamps without timezone info
+                          // Parse as local IST time by treating as YYYY-MM-DD HH:mm format
+                          const timestamp = consultation.scheduledAt;
+                          const parts = timestamp.split(' ');
+                          if (parts.length !== 2) return timestamp; // fallback to original
+                          
+                          const [datePart, timePart] = parts;
+                          const dateParts = datePart.split('-');
+                          const timeParts = timePart.split(':');
+                          
+                          if (dateParts.length !== 3 || timeParts.length < 2) return timestamp;
+                          
+                          const [year, month, day] = dateParts;
+                          const [hours, minutes] = timeParts;
+                          
+                          // Create date directly with IST values (no conversion)
+                          const istDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+                          
+                          const dateStr = istDate.toLocaleDateString('en-IN');
+                          const hour12 = parseInt(hours) === 0 ? 12 : parseInt(hours) > 12 ? parseInt(hours) - 12 : parseInt(hours);
+                          const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                          const timeStr = `${hour12}:${minutes} ${ampm}`;
+                          
+                          return `${dateStr} at ${timeStr} IST`;
+                        } catch (error) {
+                          return consultation.scheduledAt || 'Invalid date';
+                        }
                       })()}
                     </div>
                     <div className="flex items-center gap-1">
