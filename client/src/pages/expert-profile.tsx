@@ -44,6 +44,8 @@ export default function ExpertProfile() {
     queryKey: ["/api/auth/student"],
   });
 
+  const isLoggedIn = !!user;
+
   // Fetch user's consultations with this expert if logged in
   const { data: consultations = [] } = useQuery<Consultation[]>({
     queryKey: ["/api/student/consultations"],
@@ -53,9 +55,16 @@ export default function ExpertProfile() {
   });
 
   // Fetch expert's live sessions
+  // Get all live sessions for this expert's domain
   const { data: expertSessions = [] } = useQuery<LiveSession[]>({
-    queryKey: [`/api/experts/${expertId}/sessions`],
+    queryKey: [`/api/live-sessions`],
     enabled: !!expertId,
+  });
+
+  // Get student's enrolled sessions
+  const { data: myEnrolledSessions = [] } = useQuery<any[]>({
+    queryKey: [`/api/student/sessions`],
+    enabled: isLoggedIn,
   });
 
   // Fetch expert's eBooks
@@ -65,7 +74,6 @@ export default function ExpertProfile() {
 
   const expertEbooks = allEbooks.filter((ebook) => ebook.authorId === expertId);
 
-  const isLoggedIn = !!user;
   const expertConsultations = consultations.filter((c: any) => c.expertId === expertId);
 
   const handleBookConsultation = () => {
@@ -541,57 +549,118 @@ export default function ExpertProfile() {
           </TabsContent>
 
           <TabsContent value="sessions" className="space-y-6">
-            {expertSessions.length > 0 ? (
-              <div className="grid gap-4">
-                {expertSessions.map((session) => (
-                  <Card key={session.id}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{session.title}</h3>
-                          <p className="text-gray-600 mt-1">{session.description}</p>
-                          <div className="flex items-center space-x-4 mt-3">
-                            <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
-                              {session.status}
-                            </Badge>
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-500">
-                                {new Date(session.scheduledAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-500">
-                                {session.duration} mins
-                              </span>
+            {/* Available Live Sessions */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Available Live Sessions</h3>
+              {expertSessions.length > 0 ? (
+                <div className="grid gap-4">
+                  {expertSessions.map((session) => (
+                    <Card key={session.id}>
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-lg">{session.title}</h4>
+                            <p className="text-gray-600 mt-1">{session.description}</p>
+                            <div className="flex items-center space-x-4 mt-3">
+                              <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                                {session.status}
+                              </Badge>
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-500">
+                                  {new Date(session.scheduledAt).toLocaleDateString('en-IN')} at {new Date(session.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-500">
+                                  {session.duration} mins
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-primary">₹{session.price}</p>
+                            {session.status === 'scheduled' && session.meetingUrl && (
+                              <Button size="sm" className="mt-2" asChild>
+                                <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Join Session
+                                </a>
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-primary">₹{session.price}</p>
-                          {session.status === 'scheduled' && session.meetingUrl && (
-                            <Button size="sm" className="mt-2" asChild>
-                              <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
-                                <Video className="w-4 h-4 mr-1" />
-                                Join Session
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Video className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">No live sessions available yet.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* My Enrolled Sessions */}
+            {isLoggedIn && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">My Enrolled Sessions</h3>
+                {myEnrolledSessions.length > 0 ? (
+                  <div className="grid gap-4">
+                    {myEnrolledSessions.map((enrollment: any) => (
+                      <Card key={enrollment.id}>
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg">{enrollment.session.title}</h4>
+                              <p className="text-gray-600 mt-1">{enrollment.session.description}</p>
+                              <div className="flex items-center space-x-4 mt-3">
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  Enrolled
+                                </Badge>
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="w-4 h-4 text-gray-400" />
+                                  <span className="text-sm text-gray-500">
+                                    {new Date(enrollment.session.scheduledAt).toLocaleDateString('en-IN')} at {new Date(enrollment.session.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-4 h-4 text-gray-400" />
+                                  <span className="text-sm text-gray-500">
+                                    {enrollment.session.duration} mins
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-green-600">Enrolled</p>
+                              {enrollment.session.status === 'scheduled' && enrollment.session.meetingUrl && (
+                                <Button size="sm" className="mt-2" asChild>
+                                  <a href={enrollment.session.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                    <Video className="w-4 h-4 mr-1" />
+                                    Join Session
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600">You haven't enrolled in any sessions yet.</p>
                     </CardContent>
                   </Card>
-                ))}
+                )}
               </div>
-            ) : (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions</h3>
-                  <p className="text-gray-600">This expert hasn't scheduled any live sessions yet.</p>
-                </CardContent>
-              </Card>
             )}
           </TabsContent>
 
