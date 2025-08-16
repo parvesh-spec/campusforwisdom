@@ -169,6 +169,13 @@ export const ebooks = pgTable("ebooks", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const userEbookDownloads = pgTable("user_ebook_downloads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  ebookId: varchar("ebook_id").references(() => ebooks.id).notNull(),
+  downloadedAt: timestamp("downloaded_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -239,6 +246,11 @@ export const insertEbookSchema = createInsertSchema(ebooks).omit({
   downloadCount: true,
 });
 
+export const insertUserEbookDownloadSchema = createInsertSchema(userEbookDownloads).omit({
+  id: true,
+  downloadedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -274,3 +286,6 @@ export type Ebook = typeof ebooks.$inferSelect & {
   author?: Expert;
 };
 export type InsertEbook = z.infer<typeof insertEbookSchema>;
+
+export type UserEbookDownload = typeof userEbookDownloads.$inferSelect;
+export type InsertUserEbookDownload = z.infer<typeof insertUserEbookDownloadSchema>;

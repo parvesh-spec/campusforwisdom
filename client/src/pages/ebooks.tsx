@@ -28,8 +28,8 @@ export default function EbooksPage() {
     queryKey: ["/api/auth/student"],
   });
 
-  // Fetch user's downloaded/purchased ebooks if logged in
-  const { data: userEbooks } = useQuery({
+  // Fetch user's downloaded ebooks if logged in
+  const { data: userEbooks } = useQuery<Ebook[]>({
     queryKey: ["/api/student/ebooks"],
     enabled: !!user,
   });
@@ -38,9 +38,15 @@ export default function EbooksPage() {
 
   // Filter ebooks based on view mode
   const viewFilteredEbooks = ebooks.filter(ebook => {
-    if (viewMode === "my" && isLoggedIn && userEbooks) {
-      // Show only ebooks user has downloaded/purchased
-      const userEbookIds = Array.isArray(userEbooks) ? userEbooks.map((userEbook: any) => userEbook.ebookId) : [];
+    if (viewMode === "my") {
+      if (!isLoggedIn) {
+        return false; // Hide all ebooks if not logged in
+      }
+      if (!userEbooks) {
+        return false; // Hide all ebooks while loading user data
+      }
+      // Show only ebooks user has downloaded - userEbooks contains full ebook objects
+      const userEbookIds = userEbooks.map(userEbook => userEbook.id);
       return userEbookIds.includes(ebook.id);
     }
     return true; // Show all ebooks for "all" mode

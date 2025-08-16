@@ -924,6 +924,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get student downloaded ebooks
+  app.get("/api/student/ebooks", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const downloads = await storage.getUserEbookDownloads(studentUser.id);
+      const ebookIds = downloads.map(d => d.ebookId);
+      
+      // Get ebook details for downloaded ebooks
+      const allEbooks = await storage.getEbooks();
+      const downloadedEbooks = allEbooks.filter(ebook => ebookIds.includes(ebook.id));
+      
+      res.json(downloadedEbooks);
+    } catch (error) {
+      console.error("Error fetching student ebooks:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Record ebook download
+  app.post("/api/student/ebooks/:ebookId/download", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const { ebookId } = req.params;
+      
+      // Verify ebook exists
+      const ebook = await storage.getEbook(ebookId);
+      if (!ebook || !ebook.isActive) {
+        return res.status(404).json({ error: "Ebook not found" });
+      }
+
+      // Record the download
+      const download = await storage.recordEbookDownload(studentUser.id, ebookId);
+      
+      res.json({ 
+        success: true, 
+        download, 
+        message: "Download recorded successfully" 
+      });
+    } catch (error) {
+      console.error("Error recording ebook download:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // ===== ADMIN EXPERTS MANAGEMENT =====
 
   // Get all experts for admin

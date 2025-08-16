@@ -37,14 +37,27 @@ export default function EbookDetail() {
     enabled: !!id,
   });
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
     
     if (ebook?.fileUrl) {
-      window.open(ebook.fileUrl, '_blank');
+      try {
+        // Record the download in database
+        await fetch(`/api/student/ebooks/${ebook.id}/download`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        // Then open the file
+        window.open(ebook.fileUrl, '_blank');
+      } catch (error) {
+        console.error('Error recording download:', error);
+        // Still allow download even if recording fails
+        window.open(ebook.fileUrl, '_blank');
+      }
     }
   };
 

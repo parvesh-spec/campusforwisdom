@@ -8,6 +8,7 @@ import {
   Expert,
   Consultation,
   Ebook,
+  UserEbookDownload,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -17,6 +18,7 @@ import {
   InsertExpert,
   InsertConsultation,
   InsertEbook,
+  InsertUserEbookDownload,
   courses,
   users,
   webinars,
@@ -24,7 +26,8 @@ import {
   enrollments,
   experts,
   consultations,
-  ebooks
+  ebooks,
+  userEbookDownloads
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -157,6 +160,11 @@ export interface IStorage {
   createEbook(ebook: InsertEbook): Promise<Ebook>;
   updateEbook(id: string, ebook: Partial<InsertEbook>): Promise<Ebook | null>;
   deleteEbook(id: string): Promise<boolean>;
+  
+  // User eBook download methods
+  getUserEbookDownloads(userId: string): Promise<UserEbookDownload[]>;
+  recordEbookDownload(userId: string, ebookId: string): Promise<UserEbookDownload>;
+  hasUserDownloadedEbook(userId: string, ebookId: string): Promise<boolean>;
 }
 
 // Database storage implementation
@@ -1036,6 +1044,76 @@ export class DatabaseStorage implements IStorage {
       return result.rowCount > 0;
     } catch (error) {
       console.error(`Error deleting ebook ${id}:`, error);
+      return false;
+    }
+  }
+
+  // User eBook download methods
+  async getUserEbookDownloads(userId: string): Promise<UserEbookDownload[]> {
+    try {
+      const query = `SELECT * FROM user_ebook_downloads WHERE user_id = $1 ORDER BY downloaded_at DESC`;
+      const result = await pool.query(query, [userId]);
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        ebookId: row.ebook_id,
+        downloadedAt: row.downloaded_at
+      }));
+    } catch (error) {
+      console.error(`Error getting user ebook downloads for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  async recordEbookDownload(userId: string, ebookId: string): Promise<UserEbookDownload> {
+    try {
+      // Check if already downloaded
+      const existing = await this.hasUserDownloadedEbook(userId, ebookId);
+      if (existing) {
+        // Return existing record
+        const query = `SELECT * FROM user_ebook_downloads WHERE user_id = $1 AND ebook_id = $2`;
+        const result = await pool.query(query, [userId, ebookId]);
+        const row = result.rows[0];
+        return {
+          id: row.id,
+          userId: row.user_id,
+          ebookId: row.ebook_id,
+          downloadedAt: row.downloaded_at
+        };
+      }
+
+      // Create new download record
+      const downloadId = `download-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const query = `
+        INSERT INTO user_ebook_downloads (id, user_id, ebook_id) 
+        VALUES ($1, $2, $3) 
+        RETURNING *
+      `;
+      const result = await pool.query(query, [downloadId, userId, ebookId]);
+      
+      // Update download count in ebooks table
+      await pool.query(`UPDATE ebooks SET download_count = download_count + 1 WHERE id = $1`, [ebookId]);
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        userId: row.user_id,
+        ebookId: row.ebook_id,
+        downloadedAt: row.downloaded_at
+      };
+    } catch (error) {
+      console.error(`Error recording ebook download:`, error);
+      throw error;
+    }
+  }
+
+  async hasUserDownloadedEbook(userId: string, ebookId: string): Promise<boolean> {
+    try {
+      const query = `SELECT 1 FROM user_ebook_downloads WHERE user_id = $1 AND ebook_id = $2 LIMIT 1`;
+      const result = await pool.query(query, [userId, ebookId]);
+      return result.rows.length > 0;
+    } catch (error) {
+      console.error(`Error checking if user downloaded ebook:`, error);
       return false;
     }
   }
