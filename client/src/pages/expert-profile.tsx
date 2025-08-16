@@ -625,24 +625,22 @@ export default function ExpertProfile() {
                               </Badge>
                               <span className="text-sm text-gray-500">
 {(() => {
-                                  // Parse as IST directly since database stores IST times
-                                  const date = new Date(consultation.scheduledAt);
-                                  console.log('Original timestamp:', consultation.scheduledAt);
-                                  console.log('Parsed date:', date.toString());
+                                  // Database stores IST timestamps without timezone info
+                                  // Parse as local IST time by treating as YYYY-MM-DD HH:mm format
+                                  const timestamp = consultation.scheduledAt;
+                                  const [datePart, timePart] = timestamp.split(' ');
+                                  const [year, month, day] = datePart.split('-');
+                                  const [hours, minutes] = timePart.split(':');
                                   
-                                  const dateStr = date.toLocaleDateString('en-IN');
+                                  // Create date directly with IST values (no conversion)
+                                  const istDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
                                   
-                                  // Extract hours and minutes directly without timezone conversion
-                                  const hours = date.getHours();
-                                  const minutes = date.getMinutes();
-                                  console.log('Extracted hours:', hours, 'minutes:', minutes);
+                                  const dateStr = istDate.toLocaleDateString('en-IN');
+                                  const hour12 = parseInt(hours) === 0 ? 12 : parseInt(hours) > 12 ? parseInt(hours) - 12 : parseInt(hours);
+                                  const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                                  const timeStr = `${hour12}:${minutes} ${ampm}`;
                                   
-                                  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-                                  const ampm = hours >= 12 ? 'PM' : 'AM';
-                                  const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-                                  
-                                  console.log('Final time string:', timeStr);
-                                  return `${dateStr} at ${timeStr} IST [FIXED]`;
+                                  return `${dateStr} at ${timeStr} IST`;
                                 })()}
                               </span>
                             </div>
