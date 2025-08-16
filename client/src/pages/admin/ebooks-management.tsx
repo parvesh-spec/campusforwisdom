@@ -88,6 +88,7 @@ export default function EbooksManagement() {
         description: "eBook updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/ebooks"] });
+      setShowCreateModal(false);
       setEditingEbook(null);
       resetForm();
     },
@@ -504,7 +505,13 @@ export default function EbooksManagement() {
       </div>
 
       {/* Create/Edit Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      <Dialog open={showCreateModal} onOpenChange={(open) => {
+        setShowCreateModal(open);
+        if (!open) {
+          setEditingEbook(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -790,7 +797,11 @@ export default function EbooksManagement() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+            <Button variant="outline" onClick={() => {
+              setShowCreateModal(false);
+              setEditingEbook(null);
+              resetForm();
+            }}>
               Cancel
             </Button>
             <Button 
