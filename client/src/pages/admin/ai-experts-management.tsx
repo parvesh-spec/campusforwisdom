@@ -72,6 +72,7 @@ export default function AIExpertsManagement() {
         description: "Expert created successfully",
       });
       setShowCreateModal(false);
+      setEditingExpert(null);
       resetForm();
     },
     onError: (error: any) => {
@@ -93,6 +94,7 @@ export default function AIExpertsManagement() {
         title: "Success",
         description: "Expert updated successfully",
       });
+      setShowCreateModal(false);
       setEditingExpert(null);
       resetForm();
     },
