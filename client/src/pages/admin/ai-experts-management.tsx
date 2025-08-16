@@ -222,7 +222,9 @@ export default function AIExpertsManagement() {
   };
 
   const handleArrayFieldChange = (field: string, text: string) => {
+    console.log(`Handling ${field}:`, text);
     const items = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    console.log(`Parsed ${field}:`, items);
     setFormData(prev => ({ ...prev, [field]: items }));
   };
 
