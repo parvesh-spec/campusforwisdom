@@ -68,7 +68,7 @@ export default function EbookDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-6">
           <Link href="/ebooks">
@@ -79,7 +79,7 @@ export default function EbookDetail() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* eBook Cover and Quick Info */}
           <div className="lg:col-span-1">
             <Card className="sticky top-6">
@@ -135,7 +135,7 @@ export default function EbookDetail() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Title and Basic Info */}
             <Card>
               <CardHeader>
@@ -197,40 +197,50 @@ export default function EbookDetail() {
             </Card>
 
             {/* Table of Contents / Index */}
-            {ebook.indexContent && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="h-5 w-5 mr-2" />
-                    Table of Contents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Table of Contents
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ebook.indexContent ? (
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
+                    <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed">
                       {ebook.indexContent}
                     </pre>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">Table of Contents not available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Summary */}
-            {ebook.summary && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Eye className="h-5 w-5 mr-2" />
-                    Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Eye className="h-5 w-5 mr-2" />
+                  Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ebook.summary ? (
                   <div className="prose prose-gray max-w-none">
-                    <p className="text-gray-700 leading-relaxed">{ebook.summary}</p>
+                    <p className="text-gray-700 leading-relaxed text-base">{ebook.summary}</p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <Eye className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">Summary not available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Additional Info */}
             <Card>
@@ -246,7 +256,7 @@ export default function EbookDetail() {
                   <div>
                     <span className="text-gray-500">Created:</span>
                     <span className="ml-2 font-medium">
-                      {new Date(ebook.createdAt).toLocaleDateString()}
+                      {ebook.createdAt ? new Date(ebook.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                   <div>

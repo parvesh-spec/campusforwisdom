@@ -647,6 +647,8 @@ export class DatabaseStorage implements IStorage {
         title: row.title,
         description: row.description,
         shortDescription: row.short_description,
+        indexContent: row.index_content,
+        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -703,6 +705,8 @@ export class DatabaseStorage implements IStorage {
         title: row.title,
         description: row.description,
         shortDescription: row.short_description,
+        indexContent: row.index_content,
+        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -755,6 +759,8 @@ export class DatabaseStorage implements IStorage {
         title: row.title,
         description: row.description,
         shortDescription: row.short_description,
+        indexContent: row.index_content,
+        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -807,6 +813,8 @@ export class DatabaseStorage implements IStorage {
         title: row.title,
         description: row.description,
         shortDescription: row.short_description,
+        indexContent: row.index_content,
+        summary: row.summary,
         authorId: row.author_id,
         category: row.category,
         tags: row.tags || [],
@@ -969,6 +977,14 @@ export class DatabaseStorage implements IStorage {
       if (ebook.publishedAt !== undefined) {
         fields.push(`published_at = $${index++}`);
         values.push(ebook.publishedAt);
+      }
+      if (ebook.indexContent !== undefined) {
+        fields.push(`index_content = $${index++}`);
+        values.push(ebook.indexContent);
+      }
+      if (ebook.summary !== undefined) {
+        fields.push(`summary = $${index++}`);
+        values.push(ebook.summary);
       }
 
       if (fields.length === 0) {
