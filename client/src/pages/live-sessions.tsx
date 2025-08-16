@@ -157,6 +157,7 @@ export default function LiveSessions() {
                           alert('Join live functionality will be implemented soon!');
                         }
                       }}
+                      onLoginRequired={() => setShowLoginModal(true)}
                     />
                   ))}
                 </div>
@@ -176,14 +177,7 @@ export default function LiveSessions() {
                   <SessionCard 
                     key={session.id} 
                     session={session} 
-                    onBook={(sessionId) => {
-                      if (!isLoggedIn) {
-                        setShowLoginModal(true);
-                      } else {
-                        // TODO: Implement booking functionality
-                        alert('Booking functionality will be implemented soon!');
-                      }
-                    }}
+                    onLoginRequired={() => setShowLoginModal(true)}
                   />
                 ))}
               </div>
@@ -217,6 +211,7 @@ export default function LiveSessions() {
                   <SessionCard 
                     key={session.id} 
                     session={session}
+                    onLoginRequired={() => setShowLoginModal(true)}
                   />
                 ))}
               </div>

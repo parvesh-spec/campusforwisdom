@@ -12,10 +12,11 @@ interface SessionCardProps {
   session: LiveSession;
   onJoin?: (sessionId: string) => void;
   onBook?: (sessionId: string) => void;
+  onLoginRequired?: () => void;
   showBooking?: boolean;
 }
 
-export default function SessionCard({ session, onJoin, onBook, showBooking = true }: SessionCardProps) {
+export default function SessionCard({ session, onJoin, onBook, onLoginRequired, showBooking = true }: SessionCardProps) {
   const [isBooking, setIsBooking] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -64,13 +65,17 @@ export default function SessionCard({ session, onJoin, onBook, showBooking = tru
 
   const handleBookSession = async () => {
     if (!studentUser) {
-      toast({
-        title: "Login Required",
-        description: "Please login to book a session.",
-        variant: "destructive",
-      });
-      // Redirect to login page
-      window.location.href = '/auth/login';
+      if (onLoginRequired) {
+        onLoginRequired();
+      } else {
+        toast({
+          title: "Login Required",
+          description: "Please login to book a session.",
+          variant: "destructive",
+        });
+        // Redirect to login page as fallback
+        window.location.href = '/auth/login';
+      }
       return;
     }
 
