@@ -45,6 +45,7 @@ export default function ConsultationsManagement() {
   // Additional state for date/time selection
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const [selectedStudentName, setSelectedStudentName] = useState("");
 
@@ -61,7 +62,19 @@ export default function ConsultationsManagement() {
   // Get selected expert's details
   const selectedExpert = experts?.find(expert => expert.id === formData.expertId);
 
-  // Function to get available time slots for selected date
+  // Function to fetch booked slots for expert and date
+  const fetchBookedSlots = async (expertId: string, date: string) => {
+    try {
+      const response = await fetch(`/api/experts/${expertId}/booked-slots/${date}`);
+      const slots = await response.json();
+      setBookedSlots(slots);
+    } catch (error) {
+      console.error('Error fetching booked slots:', error);
+      setBookedSlots([]);
+    }
+  };
+
+  // Function to get available time slots for selected date (excluding booked ones)
   const getAvailableSlotsForDate = (date: string): string[] => {
     if (!selectedExpert?.availableSlots || !date) return [];
     
@@ -73,7 +86,7 @@ export default function ConsultationsManagement() {
     );
     
     // Extract time from slots and convert to display format
-    return daySlots.map(slot => {
+    const allSlots = daySlots.map(slot => {
       // Extract time from "Monday-01:00" format
       const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
       if (timeMatch) {
@@ -92,6 +105,9 @@ export default function ConsultationsManagement() {
       const timeB = b.includes('AM') || b.includes('PM') ? b : '12:00 AM';
       return timeA.localeCompare(timeB);
     });
+
+    // Filter out booked slots
+    return allSlots.filter(slot => !bookedSlots.includes(slot));
   };
 
 
@@ -182,6 +198,7 @@ export default function ConsultationsManagement() {
     setSelectedStudentName("");
     setSelectedDate("");
     setSelectedTimeSlot("");
+    setBookedSlots([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -585,6 +602,7 @@ export default function ConsultationsManagement() {
                     // Reset date and time selection when expert changes
                     setSelectedDate("");
                     setSelectedTimeSlot("");
+                    setBookedSlots([]);
                   }}
                 >
                   <SelectTrigger>
@@ -646,11 +664,16 @@ export default function ConsultationsManagement() {
                     required
                     value={selectedDate}
                     min={new Date().toISOString().split('T')[0]} // Prevent past dates
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const newDate = e.target.value;
                       setSelectedDate(newDate);
                       setSelectedTimeSlot(""); // Reset time slot when date changes
                       setFormData(prev => ({ ...prev, scheduledAt: "" })); // Reset scheduledAt
+                      
+                      // Fetch booked slots for this expert and date
+                      if (selectedExpert && newDate) {
+                        await fetchBookedSlots(selectedExpert.id, newDate);
+                      }
                     }}
                   />
                 </div>
@@ -686,6 +709,21 @@ export default function ConsultationsManagement() {
                           className="text-xs"
                         >
                           {slot}
+                        </Button>
+                      ))}
+                      
+                      {/* Show booked slots as disabled */}
+                      {bookedSlots.map((bookedSlot) => (
+                        <Button
+                          key={`booked-${bookedSlot}`}
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled
+                          className="text-xs opacity-50 cursor-not-allowed"
+                          title="This slot is already booked"
+                        >
+                          {bookedSlot} (Booked)
                         </Button>
                       ))}
                     </div>

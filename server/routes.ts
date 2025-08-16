@@ -1075,6 +1075,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get expert's booked slots for a specific date
+  app.get('/api/experts/:expertId/booked-slots/:date', async (req, res) => {
+    try {
+      const { expertId, date } = req.params;
+      const consultations = await storage.getAllConsultations();
+      
+      // Filter consultations for this expert on this date that are scheduled or confirmed
+      const bookedSlots = consultations
+        .filter(consultation => 
+          consultation.expertId === expertId &&
+          consultation.scheduledAt.startsWith(date) &&
+          (consultation.status === 'scheduled' || consultation.status === 'confirmed')
+        )
+        .map(consultation => {
+          const scheduledDate = new Date(consultation.scheduledAt);
+          const timeString = scheduledDate.toTimeString().slice(0, 5); // HH:mm format
+          
+          // Convert to 12-hour format
+          const [hours, minutes] = timeString.split(':');
+          const hour24 = parseInt(hours);
+          const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+          const ampm = hour24 >= 12 ? 'PM' : 'AM';
+          return `${hour12}:${minutes} ${ampm}`;
+        });
+      
+      res.json(bookedSlots);
+    } catch (error) {
+      console.error('Error fetching booked slots:', error);
+      res.status(500).json({ error: 'Failed to fetch booked slots' });
+    }
+  });
+
   // Create consultation
   app.post("/api/admin/consultations", requireAdmin, async (req, res) => {
     try {
