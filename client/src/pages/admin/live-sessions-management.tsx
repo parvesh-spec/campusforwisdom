@@ -270,18 +270,7 @@ export default function WebinarManagement() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Scheduled Date & Time *
-                    </label>
-                    <Input
-                      required
-                      type="datetime-local"
-                      value={formData.scheduledAt}
-                      onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                    />
-                  </div>
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Duration (minutes) *
@@ -330,17 +319,15 @@ export default function WebinarManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pre-registered Participants (optional)
+                    Scheduled Date & Time *
                   </label>
-                  <Textarea
-                    value={formData.participantEmails}
-                    onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
-                    placeholder="Enter participant emails separated by commas (e.g., john@company.com, sarah@company.com)"
-                    rows={3}
+                  <Input
+                    required
+                    type="datetime-local"
+                    value={formData.scheduledAt}
+                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                    className="w-full"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Pre-register specific participants. Leave empty for open registration via Zoho's registration link.
-                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -649,18 +636,7 @@ export default function WebinarManagement() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Scheduled Date & Time *
-                    </label>
-                    <Input
-                      required
-                      type="datetime-local"
-                      value={formData.scheduledAt}
-                      onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                    />
-                  </div>
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Duration (minutes) *
@@ -709,17 +685,15 @@ export default function WebinarManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pre-registered Participants (optional)
+                    Scheduled Date & Time *
                   </label>
-                  <Textarea
-                    value={formData.participantEmails}
-                    onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
-                    placeholder="Enter participant emails separated by commas (e.g., john@company.com, sarah@company.com)"
-                    rows={3}
+                  <Input
+                    required
+                    type="datetime-local"
+                    value={formData.scheduledAt}
+                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                    className="w-full"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Pre-register specific participants. Leave empty for open registration via Zoho's registration link.
-                  </p>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
