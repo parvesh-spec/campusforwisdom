@@ -133,6 +133,7 @@ export const experts = pgTable("experts", {
   socialLinks: text("social_links"), // JSON string for social media links
   methodology: text("methodology"), // Teaching/consultation methodology
   consultationEnabled: boolean("consultation_enabled").default(true), // Enable/disable consultation booking
+  availableSlots: text("available_slots").array().default(sql`'{}'::text[]`), // Available time slots for consultation
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });

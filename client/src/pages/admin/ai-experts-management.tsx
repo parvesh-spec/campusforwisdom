@@ -45,6 +45,7 @@ export default function AIExpertsManagement() {
     socialLinks: "",
     methodology: "",
     consultationEnabled: true,
+    availableSlots: [],
   });
 
   const { data: experts, isLoading } = useQuery<Expert[]>({
@@ -146,6 +147,7 @@ export default function AIExpertsManagement() {
       socialLinks: "",
       methodology: "",
       consultationEnabled: true,
+      availableSlots: [],
     });
     setEditingExpert(null);
   };
@@ -175,6 +177,7 @@ export default function AIExpertsManagement() {
       socialLinks: formData.socialLinks,
       methodology: formData.methodology,
       consultationEnabled: isConsultationEnabled,
+      availableSlots: formData.availableSlots || [],
     };
 
     if (editingExpert) {
@@ -205,6 +208,7 @@ export default function AIExpertsManagement() {
       socialLinks: expert.socialLinks || "",
       methodology: expert.methodology || "",
       consultationEnabled: expert.consultationEnabled !== false,
+      availableSlots: expert.availableSlots || [],
     });
     setShowCreateModal(true);
   };
@@ -535,19 +539,68 @@ export default function AIExpertsManagement() {
               </div>
 
               {(formData.consultationEnabled !== false) && (
-                <div className="space-y-2">
-                  <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required={formData.consultationEnabled !== false}
-                    value={formData.hourlyRate || ""}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                    placeholder="2500"
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
+                    <Input
+                      id="hourlyRate"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required={formData.consultationEnabled !== false}
+                      value={formData.hourlyRate || ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                      placeholder="2500"
+                    />
+                  </div>
+
+                  {/* Available Time Slots */}
+                  <div className="space-y-3">
+                    <Label>Available Time Slots</Label>
+                    <p className="text-xs text-gray-500">
+                      Select the time slots when this expert is available for consultations
+                    </p>
+                    <div className="border rounded-lg p-4 bg-gray-50 max-h-48 overflow-y-auto">
+                      <div className="space-y-3">
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                          <div key={day} className="space-y-2">
+                            <h4 className="text-sm font-medium text-gray-900">{day}</h4>
+                            <div className="grid grid-cols-4 gap-1">
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const hour = i.toString().padStart(2, '0');
+                                const timeSlot = `${day}-${hour}:00`;
+                                const isSelected = (formData.availableSlots || []).includes(timeSlot);
+                                return (
+                                  <button
+                                    key={timeSlot}
+                                    type="button"
+                                    className={`text-xs py-1 px-2 rounded transition-colors ${
+                                      isSelected 
+                                        ? 'bg-primary text-white' 
+                                        : 'bg-white hover:bg-gray-100 border'
+                                    }`}
+                                    onClick={() => {
+                                      const currentSlots = formData.availableSlots || [];
+                                      const newSlots = isSelected 
+                                        ? currentSlots.filter(slot => slot !== timeSlot)
+                                        : [...currentSlots, timeSlot];
+                                      setFormData(prev => ({ ...prev, availableSlots: newSlots }));
+                                    }}
+                                  >
+                                    {hour}:00
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      Selected slots: {(formData.availableSlots || []).length} out of 168 total slots
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
