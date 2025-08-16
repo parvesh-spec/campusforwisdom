@@ -82,8 +82,15 @@ export const enrollments = pgTable("enrollments", {
 export const webinarAttendees = pgTable("webinar_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   webinarId: varchar("webinar_id").references(() => webinars.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  email: text("email"), // For external participants
+  participantId: varchar("participant_id").references(() => users.id),
+  participantName: varchar("participant_name"),
+  participantEmail: varchar("participant_email").notNull(),
+  role: varchar("role").default("attendee"), // attendee, panelist, presenter
+  status: varchar("status").default("registered"), // registered, joined, left
+  canUnmute: boolean("can_unmute").default(false),
+  canShareScreen: boolean("can_share_screen").default(false),
+  isPanelist: boolean("is_panelist").default(false),
+  totalDuration: integer("total_duration").default(0), // in minutes
   joinedAt: timestamp("joined_at").defaultNow(),
   leftAt: timestamp("left_at"),
 });
@@ -268,6 +275,12 @@ export const insertWebinarAttendeeSchema = createInsertSchema(webinarAttendees).
   id: true,
   joinedAt: true,
   leftAt: true,
+  totalDuration: true,
+  canUnmute: true,
+  canShareScreen: true,
+  isPanelist: true,
+  role: true,
+  status: true,
 });
 
 // Types

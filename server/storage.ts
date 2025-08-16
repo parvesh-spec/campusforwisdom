@@ -400,7 +400,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(webinarAttendees.webinarId, webinarId),
-          eq(webinarAttendees.userId, userId)
+          eq(webinarAttendees.participantId, userId)
         )
       );
     return attendee || undefined;
@@ -411,7 +411,7 @@ export class DatabaseStorage implements IStorage {
       .select({ webinar: webinars })
       .from(webinarAttendees)
       .innerJoin(webinars, eq(webinarAttendees.webinarId, webinars.id))
-      .where(eq(webinarAttendees.userId, userId))
+      .where(eq(webinarAttendees.participantId, userId))
       .orderBy(desc(webinars.scheduledAt));
     
     return result.map(row => row.webinar);

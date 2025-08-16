@@ -1029,9 +1029,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Session is not available for booking" });
       }
 
-      // Check if seats are available
+      // Check if seats are available - add debug logging
+      console.log(`📊 Session capacity check:`, {
+        sessionId,
+        currentParticipants: session.currentParticipants,
+        maxParticipants: session.maxParticipants,
+        available: session.maxParticipants - session.currentParticipants
+      });
+      
       if (session.currentParticipants >= session.maxParticipants) {
-        return res.status(400).json({ error: "Session is full" });
+        return res.status(400).json({ 
+          error: "Session is full",
+          details: {
+            current: session.currentParticipants,
+            max: session.maxParticipants
+          }
+        });
       }
 
       // Check if student already booked this session
@@ -1043,8 +1056,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create webinar attendee record
       const attendeeData = insertWebinarAttendeeSchema.parse({
         webinarId: sessionId,
-        userId: studentUser.id,
-        email: studentUser.email
+        participantId: studentUser.id,
+        participantEmail: studentUser.email,
+        participantName: studentUser.name || `${studentUser.firstName || ''} ${studentUser.lastName || ''}`.trim()
       });
 
       const attendee = await storage.createWebinarAttendee(attendeeData);
