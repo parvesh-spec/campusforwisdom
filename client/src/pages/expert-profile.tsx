@@ -204,18 +204,27 @@ export default function ExpertProfile() {
 
                 <p className="text-gray-700 mb-6">{expert.bio}</p>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="text-center sm:text-left">
-                    <p className="text-3xl font-bold text-primary">₹{expert.hourlyRate}/hr</p>
-                    <p className="text-sm text-gray-600">Consultation fee</p>
+                {expert.consultationEnabled ? (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="text-center sm:text-left">
+                      <p className="text-3xl font-bold text-primary">₹{expert.hourlyRate}/hr</p>
+                      <p className="text-sm text-gray-600">Consultation fee</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button size="lg" onClick={handleBookConsultation}>
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Book Consultation
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <Button size="lg" onClick={handleBookConsultation}>
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Book Consultation
-                    </Button>
+                ) : (
+                  <div className="p-4 bg-gray-50 rounded-lg border">
+                    <p className="text-gray-600 text-center">
+                      <Clock className="w-5 h-5 mx-auto mb-2 text-gray-400" />
+                      Consultation services are currently not available for this expert
+                    </p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </CardContent>

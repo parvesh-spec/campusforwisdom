@@ -237,7 +237,7 @@ export default function AIExperts() {
                       
                       {/* Available Services */}
                       <div className="flex flex-wrap gap-1">
-                        {expert.hourlyRate && expert.hourlyRate !== "0" && (
+                        {expert.consultationEnabled && expert.hourlyRate && expert.hourlyRate !== "0" && (
                           <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                             <MessageCircle className="h-3 w-3 mr-1" />
                             Consultations

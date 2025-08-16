@@ -132,6 +132,7 @@ export const experts = pgTable("experts", {
   portfolioLinks: text("portfolio_links").array().default([]), // Portfolio/work samples
   socialLinks: text("social_links"), // JSON string for social media links
   methodology: text("methodology"), // Teaching/consultation methodology
+  consultationEnabled: boolean("consultation_enabled").default(true), // Enable/disable consultation booking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });

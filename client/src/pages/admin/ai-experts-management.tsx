@@ -496,19 +496,39 @@ export default function AIExpertsManagement() {
                 </div>
                 
                 <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="consultationEnabled"
+                      checked={formData.consultationEnabled !== false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, consultationEnabled: e.target.checked }))}
+                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                    <Label htmlFor="consultationEnabled" className="text-sm font-medium">
+                      Enable Consultation Services
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    When enabled, students can book consultations with this expert
+                  </p>
+                </div>
+              </div>
+
+              {(formData.consultationEnabled !== false) && (
+                <div className="space-y-2">
                   <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
                   <Input
                     id="hourlyRate"
                     type="number"
                     min="0"
                     step="0.01"
-                    required
+                    required={formData.consultationEnabled !== false}
                     value={formData.hourlyRate || ""}
                     onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
                     placeholder="2500"
                   />
                 </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="avatar">Avatar Image</Label>
