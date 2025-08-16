@@ -839,17 +839,21 @@ export class DatabaseStorage implements IStorage {
 
   async createEbook(ebook: InsertEbook): Promise<Ebook> {
     try {
+      // Generate UUID for the ebook
+      const ebookId = `ebook-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       const query = `
         INSERT INTO ebooks (
-          title, description, short_description, author_id, category, 
+          id, title, description, short_description, author_id, category, 
           tags, cover_image, file_url, file_size, page_count, 
           language, price, is_active, is_featured, published_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
         ) RETURNING *
       `;
       
       const result = await pool.query(query, [
+        ebookId,
         ebook.title,
         ebook.description,
         ebook.shortDescription,

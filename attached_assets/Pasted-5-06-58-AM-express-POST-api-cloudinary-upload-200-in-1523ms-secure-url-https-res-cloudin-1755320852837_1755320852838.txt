@@ -1,0 +1,82 @@
+5:06:58 AM [express] POST /api/cloudinary/upload 200 in 1523ms :: {"secure_url":"https://res.cloudin…
+Creating ebook with data: {
+  title: 'rgdhftgjmhj',
+  description: 'ewfgrhtjyu',
+  shortDescription: 'gdrhtfjyu',
+  authorId: '9ad77bef-8684-437c-b039-a10aa3f61265',
+  category: 'fdghhgj',
+  tags: [],
+  coverImage: 'https://res.cloudinary.com/dgtq0kaa8/image/upload/v1755320817/campus-for-wisdom/ebooks/covers/edl07psn0oa0igfcfrfb.jpg',
+  fileUrl: 'https://res.cloudinary.com/dgtq0kaa8/raw/upload/v1755320814/campus-for-wisdom/ebooks/files/f38ec4quadqeyxsk5oul.pdf',
+  fileSize: '0.11 MB',
+  pageCount: 5,
+  language: 'English',
+  price: '0',
+  isActive: true,
+  isFeatured: false
+}
+Parsed ebook data: {
+  title: 'rgdhftgjmhj',
+  description: 'ewfgrhtjyu',
+  shortDescription: 'gdrhtfjyu',
+  authorId: '9ad77bef-8684-437c-b039-a10aa3f61265',
+  category: 'fdghhgj',
+  tags: [],
+  coverImage: 'https://res.cloudinary.com/dgtq0kaa8/image/upload/v1755320817/campus-for-wisdom/ebooks/covers/edl07psn0oa0igfcfrfb.jpg',
+  fileUrl: 'https://res.cloudinary.com/dgtq0kaa8/raw/upload/v1755320814/campus-for-wisdom/ebooks/files/f38ec4quadqeyxsk5oul.pdf',
+  fileSize: '0.11 MB',
+  pageCount: 5,
+  language: 'English',
+  price: '0',
+  isActive: true,
+  isFeatured: false
+}
+Error in createEbook: error: null value in column "id" of relation "ebooks" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.createEbook (/home/runner/workspace/server/storage.ts:852:22)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:828:21) {
+  length: 520,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (null, rgdhftgjmhj, ewfgrhtjyu, gdrhtfjyu, 9ad77bef-8684-437c-b039-a10aa3f61265, fdghhgj, {}, https://res.cloudinary.com/dgtq0kaa8/image/upload/v1755320817/ca..., https://res.cloudinary.com/dgtq0kaa8/raw/upload/v1755320814/camp..., 0.11 MB, 5, English, 0, null, 0, t, f, null, 2025-08-16 05:07:05.789959+00, 2025-08-16 05:07:05.789959+00).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'ebooks',
+  column: 'id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+Error creating ebook: error: null value in column "id" of relation "ebooks" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.createEbook (/home/runner/workspace/server/storage.ts:852:22)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:828:21) {
+  length: 520,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (null, rgdhftgjmhj, ewfgrhtjyu, gdrhtfjyu, 9ad77bef-8684-437c-b039-a10aa3f61265, fdghhgj, {}, https://res.cloudinary.com/dgtq0kaa8/image/upload/v1755320817/ca..., https://res.cloudinary.com/dgtq0kaa8/raw/upload/v1755320814/camp..., 0.11 MB, 5, English, 0, null, 0, t, f, null, 2025-08-16 05:07:05.789959+00, 2025-08-16 05:07:05.789959+00).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'ebooks',
+  column: 'id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+5:07:05 AM [express] POST /api/admin/ebooks 500 in 132ms :: {"error":"Internal server error"}
+5:07:08 AM [express] GET /api/auth/student 401 in 76ms :: {"error":"Student not authenticated"}
+5:07:08 AM [express] GET /api/auth/admin 304 in 73ms :: {"id":"f577af81-3b89-412c-9a45-562b4a21e505"…
