@@ -7,6 +7,7 @@ import {
   Enrollment,
   Expert,
   Consultation,
+  Ebook,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -15,13 +16,15 @@ import {
   InsertEnrollment,
   InsertExpert,
   InsertConsultation,
+  InsertEbook,
   courses,
   users,
   webinars,
   testimonials,
   enrollments,
   experts,
-  consultations
+  consultations,
+  ebooks
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -55,7 +58,7 @@ export type Activity = {
   description: string;
   timestamp: Date;
 };
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
@@ -145,6 +148,15 @@ export interface IStorage {
   deleteConsultation(id: string): Promise<boolean>;
   getConsultation(id: string): Promise<Consultation | null>;
   getExpert(id: string): Promise<Expert | null>;
+
+  // Ebook methods
+  getEbooks(): Promise<Ebook[]>;
+  getEbook(id: string): Promise<Ebook | undefined>;
+  getEbooksByAuthor(authorId: string): Promise<Ebook[]>;
+  getEbooksByCategory(category: string): Promise<Ebook[]>;
+  createEbook(ebook: InsertEbook): Promise<Ebook>;
+  updateEbook(id: string, ebook: Partial<InsertEbook>): Promise<Ebook | null>;
+  deleteEbook(id: string): Promise<boolean>;
 }
 
 // Database storage implementation
@@ -609,6 +621,402 @@ export class DatabaseStorage implements IStorage {
       .from(experts)
       .where(eq(experts.id, id));
     return expert || null;
+  }
+
+  // Ebook methods implementation
+  async getEbooks(): Promise<Ebook[]> {
+    try {
+      // Use raw SQL query to avoid Drizzle schema issues
+      const query = `
+        SELECT 
+          e.*,
+          ex.name as author_name,
+          ex.avatar as author_avatar,
+          ex.specialization as author_specialization,
+          ex.rating as author_rating
+        FROM ebooks e
+        LEFT JOIN experts ex ON e.author_id = ex.id
+        WHERE e.is_active = true
+        ORDER BY e.created_at DESC
+      `;
+      
+      const result = await pool.query(query);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        author: row.author_name ? {
+          id: row.author_id,
+          name: row.author_name,
+          avatar: row.author_avatar,
+          specialization: row.author_specialization,
+          rating: row.author_rating,
+        } : undefined
+      }));
+    } catch (error) {
+      console.error("Error in getEbooks:", error);
+      return [];
+    }
+  }
+
+  async getEbook(id: string): Promise<Ebook | undefined> {
+    try {
+      const query = `
+        SELECT 
+          e.*,
+          ex.name as author_name,
+          ex.avatar as author_avatar,
+          ex.specialization as author_specialization,
+          ex.rating as author_rating
+        FROM ebooks e
+        LEFT JOIN experts ex ON e.author_id = ex.id
+        WHERE e.id = $1
+      `;
+      
+      const result = await pool.query(query, [id]);
+      
+      if (result.rows.length === 0) {
+        return undefined;
+      }
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        author: row.author_name ? {
+          id: row.author_id,
+          name: row.author_name,
+          avatar: row.author_avatar,
+          specialization: row.author_specialization,
+          rating: row.author_rating,
+        } : undefined
+      };
+    } catch (error) {
+      console.error("Error in getEbook:", error);
+      return undefined;
+    }
+  }
+
+  async getEbooksByAuthor(authorId: string): Promise<Ebook[]> {
+    try {
+      const query = `
+        SELECT 
+          e.*,
+          ex.name as author_name,
+          ex.avatar as author_avatar,
+          ex.specialization as author_specialization,
+          ex.rating as author_rating
+        FROM ebooks e
+        LEFT JOIN experts ex ON e.author_id = ex.id
+        WHERE e.author_id = $1 AND e.is_active = true
+        ORDER BY e.created_at DESC
+      `;
+      
+      const result = await pool.query(query, [authorId]);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        author: row.author_name ? {
+          id: row.author_id,
+          name: row.author_name,
+          avatar: row.author_avatar,
+          specialization: row.author_specialization,
+          rating: row.author_rating,
+        } : undefined
+      }));
+    } catch (error) {
+      console.error("Error in getEbooksByAuthor:", error);
+      return [];
+    }
+  }
+
+  async getEbooksByCategory(category: string): Promise<Ebook[]> {
+    try {
+      const query = `
+        SELECT 
+          e.*,
+          ex.name as author_name,
+          ex.avatar as author_avatar,
+          ex.specialization as author_specialization,
+          ex.rating as author_rating
+        FROM ebooks e
+        LEFT JOIN experts ex ON e.author_id = ex.id
+        WHERE e.category = $1 AND e.is_active = true
+        ORDER BY e.created_at DESC
+      `;
+      
+      const result = await pool.query(query, [category]);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        author: row.author_name ? {
+          id: row.author_id,
+          name: row.author_name,
+          avatar: row.author_avatar,
+          specialization: row.author_specialization,
+          rating: row.author_rating,
+        } : undefined
+      }));
+    } catch (error) {
+      console.error("Error in getEbooksByCategory:", error);
+      return [];
+    }
+  }
+
+  async createEbook(ebook: InsertEbook): Promise<Ebook> {
+    try {
+      const query = `
+        INSERT INTO ebooks (
+          title, description, short_description, author_id, category, 
+          tags, cover_image, file_url, file_size, page_count, 
+          language, price, is_active, is_featured, published_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        ) RETURNING *
+      `;
+      
+      const result = await pool.query(query, [
+        ebook.title,
+        ebook.description,
+        ebook.shortDescription,
+        ebook.authorId,
+        ebook.category,
+        ebook.tags,
+        ebook.coverImage,
+        ebook.fileUrl,
+        ebook.fileSize,
+        ebook.pageCount,
+        ebook.language,
+        ebook.price,
+        ebook.isActive,
+        ebook.isFeatured,
+        ebook.publishedAt
+      ]);
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error in createEbook:", error);
+      throw error;
+    }
+  }
+
+  async updateEbook(id: string, ebook: Partial<InsertEbook>): Promise<Ebook | null> {
+    try {
+      const fields = [];
+      const values = [];
+      let index = 1;
+
+      if (ebook.title !== undefined) {
+        fields.push(`title = $${index++}`);
+        values.push(ebook.title);
+      }
+      if (ebook.description !== undefined) {
+        fields.push(`description = $${index++}`);
+        values.push(ebook.description);
+      }
+      if (ebook.shortDescription !== undefined) {
+        fields.push(`short_description = $${index++}`);
+        values.push(ebook.shortDescription);
+      }
+      if (ebook.category !== undefined) {
+        fields.push(`category = $${index++}`);
+        values.push(ebook.category);
+      }
+      if (ebook.tags !== undefined) {
+        fields.push(`tags = $${index++}`);
+        values.push(ebook.tags);
+      }
+      if (ebook.coverImage !== undefined) {
+        fields.push(`cover_image = $${index++}`);
+        values.push(ebook.coverImage);
+      }
+      if (ebook.fileUrl !== undefined) {
+        fields.push(`file_url = $${index++}`);
+        values.push(ebook.fileUrl);
+      }
+      if (ebook.fileSize !== undefined) {
+        fields.push(`file_size = $${index++}`);
+        values.push(ebook.fileSize);
+      }
+      if (ebook.pageCount !== undefined) {
+        fields.push(`page_count = $${index++}`);
+        values.push(ebook.pageCount);
+      }
+      if (ebook.language !== undefined) {
+        fields.push(`language = $${index++}`);
+        values.push(ebook.language);
+      }
+      if (ebook.price !== undefined) {
+        fields.push(`price = $${index++}`);
+        values.push(ebook.price);
+      }
+      if (ebook.isActive !== undefined) {
+        fields.push(`is_active = $${index++}`);
+        values.push(ebook.isActive);
+      }
+      if (ebook.isFeatured !== undefined) {
+        fields.push(`is_featured = $${index++}`);
+        values.push(ebook.isFeatured);
+      }
+      if (ebook.publishedAt !== undefined) {
+        fields.push(`published_at = $${index++}`);
+        values.push(ebook.publishedAt);
+      }
+
+      if (fields.length === 0) {
+        return null;
+      }
+
+      fields.push(`updated_at = NOW()`);
+      values.push(id);
+
+      const query = `
+        UPDATE ebooks 
+        SET ${fields.join(', ')}
+        WHERE id = $${index}
+        RETURNING *
+      `;
+
+      const result = await pool.query(query, values);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        shortDescription: row.short_description,
+        authorId: row.author_id,
+        category: row.category,
+        tags: row.tags || [],
+        coverImage: row.cover_image,
+        fileUrl: row.file_url,
+        fileSize: row.file_size,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        rating: row.rating,
+        downloadCount: row.download_count,
+        isActive: row.is_active,
+        isFeatured: row.is_featured,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error(`Error updating ebook ${id}:`, error);
+      return null;
+    }
+  }
+
+  async deleteEbook(id: string): Promise<boolean> {
+    try {
+      const query = `DELETE FROM ebooks WHERE id = $1`;
+      const result = await pool.query(query, [id]);
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error(`Error deleting ebook ${id}:`, error);
+      return false;
+    }
   }
 }
 

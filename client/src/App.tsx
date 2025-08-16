@@ -13,6 +13,7 @@ import Courses from "@/pages/courses";
 import LiveSessions from "@/pages/live-sessions";
 import AIExperts from "@/pages/ai-experts";
 import ExpertProfile from "@/pages/expert-profile";
+import EbooksPage from "@/pages/ebooks";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
@@ -24,6 +25,7 @@ import StudentManagement from "./pages/admin/student-management";
 import LiveSessionsManagement from "./pages/admin/live-sessions-management";
 import AIExpertsManagement from "./pages/admin/ai-experts-management";
 import ConsultationsManagement from "./pages/admin/consultations-management";
+import EbooksManagement from "./pages/admin/ebooks-management";
 import ContentLibrary from "./pages/admin/content-library";
 import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
@@ -88,6 +90,11 @@ function Router() {
           <ExpertProfile />
         </PublicLayout>
       </Route>
+      <Route path="/ebooks">
+        <PublicLayout>
+          <EbooksPage />
+        </PublicLayout>
+      </Route>
       <Route path="/about">
         <PublicLayout>
           <About />
@@ -135,6 +142,11 @@ function Router() {
       <Route path="/admin/consultations">
         <AdminLayout>
           <ConsultationsManagement />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/ebooks">
+        <AdminLayout>
+          <EbooksManagement />
         </AdminLayout>
       </Route>
       <Route path="/admin/content">

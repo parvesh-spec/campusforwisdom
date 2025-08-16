@@ -63,6 +63,7 @@ export default function Header() {
     { name: "Courses", href: "/courses" },
     { name: "Live Sessions", href: "/live-sessions" },
     { name: "AI Experts", href: "/ai-experts" },
+    { name: "eBooks", href: "/ebooks" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];

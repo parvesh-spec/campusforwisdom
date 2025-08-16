@@ -44,6 +44,7 @@ export default function AdminSidebar() {
     { name: "Webinars", href: "/admin/live-sessions", icon: Video },
     { name: "AI Experts", href: "/admin/ai-experts", icon: BrainCircuit },
     { name: "Consultations", href: "/admin/consultations", icon: MessageSquare },
+    { name: "eBooks", href: "/admin/ebooks", icon: BookOpen },
     { name: "Content Library", href: "/admin/content", icon: FolderOpen },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { name: "Communications", href: "/admin/communications", icon: MessageSquare },

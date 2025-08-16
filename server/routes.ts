@@ -5,7 +5,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { z } from "zod";
-import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema } from "@shared/schema";
+import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema, insertEbookSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -742,6 +742,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(expertSessions);
     } catch (error) {
       console.error("Error fetching expert sessions:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ===== EBOOKS API =====
+
+  // Get all ebooks
+  app.get("/api/ebooks", async (req, res) => {
+    try {
+      const ebooks = await storage.getEbooks();
+      res.json(ebooks);
+    } catch (error) {
+      console.error("Error fetching ebooks:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get ebook by ID
+  app.get("/api/ebooks/:id", async (req, res) => {
+    try {
+      const ebook = await storage.getEbook(req.params.id);
+      if (!ebook || !ebook.isActive) {
+        return res.status(404).json({ error: "Ebook not found" });
+      }
+      res.json(ebook);
+    } catch (error) {
+      console.error("Error fetching ebook:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get ebooks by author (expert)
+  app.get("/api/experts/:id/ebooks", async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const expert = await storage.getExpert(expertId);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+      
+      const ebooks = await storage.getEbooksByAuthor(expertId);
+      res.json(ebooks);
+    } catch (error) {
+      console.error("Error fetching expert ebooks:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Get all ebooks for management
+  app.get("/api/admin/ebooks", async (req, res) => {
+    try {
+      const adminUser = (req.session as any)?.adminUser;
+      if (!adminUser || adminUser.role !== 'admin') {
+        return res.status(401).json({ error: 'Admin access required' });
+      }
+
+      const ebooks = await storage.getEbooks();
+      res.json(ebooks);
+    } catch (error) {
+      console.error("Error fetching admin ebooks:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Create new ebook
+  app.post("/api/admin/ebooks", async (req, res) => {
+    try {
+      const adminUser = (req.session as any)?.adminUser;
+      if (!adminUser || adminUser.role !== 'admin') {
+        return res.status(401).json({ error: 'Admin access required' });
+      }
+
+      const ebookData = insertEbookSchema.parse(req.body);
+      const ebook = await storage.createEbook(ebookData);
+      res.json(ebook);
+    } catch (error) {
+      console.error("Error creating ebook:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Update ebook
+  app.put("/api/admin/ebooks/:id", async (req, res) => {
+    try {
+      const adminUser = (req.session as any)?.adminUser;
+      if (!adminUser || adminUser.role !== 'admin') {
+        return res.status(401).json({ error: 'Admin access required' });
+      }
+
+      const ebookData = insertEbookSchema.partial().parse(req.body);
+      const ebook = await storage.updateEbook(req.params.id, ebookData);
+      
+      if (!ebook) {
+        return res.status(404).json({ error: "Ebook not found" });
+      }
+      
+      res.json(ebook);
+    } catch (error) {
+      console.error("Error updating ebook:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Delete ebook
+  app.delete("/api/admin/ebooks/:id", async (req, res) => {
+    try {
+      const adminUser = (req.session as any)?.adminUser;
+      if (!adminUser || adminUser.role !== 'admin') {
+        return res.status(401).json({ error: 'Admin access required' });
+      }
+
+      const success = await storage.deleteEbook(req.params.id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Ebook not found" });
+      }
+      
+      res.json({ message: "Ebook deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting ebook:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

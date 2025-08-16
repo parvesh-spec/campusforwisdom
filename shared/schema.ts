@@ -145,6 +145,29 @@ export const consultations = pgTable("consultations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const ebooks = pgTable("ebooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  shortDescription: text("short_description"),
+  authorId: varchar("author_id").references(() => experts.id).notNull(), // Expert who wrote the ebook
+  category: text("category").notNull(), // AI Development, Video Creation, etc.
+  tags: text("tags").array().default([]), // Array of tags for filtering
+  coverImage: text("cover_image"), // Cover image URL
+  fileUrl: text("file_url").notNull(), // PDF/ebook file URL
+  fileSize: text("file_size"), // File size in MB
+  pageCount: integer("page_count"),
+  language: text("language").default("English"),
+  price: varchar("price").default("0"), // Free or paid
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
+  downloadCount: integer("download_count").default(0),
+  isActive: boolean("is_active").default(true),
+  isFeatured: boolean("is_featured").default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -207,6 +230,14 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   createdAt: true,
 });
 
+export const insertEbookSchema = createInsertSchema(ebooks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  rating: true,
+  downloadCount: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -237,3 +268,8 @@ export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export type Ebook = typeof ebooks.$inferSelect & {
+  author?: Expert;
+};
+export type InsertEbook = z.infer<typeof insertEbookSchema>;
