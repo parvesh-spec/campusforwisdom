@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import StudentLoginModal from "@/components/StudentLoginModal";
-import { Search, Star, Clock, Users, Calendar, LogIn } from "lucide-react";
+import { Search, Star, Clock, Users, Calendar, LogIn, MessageCircle, BookOpen, Video } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { Expert, User } from "@shared/schema";
 
@@ -229,13 +229,28 @@ export default function AIExperts() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-2">
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600">{expert.experience} experience</span>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-primary">₹{expert.hourlyRate}/hr</p>
+                      
+                      {/* Available Services */}
+                      <div className="flex flex-wrap gap-1">
+                        {expert.hourlyRate && expert.hourlyRate !== "0" && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            <MessageCircle className="h-3 w-3 mr-1" />
+                            Consultations
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          eBooks
+                        </Badge>
+                        <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                          <Video className="h-3 w-3 mr-1" />
+                          Sessions
+                        </Badge>
                       </div>
                     </div>
                   </div>
