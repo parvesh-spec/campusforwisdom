@@ -1105,13 +1105,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with booking even if webinar creation fails
         }
       } else if (zohoAPI && session.webinarId && session.registrationLink && student) {
-        // Add participant to existing Zoho webinar
-        try {
-          await zohoAPI.addParticipant(session.webinarId, student.email);
-          console.log(`✅ Added participant to existing webinar ${session.webinarId}`);
-        } catch (addError) {
-          console.error('❌ Error adding participant to webinar:', addError);
-        }
+        // Zoho API doesn't support adding participants to existing webinars
+        // Participants are only added during webinar creation
+        // Student will use the registration link to join
+        console.log(`ℹ️ Student will use registration link for webinar ${session.webinarId}`);
+        console.log(`🔗 Registration URL: ${session.registrationLink}`);
       }
 
       res.json({ 
