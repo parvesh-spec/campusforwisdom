@@ -25,6 +25,7 @@ export default function WebinarManagement() {
     description: "",
     scheduledAt: "",
     duration: "60",
+    price: "499",
     timezone: "Asia/Calcutta",
     participantEmails: "",
     expertId: undefined as string | undefined
@@ -133,6 +134,7 @@ export default function WebinarManagement() {
       description: "",
       scheduledAt: "",
       duration: "60",
+      price: "499",
       timezone: "Asia/Calcutta",
       participantEmails: "",
       expertId: undefined
@@ -266,7 +268,7 @@ export default function WebinarManagement() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Scheduled Date & Time *
