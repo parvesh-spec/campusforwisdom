@@ -56,7 +56,7 @@ export default function EbooksManagement() {
   // Create ebook mutation
   const createEbookMutation = useMutation({
     mutationFn: async (ebookData: InsertEbook) => {
-      return await apiRequest("/api/admin/ebooks", "POST", ebookData);
+      return await apiRequest("POST", "/api/admin/ebooks", ebookData);
     },
     onSuccess: () => {
       toast({
@@ -79,7 +79,7 @@ export default function EbooksManagement() {
   // Update ebook mutation
   const updateEbookMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<InsertEbook> }) => {
-      return await apiRequest(`/api/admin/ebooks/${id}`, "PUT", data);
+      return await apiRequest("PUT", `/api/admin/ebooks/${id}`, data);
     },
     onSuccess: () => {
       toast({
@@ -102,7 +102,7 @@ export default function EbooksManagement() {
   // Delete ebook mutation
   const deleteEbookMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/admin/ebooks/${id}`, "DELETE");
+      return await apiRequest("DELETE", `/api/admin/ebooks/${id}`);
     },
     onSuccess: () => {
       toast({
