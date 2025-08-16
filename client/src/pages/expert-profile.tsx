@@ -54,8 +54,7 @@ export default function ExpertProfile() {
     refetchIntervalInBackground: true, // Keep refreshing even when tab is not active
   });
 
-  // Fetch expert's live sessions
-  // Get all live sessions for this expert's domain
+  // Fetch expert's live sessions with booking status
   const { data: allSessions = [] } = useQuery<LiveSession[]>({
     queryKey: [`/api/live-sessions`],
     enabled: !!expertId,
@@ -64,11 +63,8 @@ export default function ExpertProfile() {
   // Filter sessions to show only this expert's sessions
   const expertSessions = allSessions.filter((session) => session.expertId === expertId);
 
-  // Get student's enrolled sessions
-  const { data: myEnrolledSessions = [] } = useQuery<any[]>({
-    queryKey: [`/api/student/sessions`],
-    enabled: isLoggedIn,
-  });
+  // Get student's booked live sessions for this expert
+  const myBookedSessions = expertSessions.filter(session => (session as any).isBooked);
 
   // Fetch expert's eBooks
   const { data: allEbooks = [] } = useQuery<Ebook[]>({
@@ -620,19 +616,44 @@ export default function ExpertProfile() {
                               <div className="text-lg font-semibold text-gray-900">₹{session.price}</div>
                             </div>
                             
-                            <Button 
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                              onClick={() => {
-                                if (!isLoggedIn) {
-                                  setShowLoginModal(true);
-                                } else {
-                                  // Handle live session booking
-                                  handleSessionBooking(session.id);
-                                }
-                              }}
-                            >
-                              Book Seat
-                            </Button>
+                            {(session as any).isBooked ? (
+                              <div className="flex flex-col items-end space-y-1">
+                                <Button 
+                                  variant="outline"
+                                  className="border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
+                                  disabled
+                                >
+                                  ✓ Booked
+                                </Button>
+                                {session.registrationLink && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-blue-600 hover:text-blue-800 h-6 px-2 text-xs"
+                                    onClick={() => window.open(session.registrationLink, '_blank')}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-3 h-3">⚡</div>
+                                      Join Meeting
+                                    </div>
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <Button 
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                onClick={() => {
+                                  if (!isLoggedIn) {
+                                    setShowLoginModal(true);
+                                  } else {
+                                    // Handle live session booking
+                                    handleSessionBooking(session.id);
+                                  }
+                                }}
+                              >
+                                Book Seat
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -650,44 +671,44 @@ export default function ExpertProfile() {
               )}
             </div>
 
-            {/* My Enrolled Sessions */}
+            {/* My Booked Sessions */}
             {isLoggedIn && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">My Enrolled Sessions</h3>
-                {myEnrolledSessions.length > 0 ? (
+                <h3 className="text-lg font-semibold text-gray-900">My Booked Sessions</h3>
+                {myBookedSessions.length > 0 ? (
                   <div className="grid gap-4">
-                    {myEnrolledSessions.map((enrollment: any) => (
-                      <Card key={enrollment.id}>
+                    {myBookedSessions.map((session: any) => (
+                      <Card key={session.id}>
                         <CardContent className="p-6">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h4 className="font-semibold text-lg">{enrollment.session.title}</h4>
-                              <p className="text-gray-600 mt-1">{enrollment.session.description}</p>
+                              <h4 className="font-semibold text-lg">{session.title}</h4>
+                              <p className="text-gray-600 mt-1">{session.description}</p>
                               <div className="flex items-center space-x-4 mt-3">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  Enrolled
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  Booked
                                 </Badge>
                                 <div className="flex items-center space-x-1">
                                   <Calendar className="w-4 h-4 text-gray-400" />
                                   <span className="text-sm text-gray-500">
-                                    {new Date(enrollment.session.scheduledAt).toLocaleDateString('en-IN')} at {new Date(enrollment.session.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}
+                                    {new Date(session.scheduledAt).toLocaleDateString('en-IN')} at {new Date(session.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}
                                   </span>
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <Clock className="w-4 h-4 text-gray-400" />
                                   <span className="text-sm text-gray-500">
-                                    {enrollment.session.duration} mins
+                                    {session.duration} mins
                                   </span>
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold text-green-600">Enrolled</p>
-                              {enrollment.session.status === 'scheduled' && enrollment.session.meetingUrl && (
+                              <p className="font-semibold text-green-600">Booked</p>
+                              {session.status === 'scheduled' && session.registrationLink && (
                                 <Button size="sm" className="mt-2" asChild>
-                                  <a href={enrollment.session.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                  <a href={session.registrationLink} target="_blank" rel="noopener noreferrer">
                                     <Video className="w-4 h-4 mr-1" />
-                                    Join Session
+                                    Join Meeting
                                   </a>
                                 </Button>
                               )}
@@ -701,7 +722,7 @@ export default function ExpertProfile() {
                   <Card>
                     <CardContent className="p-8 text-center">
                       <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600">You haven't enrolled in any sessions yet.</p>
+                      <p className="text-gray-600">You haven't booked any sessions with this expert yet.</p>
                     </CardContent>
                   </Card>
                 )}
