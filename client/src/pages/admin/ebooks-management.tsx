@@ -440,20 +440,20 @@ export default function EbooksManagement() {
                 </div>
 
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {ebook.shortDescription || ebook.description}
+                  {ebook.shortDescription}
                 </p>
 
                 {/* Author */}
                 {ebook.author && (
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={ebook.author.avatar} />
+                      <AvatarImage src={ebook.author.avatar || undefined} />
                       <AvatarFallback className="text-xs">
-                        {ebook.author.firstName?.charAt(0)}{ebook.author.lastName?.charAt(0)}
+                        {ebook.author.name?.charAt(0) || 'A'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-gray-500">
-                      {ebook.author.firstName} {ebook.author.lastName}
+                      {ebook.author.name}
                     </span>
                   </div>
                 )}
@@ -540,7 +540,7 @@ export default function EbooksManagement() {
                 <SelectContent>
                   {experts.map((expert) => (
                     <SelectItem key={expert.id} value={expert.id}>
-                      {expert.firstName} {expert.lastName} - {expert.specialization}
+                      {expert.name} - {expert.specialization}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -561,7 +561,7 @@ export default function EbooksManagement() {
               <div className="grid gap-2">
                 <Label htmlFor="language">Language</Label>
                 <Select 
-                  value={newEbook.language} 
+                  value={newEbook.language || "English"} 
                   onValueChange={(value) => setNewEbook({ ...newEbook, language: value })}
                 >
                   <SelectTrigger>
@@ -581,7 +581,7 @@ export default function EbooksManagement() {
               <Label htmlFor="shortDescription">Short Description</Label>
               <Input
                 id="shortDescription"
-                value={newEbook.shortDescription}
+                value={newEbook.shortDescription || ""}
                 onChange={(e) => setNewEbook({ ...newEbook, shortDescription: e.target.value })}
                 placeholder="Brief description for cards"
               />
@@ -592,7 +592,7 @@ export default function EbooksManagement() {
               <Label htmlFor="indexContent">Index/Table of Contents</Label>
               <Textarea
                 id="indexContent"
-                value={newEbook.indexContent}
+                value={newEbook.indexContent || ""}
                 onChange={(e) => setNewEbook({ ...newEbook, indexContent: e.target.value })}
                 placeholder="Enter the index or table of contents"
                 rows={4}
@@ -604,7 +604,7 @@ export default function EbooksManagement() {
               <Label htmlFor="summary">Summary</Label>
               <Textarea
                 id="summary"
-                value={newEbook.summary}
+                value={newEbook.summary || ""}
                 onChange={(e) => setNewEbook({ ...newEbook, summary: e.target.value })}
                 placeholder="Enter a brief summary of the eBook"
                 rows={3}
@@ -727,7 +727,7 @@ export default function EbooksManagement() {
                 <Input
                   id="pageCount"
                   type="number"
-                  value={newEbook.pageCount}
+                  value={newEbook.pageCount || ""}
                   onChange={(e) => setNewEbook({ ...newEbook, pageCount: parseInt(e.target.value) || 0 })}
                   placeholder="Number of pages"
                 />
@@ -736,7 +736,7 @@ export default function EbooksManagement() {
                 <Label htmlFor="fileSize">File Size</Label>
                 <Input
                   id="fileSize"
-                  value={newEbook.fileSize}
+                  value={newEbook.fileSize || ""}
                   readOnly
                   placeholder="Auto-calculated when PDF uploaded"
                   className="bg-gray-50"
@@ -746,7 +746,7 @@ export default function EbooksManagement() {
                 <Label htmlFor="price">Price (₹)</Label>
                 <Input
                   id="price"
-                  value={newEbook.price}
+                  value={newEbook.price || ""}
                   onChange={(e) => setNewEbook({ ...newEbook, price: e.target.value })}
                   placeholder="0 for free"
                 />
@@ -769,7 +769,7 @@ export default function EbooksManagement() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isActive"
-                  checked={newEbook.isActive}
+                  checked={newEbook.isActive || false}
                   onCheckedChange={(checked) => setNewEbook({ ...newEbook, isActive: checked })}
                 />
                 <Label htmlFor="isActive">Published</Label>
@@ -777,7 +777,7 @@ export default function EbooksManagement() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isFeatured"
-                  checked={newEbook.isFeatured}
+                  checked={newEbook.isFeatured || false}
                   onCheckedChange={(checked) => setNewEbook({ ...newEbook, isFeatured: checked })}
                 />
                 <Label htmlFor="isFeatured">Featured</Label>
