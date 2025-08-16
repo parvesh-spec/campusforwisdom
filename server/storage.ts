@@ -978,14 +978,6 @@ export class DatabaseStorage implements IStorage {
         fields.push(`published_at = $${index++}`);
         values.push(ebook.publishedAt);
       }
-      if (ebook.indexContent !== undefined) {
-        fields.push(`index_content = $${index++}`);
-        values.push(ebook.indexContent);
-      }
-      if (ebook.summary !== undefined) {
-        fields.push(`summary = $${index++}`);
-        values.push(ebook.summary);
-      }
 
       if (fields.length === 0) {
         return null;
