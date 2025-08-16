@@ -153,6 +153,7 @@ export default function AIExpertsManagement() {
     });
     setEditingExpert(null);
     setSelectedDay("");
+    setSkillsText("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -192,6 +193,7 @@ export default function AIExpertsManagement() {
 
   const handleEdit = (expert: Expert) => {
     setEditingExpert(expert);
+    setSkillsText((expert.skills || []).join(", "));
     setFormData({
       name: expert.name,
       bio: expert.bio,
@@ -216,9 +218,12 @@ export default function AIExpertsManagement() {
     setShowCreateModal(true);
   };
 
-  const handleSkillsChange = (skillsText: string) => {
-    console.log('Skills text input:', skillsText);
-    const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+  const [skillsText, setSkillsText] = useState("");
+
+  const handleSkillsChange = (text: string) => {
+    console.log('Skills text input:', text);
+    setSkillsText(text);
+    const skills = text.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
     console.log('Skills parsed:', skills);
     setFormData(prev => ({ ...prev, skills }));
   };
@@ -768,7 +773,7 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="skills">Core Skills (comma separated)</Label>
                 <Input
                   id="skills"
-                  value={(formData.skills || []).join(", ")}
+                  value={skillsText}
                   onChange={(e) => {
                     console.log('Skills onChange triggered with:', e.target.value);
                     handleSkillsChange(e.target.value);
