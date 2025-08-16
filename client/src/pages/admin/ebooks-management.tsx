@@ -141,6 +141,27 @@ export default function EbooksManagement() {
   };
 
   const handleSubmit = () => {
+    console.log("Submitting eBook data:", newEbook);
+    
+    // Basic validation
+    if (!newEbook.title || !newEbook.description || !newEbook.authorId || !newEbook.category) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newEbook.fileUrl) {
+      toast({
+        title: "Validation Error", 
+        description: "Please upload a PDF file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (editingEbook) {
       updateEbookMutation.mutate({ 
         id: editingEbook.id, 
