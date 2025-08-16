@@ -16,7 +16,7 @@ import { Star, Clock, Users, Calendar, MapPin, MessageSquare, ArrowLeft, Video, 
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Expert, User, Consultation } from "@shared/schema";
+import type { Expert, User, Consultation, LiveSession } from "@shared/schema";
 
 export default function ExpertProfile() {
   const [, params] = useRoute("/experts/:id");
@@ -46,6 +46,12 @@ export default function ExpertProfile() {
   const { data: consultations = [] } = useQuery<Consultation[]>({
     queryKey: ["/api/student/consultations"],
     enabled: !!user && !!expertId,
+  });
+
+  // Fetch expert's live sessions
+  const { data: expertSessions = [] } = useQuery<LiveSession[]>({
+    queryKey: [`/api/experts/${expertId}/sessions`],
+    enabled: !!expertId,
   });
 
   const isLoggedIn = !!user;
@@ -214,9 +220,10 @@ export default function ExpertProfile() {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="consultations">Consultations</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
           </TabsList>
@@ -275,6 +282,61 @@ export default function ExpertProfile() {
           </TabsContent>
 
           <TabsContent value="sessions" className="space-y-6">
+            {expertSessions.length > 0 ? (
+              <div className="grid gap-4">
+                {expertSessions.map((session) => (
+                  <Card key={session.id}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{session.title}</h3>
+                          <p className="text-gray-600 mt-1">{session.description}</p>
+                          <div className="flex items-center space-x-4 mt-3">
+                            <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                              {session.status}
+                            </Badge>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-500">
+                                {new Date(session.scheduledAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-500">
+                                {session.duration} mins
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-primary">₹{session.price}</p>
+                          {session.status === 'scheduled' && session.meetingUrl && (
+                            <Button size="sm" className="mt-2" asChild>
+                              <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                <Video className="w-4 h-4 mr-1" />
+                                Join Session
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions</h3>
+                  <p className="text-gray-600">This expert hasn't scheduled any live sessions yet.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="consultations" className="space-y-6">
             {isLoggedIn ? (
               expertConsultations.length > 0 ? (
                 <div className="grid gap-4">
@@ -312,10 +374,10 @@ export default function ExpertProfile() {
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Sessions Yet</h3>
-                    <p className="text-gray-600 mb-6">You haven't booked any sessions with this expert yet.</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Consultations Yet</h3>
+                    <p className="text-gray-600 mb-6">You haven't booked any consultations with this expert yet.</p>
                     <Button onClick={handleBookConsultation}>
-                      Book Your First Session
+                      Book Your First Consultation
                     </Button>
                   </CardContent>
                 </Card>
@@ -324,7 +386,7 @@ export default function ExpertProfile() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Login Required</h3>
-                  <p className="text-gray-600 mb-6">Please login to view your sessions with this expert.</p>
+                  <p className="text-gray-600 mb-6">Please login to view your consultations with this expert.</p>
                   <Button onClick={() => setShowLoginModal(true)}>
                     Login as Student
                   </Button>

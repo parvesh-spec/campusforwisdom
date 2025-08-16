@@ -724,6 +724,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get expert's live sessions
+  app.get("/api/experts/:id/sessions", async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const expert = await storage.getExpert(expertId);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+      
+      // Get all live sessions and filter by expert
+      const allSessions = await storage.getLiveSessions();
+      const expertSessions = allSessions.filter(session => 
+        session.instructorId === expertId && session.isActive
+      );
+      
+      res.json(expertSessions);
+    } catch (error) {
+      console.error("Error fetching expert sessions:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get student consultations
   app.get("/api/student/consultations", async (req, res) => {
     try {
