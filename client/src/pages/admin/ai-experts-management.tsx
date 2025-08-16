@@ -217,7 +217,9 @@ export default function AIExpertsManagement() {
   };
 
   const handleSkillsChange = (skillsText: string) => {
+    console.log('Skills text input:', skillsText);
     const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+    console.log('Skills parsed:', skills);
     setFormData(prev => ({ ...prev, skills }));
   };
 
@@ -767,9 +769,15 @@ export default function AIExpertsManagement() {
                 <Input
                   id="skills"
                   value={(formData.skills || []).join(", ")}
-                  onChange={(e) => handleSkillsChange(e.target.value)}
+                  onChange={(e) => {
+                    console.log('Skills onChange triggered with:', e.target.value);
+                    handleSkillsChange(e.target.value);
+                  }}
                   placeholder="Python, TensorFlow, Machine Learning, NLP"
                 />
+                <div className="text-xs text-gray-500">
+                  Current array: [{(formData.skills || []).map(s => `"${s}"`).join(', ')}]
+                </div>
               </div>
 
               <div className="space-y-2">
