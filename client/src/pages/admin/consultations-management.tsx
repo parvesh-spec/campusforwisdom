@@ -46,6 +46,8 @@ export default function ConsultationsManagement() {
 
   const { data: consultations, isLoading } = useQuery<ConsultationWithDetails[]>({
     queryKey: ["/api/admin/consultations"],
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
+    refetchIntervalInBackground: true, // Keep refreshing even when tab is not active
   });
 
   const { data: experts } = useQuery<Expert[]>({
