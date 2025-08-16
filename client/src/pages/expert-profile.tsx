@@ -56,10 +56,13 @@ export default function ExpertProfile() {
 
   // Fetch expert's live sessions
   // Get all live sessions for this expert's domain
-  const { data: expertSessions = [] } = useQuery<LiveSession[]>({
+  const { data: allSessions = [] } = useQuery<LiveSession[]>({
     queryKey: [`/api/live-sessions`],
     enabled: !!expertId,
   });
+
+  // Filter sessions to show only this expert's sessions
+  const expertSessions = allSessions.filter((session) => session.expertId === expertId);
 
   // Get student's enrolled sessions
   const { data: myEnrolledSessions = [] } = useQuery<any[]>({
