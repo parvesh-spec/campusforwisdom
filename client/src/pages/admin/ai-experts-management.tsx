@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Star, Users, DollarSign, Search, Filter } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Expert, InsertExpert } from "@shared/schema";
 
 export default function AIExpertsManagement() {
@@ -43,6 +44,7 @@ export default function AIExpertsManagement() {
     portfolioLinks: [],
     socialLinks: "",
     methodology: "",
+    consultationEnabled: true,
   });
 
   const { data: experts, isLoading } = useQuery<Expert[]>({
@@ -141,11 +143,16 @@ export default function AIExpertsManagement() {
       portfolioLinks: [],
       socialLinks: "",
       methodology: "",
+      consultationEnabled: true,
     });
+    setEditingExpert(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If consultation is disabled, don't require hourly rate
+    const isConsultationEnabled = formData.consultationEnabled !== false;
     
     const expertData: InsertExpert = {
       name: formData.name!,
@@ -153,7 +160,7 @@ export default function AIExpertsManagement() {
       avatar: formData.avatar,
       specialization: formData.specialization!,
       experience: formData.experience!,
-      hourlyRate: formData.hourlyRate!,
+      hourlyRate: isConsultationEnabled ? formData.hourlyRate! : "0",
       skills: formData.skills || [],
       languages: formData.languages || ["Hindi", "English"],
       education: formData.education,
@@ -165,6 +172,7 @@ export default function AIExpertsManagement() {
       portfolioLinks: formData.portfolioLinks || [],
       socialLinks: formData.socialLinks,
       methodology: formData.methodology,
+      consultationEnabled: isConsultationEnabled,
     };
 
     if (editingExpert) {
@@ -194,6 +202,7 @@ export default function AIExpertsManagement() {
       portfolioLinks: expert.portfolioLinks || [],
       socialLinks: expert.socialLinks || "",
       methodology: expert.methodology || "",
+      consultationEnabled: expert.consultationEnabled !== false,
     });
     setShowCreateModal(true);
   };
@@ -216,7 +225,10 @@ export default function AIExpertsManagement() {
           <h1 className="text-3xl font-bold text-gray-900">AI Experts Management</h1>
           <p className="text-gray-600 mt-2">Manage AI experts and their consultation services</p>
         </div>
-        <Button onClick={() => { setShowCreateModal(true); resetForm(); }}>
+        <Button onClick={() => { 
+          resetForm(); 
+          setShowCreateModal(true); 
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Expert
         </Button>
@@ -422,7 +434,10 @@ export default function AIExpertsManagement() {
                 ? "Try adjusting your search criteria."
                 : "Start by adding your first AI expert."}
             </p>
-            <Button onClick={() => { setShowCreateModal(true); resetForm(); }}>
+            <Button onClick={() => { 
+              resetForm(); 
+              setShowCreateModal(true); 
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               Add First Expert
             </Button>
@@ -431,7 +446,12 @@ export default function AIExpertsManagement() {
       )}
 
       {/* Create/Edit Expert Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      <Dialog open={showCreateModal} onOpenChange={(open) => {
+        setShowCreateModal(open);
+        if (!open) {
+          resetForm();
+        }
+      }}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -497,12 +517,10 @@ export default function AIExpertsManagement() {
                 
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       id="consultationEnabled"
                       checked={formData.consultationEnabled !== false}
-                      onChange={(e) => setFormData(prev => ({ ...prev, consultationEnabled: e.target.checked }))}
-                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, consultationEnabled: !!checked }))}
                     />
                     <Label htmlFor="consultationEnabled" className="text-sm font-medium">
                       Enable Consultation Services
