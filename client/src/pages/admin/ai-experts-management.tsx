@@ -558,7 +558,7 @@ export default function AIExpertsManagement() {
                   <div className="space-y-3">
                     <Label>Available Time Slots</Label>
                     <p className="text-xs text-gray-500">
-                      Select the time slots when this expert is available for consultations
+                      Select days and time slots when this expert is available for consultations
                     </p>
                     
                     {/* Day Selector */}
@@ -602,47 +602,50 @@ export default function AIExpertsManagement() {
                         })}
                       </div>
                       
-                      {/* Hour Grid - Only show if any day has slots */}
+                      {/* Time Slots Grid - Only show available time slots for all days */}
                       {(formData.availableSlots || []).length > 0 && (
                         <div className="border rounded-lg p-3 bg-gray-50">
-                          <div className="text-xs text-gray-600 mb-2">Fine-tune specific hours (click to toggle):</div>
-                          <div className="grid grid-cols-8 gap-1">
+                          <div className="text-xs text-gray-600 mb-3">Click to toggle specific time slots:</div>
+                          <div className="grid grid-cols-6 gap-2">
                             {Array.from({ length: 24 }, (_, i) => {
                               const hour = i.toString().padStart(2, '0');
-                              const displayTime = i === 0 ? '12AM' : i < 12 ? `${i}AM` : i === 12 ? '12PM' : `${i-12}PM`;
+                              const displayTime = i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i-12} PM`;
+                              
+                              // Get current selected days that have slots
+                              const activeDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                                .filter(fullDay => (formData.availableSlots || []).some(slot => slot.startsWith(fullDay)));
                               
                               return (
-                                <div key={hour} className="text-center">
-                                  <div className="text-xs text-gray-500 mb-1">{displayTime}</div>
-                                  <div className="space-y-1">
-                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
-                                      const fullDay = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][dayIndex];
-                                      const timeSlot = `${fullDay}-${hour}:00`;
-                                      const isSelected = (formData.availableSlots || []).includes(timeSlot);
-                                      
-                                      return (
-                                        <button
-                                          key={timeSlot}
-                                          type="button"
-                                          className={`w-6 h-6 rounded text-xs transition-colors ${
-                                            isSelected 
-                                              ? 'bg-primary text-white' 
-                                              : 'bg-white border hover:bg-gray-100'
-                                          }`}
-                                          onClick={() => {
-                                            const currentSlots = formData.availableSlots || [];
-                                            const newSlots = isSelected 
-                                              ? currentSlots.filter(slot => slot !== timeSlot)
-                                              : [...currentSlots, timeSlot];
-                                            setFormData(prev => ({ ...prev, availableSlots: newSlots }));
-                                          }}
-                                          title={`${day} ${displayTime}`}
-                                        >
-                                          {day.charAt(0)}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
+                                <div key={hour} className="space-y-2">
+                                  <div className="text-xs text-gray-700 font-medium text-center">{displayTime}</div>
+                                  {activeDays.map((fullDay) => {
+                                    const timeSlot = `${fullDay}-${hour}:00`;
+                                    const isSelected = (formData.availableSlots || []).includes(timeSlot);
+                                    const dayIndex = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].indexOf(fullDay);
+                                    const dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIndex];
+                                    
+                                    return (
+                                      <button
+                                        key={timeSlot}
+                                        type="button"
+                                        className={`w-full px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                          isSelected 
+                                            ? 'bg-primary text-white' 
+                                            : 'bg-white border hover:bg-gray-100'
+                                        }`}
+                                        onClick={() => {
+                                          const currentSlots = formData.availableSlots || [];
+                                          const newSlots = isSelected 
+                                            ? currentSlots.filter(slot => slot !== timeSlot)
+                                            : [...currentSlots, timeSlot];
+                                          setFormData(prev => ({ ...prev, availableSlots: newSlots }));
+                                        }}
+                                        title={`${dayShort} ${displayTime}`}
+                                      >
+                                        {dayShort}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               );
                             })}
