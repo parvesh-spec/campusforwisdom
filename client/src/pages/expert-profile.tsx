@@ -26,9 +26,10 @@ export default function ExpertProfile() {
   const [bookingForm, setBookingForm] = useState({
     title: "",
     description: "",
-    scheduledAt: "",
+    selectedSlot: "",
     duration: 60
   });
+  const [selectedDate, setSelectedDate] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch expert data
@@ -72,43 +73,72 @@ export default function ExpertProfile() {
     }
   };
 
+  // Function to get available slots for a specific date
+  const getAvailableSlotsForDate = (date: string): string[] => {
+    if (!expert?.availableSlots) return [];
+    
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // Filter slots for the selected day
+    const daySlots = expert.availableSlots.filter(slot => 
+      slot.startsWith(dayOfWeek)
+    );
+    
+    // Extract time from slots (format: "Monday 09:00-10:00")
+    return daySlots.map(slot => {
+      const timeMatch = slot.match(/(\d{2}:\d{2}-\d{2}:\d{2})/);
+      return timeMatch ? timeMatch[1] : slot;
+    });
+  };
+
   const handleBookingSubmit = async () => {
-    try {
-      if (!expertId || !bookingForm.title || !bookingForm.scheduledAt) {
-        toast({
-          title: "Error",
-          description: "Please fill in all required fields",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      await apiRequest(`/api/student/consultations`, "POST", {
-        expertId,
-        title: bookingForm.title,
-        description: bookingForm.description,
-        scheduledAt: new Date(bookingForm.scheduledAt),
-        duration: bookingForm.duration,
-        status: "scheduled",
-        amount: expert?.hourlyRate || "0"
+    if (!bookingForm.title || !bookingForm.selectedSlot || !selectedDate) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields and select a time slot",
+        variant: "destructive",
       });
+      return;
+    }
 
+    // Combine date and time slot to create scheduledAt
+    const [startTime] = bookingForm.selectedSlot.split('-');
+    const scheduledAt = `${selectedDate}T${startTime}:00`;
+    
+    const consultationData = {
+      expertId: expertId!,
+      title: bookingForm.title,
+      description: bookingForm.description,
+      scheduledAt,
+      duration: bookingForm.duration,
+      amount: (expert!.hourlyRate * (bookingForm.duration / 60)).toFixed(2),
+      status: 'pending' as const,
+    };
+
+    try {
+      await apiRequest('POST', '/api/student/consultations', consultationData);
+      
       toast({
         title: "Success",
-        description: "Consultation booked successfully!",
+        description: "Consultation request submitted! Please wait for admin approval.",
       });
-
+      
       setShowBookingModal(false);
       setBookingForm({
         title: "",
         description: "",
-        scheduledAt: "",
+        selectedSlot: "",
         duration: 60
       });
-    } catch (error) {
+      setSelectedDate("");
+      
+      // Refresh consultations
+      // queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
+      
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to book consultation",
+        description: error.message || "Failed to submit consultation request",
         variant: "destructive",
       });
     }
@@ -523,20 +553,53 @@ export default function ExpertProfile() {
                             <h3 className="font-semibold text-lg">{consultation.title}</h3>
                             <p className="text-gray-600 mt-1">{consultation.description}</p>
                             <div className="flex items-center space-x-4 mt-3">
-                              <Badge variant={consultation.status === 'completed' ? 'default' : 'secondary'}>
-                                {consultation.status}
+                              <Badge 
+                                variant={
+                                  consultation.status === 'confirmed' ? 'default' : 
+                                  consultation.status === 'pending' ? 'secondary' : 
+                                  consultation.status === 'completed' ? 'outline' : 'destructive'
+                                }
+                                className={
+                                  consultation.status === 'confirmed' ? 'bg-green-500 hover:bg-green-600' :
+                                  consultation.status === 'pending' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                                  ''
+                                }
+                              >
+                                {consultation.status === 'pending' ? 'Pending Approval' : 
+                                 consultation.status === 'confirmed' ? 'Confirmed' :
+                                 consultation.status === 'completed' ? 'Completed' : consultation.status}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                {new Date(consultation.scheduledAt).toLocaleDateString()}
+                                {new Date(consultation.scheduledAt).toLocaleDateString()} at {new Date(consultation.scheduledAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                               </span>
                             </div>
+                            
+                            {/* Show meeting URL for confirmed consultations */}
+                            {consultation.status === 'confirmed' && consultation.meetingUrl && (
+                              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="text-sm text-green-800 font-medium mb-2">Meeting Details:</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-green-700">
+                                    Meeting URL: {consultation.meetingUrl.substring(0, 40)}...
+                                  </span>
+                                  <Button size="sm" variant="outline" asChild>
+                                    <a href={consultation.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                      <Video className="w-4 h-4 mr-1" />
+                                      Join Meeting
+                                    </a>
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">₹{consultation.amount}</p>
-                            {consultation.status === 'scheduled' && (
-                              <Button size="sm" className="mt-2">
-                                <Video className="w-4 h-4 mr-1" />
-                                Join
+                            {consultation.status === 'confirmed' && consultation.meetingUrl && (
+                              <Button size="sm" className="mt-2" asChild>
+                                <a href={consultation.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Join Meeting
+                                </a>
                               </Button>
                             )}
                           </div>
@@ -718,14 +781,47 @@ export default function ExpertProfile() {
                   placeholder="Describe what you'd like to discuss..."
                 />
               </div>
-              <div>
-                <Label htmlFor="scheduledAt">Date & Time</Label>
-                <Input
-                  id="scheduledAt"
-                  type="datetime-local"
-                  value={bookingForm.scheduledAt}
-                  onChange={(e) => setBookingForm({...bookingForm, scheduledAt: e.target.value})}
-                />
+              {/* Available Slots Selection */}
+              <div className="space-y-3">
+                <Label>Select Available Time Slot</Label>
+                
+                {/* Date Selector */}
+                <div>
+                  <Label htmlFor="date" className="text-sm">Select Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                {/* Available Slots for Selected Date */}
+                {selectedDate && (
+                  <div>
+                    <Label className="text-sm">Available Time Slots</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {getAvailableSlotsForDate(selectedDate).map((slot, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`p-2 text-sm border rounded ${
+                            bookingForm.selectedSlot === slot
+                              ? 'bg-primary text-white border-primary'
+                              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => setBookingForm({...bookingForm, selectedSlot: slot})}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                    {getAvailableSlotsForDate(selectedDate).length === 0 && (
+                      <p className="text-sm text-gray-500 mt-2">No available slots for this date</p>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="duration">Duration</Label>
@@ -749,8 +845,11 @@ export default function ExpertProfile() {
               <Button variant="outline" onClick={() => setShowBookingModal(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleBookingSubmit}>
-                Book Session
+              <Button 
+                onClick={handleBookingSubmit}
+                disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
+              >
+                Submit Request (₹{expert?.hourlyRate ? (expert.hourlyRate * (bookingForm.duration / 60)).toFixed(0) : '0'})
               </Button>
             </DialogFooter>
           </DialogContent>

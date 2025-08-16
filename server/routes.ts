@@ -1125,8 +1125,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/consultations/:id", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
-      const consultationData = insertConsultationSchema.parse(req.body);
-      const consultation = await storage.updateConsultation(id, consultationData);
+      const updates = req.body;
+      
+      // Get the current consultation to check if status is changing to 'confirmed'
+      const currentConsultation = await storage.getConsultation(id);
+      if (!currentConsultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+
+      // If approving the consultation (status changing to 'confirmed')
+      if (updates.status === 'confirmed' && currentConsultation.status !== 'confirmed') {
+        try {
+          // Get expert and student details
+          const expert = await storage.getExpert(currentConsultation.expertId);
+          const student = await storage.getUser(currentConsultation.studentId);
+          
+          if (!expert || !student) {
+            return res.status(400).json({ error: "Expert or student not found" });
+          }
+
+          // Schedule Zoho meeting using webinar API format
+          const meetingData = {
+            title: currentConsultation.title,
+            description: currentConsultation.description || `Consultation with ${expert.name}`,
+            scheduledAt: new Date(currentConsultation.scheduledAt),
+            duration: currentConsultation.duration,
+            timezone: expert.timezone || 'Asia/Kolkata',
+            participants: [student.email]
+          };
+
+          console.log('Scheduling Zoho meeting with data:', meetingData);
+          const meetingResponse = zohoAPI ? await zohoAPI.createMeeting(meetingData) : null;
+          
+          if (meetingResponse && meetingResponse.join_url) {
+            // Update consultation with meeting URL
+            updates.meetingUrl = meetingResponse.join_url;
+            console.log('✅ Zoho meeting created successfully:', meetingResponse.join_url);
+          } else {
+            console.error('❌ Failed to create Zoho meeting:', meetingResponse);
+            return res.status(500).json({ error: "Failed to schedule meeting" });
+          }
+        } catch (meetingError) {
+          console.error('❌ Error creating Zoho meeting:', meetingError);
+          return res.status(500).json({ error: "Failed to schedule meeting" });
+        }
+      }
+
+      // Update the consultation
+      const consultation = await storage.updateConsultation(id, updates);
       
       if (!consultation) {
         return res.status(404).json({ error: "Consultation not found" });
