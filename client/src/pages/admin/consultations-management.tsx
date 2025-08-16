@@ -42,6 +42,10 @@ export default function ConsultationsManagement() {
     amount: "",
   });
 
+  // Additional state for date/time selection
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+
   const [selectedStudentName, setSelectedStudentName] = useState("");
 
   const { data: consultations, isLoading } = useQuery<ConsultationWithDetails[]>({
@@ -57,35 +61,40 @@ export default function ConsultationsManagement() {
   // Get selected expert's details
   const selectedExpert = experts?.find(expert => expert.id === formData.expertId);
 
-  // Function to get available time slots for selected expert
-  const getAvailableTimeSlots = (): string[] => {
-    if (!selectedExpert?.availableSlots) return [];
+  // Function to get available time slots for selected date
+  const getAvailableSlotsForDate = (date: string): string[] => {
+    if (!selectedExpert?.availableSlots || !date) return [];
     
-    // Extract unique time slots from expert's available slots (format: "Monday-01:00")
-    const timeSlots = selectedExpert.availableSlots.map(slot => {
-      const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
-      return timeMatch ? timeMatch[1] : null;
-    }).filter((time): time is string => time !== null);
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
     
-    // Remove duplicates and sort
-    return [...new Set(timeSlots)].sort();
-  };
-
-  // Function to check if a given datetime is within expert's available slots
-  const isTimeSlotAvailable = (dateTimeString: string): boolean => {
-    if (!selectedExpert?.availableSlots || !dateTimeString) return false;
-    
-    const date = new Date(dateTimeString);
-    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const timeString = date.toTimeString().slice(0, 5); // Get HH:mm format
-    
-    // Check if this day-time combination exists in expert's available slots
-    const slotExists = selectedExpert.availableSlots.some(slot => 
-      slot === `${dayOfWeek}-${timeString}`
+    // Filter slots for the selected day (format from DB: "Monday-01:00")
+    const daySlots = selectedExpert.availableSlots.filter(slot => 
+      slot.startsWith(dayOfWeek + '-')
     );
     
-    return slotExists;
+    // Extract time from slots and convert to display format
+    return daySlots.map(slot => {
+      // Extract time from "Monday-01:00" format
+      const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
+      if (timeMatch) {
+        const time = timeMatch[1];
+        // Convert to 12-hour format for display
+        const [hours, minutes] = time.split(':');
+        const hour24 = parseInt(hours);
+        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+        const ampm = hour24 >= 12 ? 'PM' : 'AM';
+        return `${hour12}:${minutes} ${ampm}`;
+      }
+      return slot;
+    }).sort((a, b) => {
+      // Sort by time
+      const timeA = a.includes('AM') || a.includes('PM') ? a : '12:00 AM';
+      const timeB = b.includes('AM') || b.includes('PM') ? b : '12:00 AM';
+      return timeA.localeCompare(timeB);
+    });
   };
+
+
 
   const filteredConsultations = consultations?.filter((consultation) => {
     const matchesSearch = consultation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,16 +180,18 @@ export default function ConsultationsManagement() {
       amount: "",
     });
     setSelectedStudentName("");
+    setSelectedDate("");
+    setSelectedTimeSlot("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate if the scheduled time is within expert's available slots
-    if (formData.scheduledAt && selectedExpert && !isTimeSlotAvailable(formData.scheduledAt)) {
+    // Validate that date and time slot are selected
+    if (!selectedDate || !selectedTimeSlot || !formData.scheduledAt) {
       toast({
-        title: "Invalid Time Slot",
-        description: "Selected time is not available for this expert. Please choose from their available slots.",
+        title: "Missing Information",
+        description: "Please select both date and time slot.",
         variant: "destructive",
       });
       return;
@@ -198,16 +209,32 @@ export default function ConsultationsManagement() {
 
   const handleEdit = (consultation: Consultation) => {
     setEditingConsultation(consultation);
+    
+    // Parse existing scheduledAt to set date and time slot
+    const scheduledDate = new Date(consultation.scheduledAt);
+    const dateString = scheduledDate.toISOString().split('T')[0];
+    const timeString = scheduledDate.toTimeString().slice(0, 5); // HH:mm format
+    
+    // Convert to 12-hour format for display
+    const [hours, minutes] = timeString.split(':');
+    const hour24 = parseInt(hours);
+    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+    const timeSlot12 = `${hour12}:${minutes} ${ampm}`;
+    
     setFormData({
       expertId: consultation.expertId,
       studentId: consultation.studentId,
       title: consultation.title,
       description: consultation.description || "",
-      scheduledAt: new Date(consultation.scheduledAt).toISOString().slice(0, 16),
+      scheduledAt: consultation.scheduledAt,
       duration: consultation.duration,
       status: consultation.status,
       amount: consultation.amount,
     });
+    
+    setSelectedDate(dateString);
+    setSelectedTimeSlot(timeSlot12);
     setSelectedStudentName(""); // Will be populated by the StudentSearch component
     setShowCreateModal(true);
   };
@@ -555,6 +582,9 @@ export default function ConsultationsManagement() {
                       scheduledAt: "", // Reset scheduled time when expert changes
                       amount: expert ? (expert.hourlyRate * (prev.duration / 60)).toFixed(2) : "" // Auto-calculate amount
                     }));
+                    // Reset date and time selection when expert changes
+                    setSelectedDate("");
+                    setSelectedTimeSlot("");
                   }}
                 >
                   <SelectTrigger>
@@ -606,38 +636,68 @@ export default function ConsultationsManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="scheduledAt">Scheduled Date & Time *</Label>
-                <Input
-                  id="scheduledAt"
-                  type="datetime-local"
-                  required
-                  value={formData.scheduledAt}
-                  onChange={(e) => {
-                    const newDateTime = e.target.value;
-                    // Validate if the selected time is within expert's available slots
-                    if (newDateTime && selectedExpert && !isTimeSlotAvailable(newDateTime)) {
-                      toast({
-                        title: "Invalid Time Slot",
-                        description: "Selected time is not available for this expert. Please choose from their available slots.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    setFormData(prev => ({ ...prev, scheduledAt: newDateTime }));
-                  }}
-                />
-                {selectedExpert && (
-                  <div className="text-sm text-gray-600 mt-1">
-                    <p className="font-medium">Available times:</p>
-                    <p className="text-xs">{getAvailableTimeSlots().join(', ') || 'No availability set'}</p>
-                    <p className="text-xs mt-1">Available days: {
-                      [...new Set(selectedExpert.availableSlots?.map(slot => slot.split('-')[0]) || [])].join(', ')
-                    }</p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="selectedDate">Select Date *</Label>
+                  <Input
+                    id="selectedDate"
+                    type="date"
+                    required
+                    value={selectedDate}
+                    min={new Date().toISOString().split('T')[0]} // Prevent past dates
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      setSelectedDate(newDate);
+                      setSelectedTimeSlot(""); // Reset time slot when date changes
+                      setFormData(prev => ({ ...prev, scheduledAt: "" })); // Reset scheduledAt
+                    }}
+                  />
+                </div>
+                
+                {selectedDate && selectedExpert && (
+                  <div className="space-y-2">
+                    <Label>Available Time Slots *</Label>
+                    <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                      {getAvailableSlotsForDate(selectedDate).map((slot) => (
+                        <Button
+                          key={slot}
+                          type="button"
+                          variant={selectedTimeSlot === slot ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTimeSlot(slot);
+                            // Convert back to 24-hour format and create datetime string
+                            const convertTo24Hour = (time12: string): string => {
+                              const [time, period] = time12.split(' ');
+                              const [hours, minutes] = time.split(':');
+                              let hour24 = parseInt(hours);
+                              
+                              if (period === 'AM' && hour24 === 12) hour24 = 0;
+                              else if (period === 'PM' && hour24 !== 12) hour24 += 12;
+                              
+                              return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+                            };
+                            
+                            const startTime24 = convertTo24Hour(slot);
+                            const scheduledAt = `${selectedDate}T${startTime24}:00`;
+                            setFormData(prev => ({ ...prev, scheduledAt }));
+                          }}
+                          className="text-xs"
+                        >
+                          {slot}
+                        </Button>
+                      ))}
+                    </div>
+                    {getAvailableSlotsForDate(selectedDate).length === 0 && (
+                      <p className="text-sm text-gray-500">No available slots for selected date</p>
+                    )}
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration (minutes) *</Label>
