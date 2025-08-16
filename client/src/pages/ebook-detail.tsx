@@ -19,6 +19,12 @@ export default function EbookDetail() {
     queryKey: ["/api/auth/student"],
   });
 
+  // Check if user has already downloaded this ebook
+  const { data: userEbooks = [] } = useQuery<Ebook[]>({
+    queryKey: ["/api/student/ebooks"],
+    enabled: !!user,
+  });
+
   const isLoggedIn = !!user;
   
   // Fetch specific ebook
@@ -37,12 +43,25 @@ export default function EbookDetail() {
     enabled: !!id,
   });
 
+  // Check download and pricing status
+  const hasDownloaded = userEbooks.some(userEbook => userEbook.id === id);
+  const isFree = ebook?.price === "0" || ebook?.price === "" || !ebook?.price;
+  const isPaid = !isFree;
+
   const handleDownload = async () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
     
+    // For paid ebooks that haven't been purchased yet
+    if (isPaid && !hasDownloaded) {
+      // TODO: Implement payment gateway
+      alert("Payment gateway will be integrated soon. For now, this is a demo.");
+      return;
+    }
+    
+    // For free ebooks or already purchased paid ebooks
     if (ebook?.fileUrl) {
       try {
         // Record the download in database
@@ -156,15 +175,20 @@ export default function EbookDetail() {
                   size="lg"
                   variant={isLoggedIn ? "default" : "outline"}
                 >
-                  {isLoggedIn ? (
+                  {!isLoggedIn ? (
+                    <>
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Login to Download
+                    </>
+                  ) : isFree || hasDownloaded ? (
                     <>
                       <Download className="h-4 w-4 mr-2" />
                       Download eBook
                     </>
                   ) : (
                     <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Login to Download
+                      <Download className="h-4 w-4 mr-2" />
+                      Pay & Download - ₹{ebook?.price}
                     </>
                   )}
                 </Button>

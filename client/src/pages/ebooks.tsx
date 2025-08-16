@@ -73,6 +73,37 @@ export default function EbooksPage() {
     }
   };
 
+  const handleDownload = async (ebookId: string, fileUrl: string, isPaid: boolean, hasDownloaded: boolean) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // For paid ebooks that haven't been purchased yet
+    if (isPaid && !hasDownloaded) {
+      alert("Payment gateway will be integrated soon. For now, this is a demo.");
+      return;
+    }
+    
+    // For free ebooks or already purchased paid ebooks
+    if (fileUrl) {
+      try {
+        // Record the download in database
+        await fetch(`/api/student/ebooks/${ebookId}/download`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        // Then open the file
+        window.open(fileUrl, '_blank');
+      } catch (error) {
+        console.error('Error recording download:', error);
+        // Still allow download even if recording fails
+        window.open(fileUrl, '_blank');
+      }
+    }
+  };
+
   // Get unique categories and languages for filters
   const categories = Array.from(new Set(ebooks.map(ebook => ebook.category)));
   const languages = Array.from(new Set(ebooks.map(ebook => ebook.language).filter(Boolean)));
@@ -299,7 +330,7 @@ export default function EbooksPage() {
                         </div>
                       </div>
 
-                      {/* Price and View Button */}
+                      {/* Price and Action Button */}
                       <div className="flex items-center justify-between pt-4 border-t">
                         <div>
                           {ebook.price === "0" || !ebook.price ? (
@@ -313,10 +344,67 @@ export default function EbooksPage() {
                           )}
                         </div>
                         
-                        <Button className="bg-primary hover:bg-primary/90" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
+                        <div className="flex gap-2">
+                          {/* Show different buttons based on pricing and download status */}
+                          {(() => {
+                            const hasDownloaded = userEbooks?.some(userEbook => userEbook.id === ebook.id);
+                            const isFree = ebook.price === "0" || !ebook.price;
+                            const isPaid = !isFree;
+                            
+                            if (!isLoggedIn) {
+                              return (
+                                <Button size="sm" variant="outline" onClick={() => setShowLoginModal(true)}>
+                                  <LogIn className="h-4 w-4 mr-1" />
+                                  Login
+                                </Button>
+                              );
+                            }
+                            
+                            if (viewMode === "my" || hasDownloaded || isFree) {
+                              return (
+                                <Button 
+                                  size="sm" 
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDownload(ebook.id, ebook.fileUrl, isPaid, hasDownloaded);
+                                  }}
+                                >
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Download
+                                </Button>
+                              );
+                            }
+                            
+                            if (isPaid && !hasDownloaded) {
+                              return (
+                                <Button 
+                                  size="sm" 
+                                  className="bg-primary hover:bg-primary/90"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDownload(ebook.id, ebook.fileUrl, isPaid, hasDownloaded);
+                                  }}
+                                >
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Pay & Download
+                                </Button>
+                              );
+                            }
+                            
+                            return (
+                              <Button size="sm" className="bg-primary hover:bg-primary/90">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View Details
+                              </Button>
+                            );
+                          })()}
+                          
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            Details
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
