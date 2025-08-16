@@ -167,16 +167,37 @@ export default function ConsultationsManagement() {
     setShowCreateModal(true);
   };
 
+  const handleQuickApprove = async (consultationId: string) => {
+    try {
+      updateConsultationMutation.mutate({
+        id: consultationId,
+        data: { status: 'scheduled' }
+      });
+      toast({
+        title: "Consultation Approved",
+        description: "The consultation has been approved and scheduled.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve consultation.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Calculate stats
   const totalConsultations = consultations?.length || 0;
   const completedConsultations = consultations?.filter(c => c.status === "completed").length || 0;
   const upcomingConsultations = consultations?.filter(c => c.status === "scheduled").length || 0;
+  const pendingConsultations = consultations?.filter(c => c.status === "pending").length || 0;
   const totalRevenue = consultations
     ?.filter(c => c.status === "completed")
     .reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0) || 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "pending": return "bg-orange-100 text-orange-800";
       case "scheduled": return "bg-blue-100 text-blue-800";
       case "completed": return "bg-green-100 text-green-800";
       case "cancelled": return "bg-red-100 text-red-800";
@@ -211,7 +232,7 @@ export default function ConsultationsManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Consultations</CardTitle>
@@ -224,21 +245,31 @@ export default function ConsultationsManagement() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingConsultations}</div>
+            <div className="text-2xl font-bold text-orange-600">{pendingConsultations}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{upcomingConsultations}</div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <MessageSquare className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedConsultations}</div>
+            <div className="text-2xl font-bold text-green-600">{completedConsultations}</div>
           </CardContent>
         </Card>
         
@@ -281,6 +312,7 @@ export default function ConsultationsManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -347,6 +379,19 @@ export default function ConsultationsManagement() {
                 
                 <div className="flex items-start gap-2">
                   <div className="flex items-center gap-2">
+                    {/* Direct Approve Button for Pending Consultations */}
+                    {consultation.status === 'pending' && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleQuickApprove(consultation.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        disabled={updateConsultationMutation.isPending}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Approve
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

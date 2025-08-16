@@ -602,9 +602,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateConsultation(id: string, consultationData: Partial<InsertConsultation>): Promise<Consultation | null> {
+    // Fix timestamp format if scheduledAt is provided
+    const updateData = { ...consultationData };
+    if (updateData.scheduledAt && typeof updateData.scheduledAt === 'string') {
+      updateData.scheduledAt = new Date(updateData.scheduledAt);
+    }
+    
     const [consultation] = await db
       .update(consultations)
-      .set(consultationData)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
       .where(eq(consultations.id, id))
       .returning();
     return consultation || null;
