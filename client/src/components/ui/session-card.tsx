@@ -1,26 +1,91 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Video, Users, Clock, IndianRupee, Star, Play } from "lucide-react";
+import { Calendar, Video, Users, Clock, IndianRupee, Star, Play, UserPlus, ExternalLink } from "lucide-react";
 import type { LiveSession, Expert } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface SessionCardProps {
   session: LiveSession;
   onJoin?: (sessionId: string) => void;
   onBook?: (sessionId: string) => void;
+  showBooking?: boolean;
 }
 
-export default function SessionCard({ session, onJoin, onBook }: SessionCardProps) {
+export default function SessionCard({ session, onJoin, onBook, showBooking = true }: SessionCardProps) {
+  const [isBooking, setIsBooking] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const isLive = session.status === "live";
   const isScheduled = session.status === "scheduled";
   const isCompleted = session.status === "completed";
+
+  // Check authentication status
+  const { data: studentUser } = useQuery({
+    queryKey: ["/api/auth/student"],
+    retry: false,
+  });
 
   // Fetch expert details if expertId exists
   const { data: expert } = useQuery<Expert>({
     queryKey: [`/api/experts/${session.expertId}`],
     enabled: !!session.expertId,
   });
+
+  // Book session mutation
+  const bookSessionMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/student/live-sessions/${session.id}/book`, {});
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success!",
+        description: data.message || "Session booked successfully! Check your email for meeting details.",
+      });
+      // Invalidate and refetch sessions
+      queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+      setIsBooking(false);
+    },
+    onError: (error: any) => {
+      console.error("Booking error:", error);
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Failed to book session. Please try again.",
+        variant: "destructive",
+      });
+      setIsBooking(false);
+    },
+  });
+
+  const handleBookSession = async () => {
+    if (!studentUser) {
+      toast({
+        title: "Login Required",
+        description: "Please login to book a session.",
+        variant: "destructive",
+      });
+      // Redirect to login page
+      window.location.href = '/auth/login';
+      return;
+    }
+
+    if (spotsLeft <= 0) {
+      toast({
+        title: "Session Full",
+        description: "This session is fully booked.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBooking(true);
+    bookSessionMutation.mutate();
+  };
 
   const statusColors = {
     live: "bg-red-100 text-red-800 border-red-200",
@@ -160,13 +225,30 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
                   <Play className="h-4 w-4 mr-2" />
                   Join Live
                 </Button>
-              ) : isScheduled ? (
+              ) : isScheduled && showBooking ? (
                 <Button 
                   className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
-                  onClick={() => onBook?.(session.id)}
-                  disabled={spotsLeft <= 0}
+                  onClick={handleBookSession}
+                  disabled={spotsLeft <= 0 || isBooking}
                 >
-                  {spotsLeft <= 0 ? "Fully Booked" : "Book Seat"}
+                  {isBooking ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                      Booking...
+                    </>
+                  ) : spotsLeft <= 0 ? (
+                    "Fully Booked"
+                  ) : !studentUser ? (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Login to Book
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Book Seat
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button variant="outline" disabled className="cursor-not-allowed">

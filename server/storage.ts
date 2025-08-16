@@ -9,6 +9,7 @@ import {
   Consultation,
   Ebook,
   UserEbookDownload,
+  WebinarAttendee,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -19,6 +20,7 @@ import {
   InsertConsultation,
   InsertEbook,
   InsertUserEbookDownload,
+  InsertWebinarAttendee,
   courses,
   users,
   webinars,
@@ -27,7 +29,8 @@ import {
   experts,
   consultations,
   ebooks,
-  userEbookDownloads
+  userEbookDownloads,
+  webinarAttendees
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -62,7 +65,7 @@ export type Activity = {
   timestamp: Date;
 };
 import { db, pool } from "./db";
-import { eq, desc, or, ilike } from "drizzle-orm";
+import { eq, desc, or, ilike, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -98,9 +101,16 @@ export interface IStorage {
 
   // New webinar methods
   getWebinars(): Promise<Webinar[]>;
+  getLiveSession(id: string): Promise<Webinar | undefined>;
   createWebinar(webinar: InsertWebinar): Promise<Webinar>;
   updateWebinar(id: string, webinar: InsertWebinar): Promise<Webinar | null>;
   deleteWebinar(id: string): Promise<boolean>;
+  updateWebinarParticipantCount(id: string, count: number): Promise<boolean>;
+
+  // Webinar attendee methods
+  createWebinarAttendee(attendee: InsertWebinarAttendee): Promise<WebinarAttendee>;
+  getWebinarAttendee(webinarId: string, userId: string): Promise<WebinarAttendee | undefined>;
+  getStudentWebinars(userId: string): Promise<Webinar[]>;
 
   // Testimonial methods
   getPublishedTestimonials(): Promise<TestimonialWithStudent[]>;
@@ -359,6 +369,52 @@ export class DatabaseStorage implements IStorage {
   async deleteWebinar(id: string): Promise<boolean> {
     const result = await db.delete(webinars).where(eq(webinars.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async getLiveSession(id: string): Promise<Webinar | undefined> {
+    const [session] = await db.select().from(webinars).where(eq(webinars.id, id));
+    return session || undefined;
+  }
+
+  async updateWebinarParticipantCount(id: string, count: number): Promise<boolean> {
+    const result = await db
+      .update(webinars)
+      .set({ currentParticipants: count })
+      .where(eq(webinars.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Webinar attendee methods
+  async createWebinarAttendee(attendee: InsertWebinarAttendee): Promise<WebinarAttendee> {
+    const [newAttendee] = await db
+      .insert(webinarAttendees)
+      .values(attendee)
+      .returning();
+    return newAttendee;
+  }
+
+  async getWebinarAttendee(webinarId: string, userId: string): Promise<WebinarAttendee | undefined> {
+    const [attendee] = await db
+      .select()
+      .from(webinarAttendees)
+      .where(
+        and(
+          eq(webinarAttendees.webinarId, webinarId),
+          eq(webinarAttendees.userId, userId)
+        )
+      );
+    return attendee || undefined;
+  }
+
+  async getStudentWebinars(userId: string): Promise<Webinar[]> {
+    const result = await db
+      .select({ webinar: webinars })
+      .from(webinarAttendees)
+      .innerJoin(webinars, eq(webinarAttendees.webinarId, webinars.id))
+      .where(eq(webinarAttendees.userId, userId))
+      .orderBy(desc(webinars.scheduledAt));
+    
+    return result.map(row => row.webinar);
   }
 
   async getPublishedTestimonials(): Promise<TestimonialWithStudent[]> {

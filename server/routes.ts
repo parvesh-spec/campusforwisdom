@@ -5,7 +5,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { z } from "zod";
-import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema, insertEbookSchema } from "@shared/schema";
+import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema, insertEbookSchema, insertWebinarAttendeeSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -1004,6 +1004,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(downloadedEbooks);
     } catch (error) {
       console.error("Error fetching student ebooks:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Book live session seat
+  app.post("/api/student/live-sessions/:sessionId/book", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const { sessionId } = req.params;
+      
+      // Get session details
+      const session = await storage.getLiveSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      // Check if session is bookable
+      if (session.status !== 'scheduled') {
+        return res.status(400).json({ error: "Session is not available for booking" });
+      }
+
+      // Check if seats are available
+      if (session.currentParticipants >= session.maxParticipants) {
+        return res.status(400).json({ error: "Session is full" });
+      }
+
+      // Check if student already booked this session
+      const existingAttendee = await storage.getWebinarAttendee(sessionId, studentUser.id);
+      if (existingAttendee) {
+        return res.status(400).json({ error: "You have already booked this session" });
+      }
+
+      // Create webinar attendee record
+      const attendeeData = insertWebinarAttendeeSchema.parse({
+        webinarId: sessionId,
+        userId: studentUser.id,
+        email: studentUser.email
+      });
+
+      const attendee = await storage.createWebinarAttendee(attendeeData);
+
+      // Update participant count
+      await storage.updateWebinarParticipantCount(sessionId, session.currentParticipants + 1);
+
+      // Get expert details for Zoho webinar integration
+      const expert = session.expertId ? await storage.getExpert(session.expertId) : null;
+      const student = await storage.getUser(studentUser.id);
+
+      let joinUrl = session.meetingUrl;
+
+      // Create/Update Zoho webinar if not exists and zohoAPI is available
+      if (zohoAPI && !session.webinarId && expert && student) {
+        try {
+          console.log(`🚀 Creating Zoho webinar for session: ${session.title}`);
+          
+          const webinarResponse = await zohoAPI.createWebinar({
+            title: session.title,
+            description: session.description,
+            scheduledAt: session.scheduledAt,
+            duration: session.duration,
+            timezone: expert.timezone || 'Asia/Kolkata',
+            participants: [student.email]
+          });
+          
+          if (webinarResponse) {
+            joinUrl = webinarResponse.join_url || webinarResponse.registration_url;
+            
+            // Update session with Zoho details
+            await storage.updateLiveSession(sessionId, {
+              webinarId: webinarResponse.webinar_key || webinarResponse.id,
+              meetingUrl: joinUrl,
+              registrationLink: webinarResponse.registration_url,
+              startLink: webinarResponse.start_url
+            });
+            
+            console.log(`✅ Zoho webinar created for session ${sessionId}`);
+            console.log(`🔗 Join URL: ${joinUrl}`);
+          }
+        } catch (webinarError) {
+          console.error('❌ Error creating Zoho webinar:', webinarError);
+          // Continue with booking even if webinar creation fails
+        }
+      } else if (zohoAPI && session.webinarId && session.registrationLink && student) {
+        // Add participant to existing Zoho webinar
+        try {
+          await zohoAPI.addParticipant(session.webinarId, student.email);
+          console.log(`✅ Added participant to existing webinar ${session.webinarId}`);
+        } catch (addError) {
+          console.error('❌ Error adding participant to webinar:', addError);
+        }
+      }
+
+      res.json({ 
+        message: "Seat booked successfully",
+        attendee,
+        joinUrl,
+        session: {
+          ...session,
+          currentParticipants: session.currentParticipants + 1
+        }
+      });
+    } catch (error) {
+      console.error("Error booking session:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid booking data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get student's booked live sessions
+  app.get("/api/student/live-sessions", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const bookedSessions = await storage.getStudentWebinars(studentUser.id);
+      res.json(bookedSessions);
+    } catch (error) {
+      console.error("Error fetching student sessions:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

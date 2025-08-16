@@ -264,6 +264,12 @@ export const insertUserEbookDownloadSchema = createInsertSchema(userEbookDownloa
   downloadedAt: true,
 });
 
+export const insertWebinarAttendeeSchema = createInsertSchema(webinarAttendees).omit({
+  id: true,
+  joinedAt: true,
+  leftAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -302,3 +308,6 @@ export type InsertEbook = z.infer<typeof insertEbookSchema>;
 
 export type UserEbookDownload = typeof userEbookDownloads.$inferSelect;
 export type InsertUserEbookDownload = z.infer<typeof insertUserEbookDownloadSchema>;
+
+export type WebinarAttendee = typeof webinarAttendees.$inferSelect;
+export type InsertWebinarAttendee = z.infer<typeof insertWebinarAttendeeSchema>;
