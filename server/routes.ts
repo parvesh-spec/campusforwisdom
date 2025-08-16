@@ -1171,10 +1171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('Scheduling Zoho meeting with data:', meetingData);
           const meetingResponse = zohoAPI ? await zohoAPI.createMeeting(meetingData) : null;
           
-          if (meetingResponse && meetingResponse.join_url) {
+          if (meetingResponse && (meetingResponse.join_url || meetingResponse.session?.joinLink)) {
             // Update consultation with meeting URL
-            updates.meetingUrl = meetingResponse.join_url;
-            console.log('✅ Zoho meeting created successfully:', meetingResponse.join_url);
+            const joinUrl = meetingResponse.join_url || meetingResponse.session?.joinLink;
+            updates.meetingUrl = joinUrl;
+            console.log('✅ Zoho meeting created successfully:', joinUrl);
           } else {
             console.error('❌ Failed to create Zoho meeting:', meetingResponse);
             return res.status(500).json({ error: "Failed to schedule meeting" });
