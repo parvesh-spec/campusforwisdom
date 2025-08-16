@@ -1024,8 +1024,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/experts/:id", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
+      console.log('🔄 Updating expert with data:', {
+        id,
+        availableSlots: req.body.availableSlots,
+        consultationEnabled: req.body.consultationEnabled
+      });
       const expertData = insertExpertSchema.parse(req.body);
+      console.log('✅ Parsed expert data:', {
+        availableSlots: expertData.availableSlots,
+        consultationEnabled: expertData.consultationEnabled
+      });
       const expert = await storage.updateExpert(id, expertData);
+      console.log('💾 Updated expert in database:', {
+        id: expert?.id,
+        availableSlots: expert?.availableSlots,
+        consultationEnabled: expert?.consultationEnabled
+      });
       res.json(expert);
     } catch (error) {
       console.error("Error updating expert:", error);
