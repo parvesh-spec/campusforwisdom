@@ -14,6 +14,7 @@ import LiveSessions from "@/pages/live-sessions";
 import AIExperts from "@/pages/ai-experts";
 import ExpertProfile from "@/pages/expert-profile";
 import EbooksPage from "@/pages/ebooks";
+import EbookDetail from "@/pages/ebook-detail";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
@@ -93,6 +94,11 @@ function Router() {
       <Route path="/ebooks">
         <PublicLayout>
           <EbooksPage />
+        </PublicLayout>
+      </Route>
+      <Route path="/ebooks/:id">
+        <PublicLayout>
+          <EbookDetail />
         </PublicLayout>
       </Route>
       <Route path="/about">
