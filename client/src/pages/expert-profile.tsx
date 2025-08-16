@@ -96,23 +96,21 @@ export default function ExpertProfile() {
     }
   };
 
-  const handleSessionEnrollment = async (sessionId: string) => {
+  const handleSessionBooking = async (sessionId: string) => {
     try {
-      const response = await apiRequest("POST", `/api/student/sessions/${sessionId}/enroll`, {});
-      if (response.ok) {
-        toast({
-          title: "Successfully Enrolled!",
-          description: "You have been enrolled in the live session.",
-        });
-        // Refresh enrolled sessions data
-        queryClient.invalidateQueries({ queryKey: [`/api/student/sessions`] });
-      } else {
-        throw new Error("Failed to enroll");
-      }
-    } catch (error) {
+      const response = await apiRequest("POST", `/api/student/live-sessions/${sessionId}/book`, {});
       toast({
-        title: "Enrollment Failed",
-        description: "Unable to enroll in the session. Please try again.",
+        title: "Successfully Booked!",
+        description: response.message || "You have been booked for the live session. Check your email for meeting details.",
+      });
+      // Refresh sessions data
+      queryClient.invalidateQueries({ queryKey: [`/api/live-sessions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/student/live-sessions`] });
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Unable to book the session. Please try again.",
         variant: "destructive",
       });
     }
@@ -628,8 +626,8 @@ export default function ExpertProfile() {
                                 if (!isLoggedIn) {
                                   setShowLoginModal(true);
                                 } else {
-                                  // Handle session enrollment
-                                  handleSessionEnrollment(session.id);
+                                  // Handle live session booking
+                                  handleSessionBooking(session.id);
                                 }
                               }}
                             >
