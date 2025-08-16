@@ -147,7 +147,7 @@ export default function EbooksPage() {
               <Card key={ebook.id} className="group hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="p-0">
                   {ebook.coverImage ? (
-                    <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
+                    <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
                       <img 
                         src={ebook.coverImage} 
                         alt={ebook.title}
@@ -155,7 +155,7 @@ export default function EbooksPage() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
+                    <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
                       <BookOpen className="h-16 w-16 text-blue-400" />
                     </div>
                   )}

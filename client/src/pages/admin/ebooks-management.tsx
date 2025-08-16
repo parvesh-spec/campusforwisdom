@@ -378,7 +378,7 @@ export default function EbooksManagement() {
           <Card key={ebook.id} className="group relative">
             <CardHeader className="p-0">
               {ebook.coverImage ? (
-                <div className="aspect-[3/4] bg-gray-100 rounded-t-lg overflow-hidden">
+                <div className="aspect-[4/3] bg-gray-100 rounded-t-lg overflow-hidden">
                   <img 
                     src={ebook.coverImage} 
                     alt={ebook.title}
@@ -386,7 +386,7 @@ export default function EbooksManagement() {
                   />
                 </div>
               ) : (
-                <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
+                <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
                   <BookOpen className="h-12 w-12 text-blue-400" />
                 </div>
               )}
@@ -671,7 +671,7 @@ export default function EbooksManagement() {
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="w-full h-32 bg-gray-100 rounded-md overflow-hidden">
+                      <div className="w-full h-16 bg-gray-100 rounded-md overflow-hidden">
                         <img
                           src={newEbook.coverImage}
                           alt="Cover preview"
