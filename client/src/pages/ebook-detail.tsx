@@ -1,15 +1,25 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, Download, Star, Calendar, FileText, User, ArrowLeft, Eye } from "lucide-react";
+import { BookOpen, Download, Star, Calendar, FileText, User, ArrowLeft, Eye, LogIn } from "lucide-react";
 import { Link } from "wouter";
-import type { Ebook } from "@shared/schema";
+import StudentLoginModal from "@/components/StudentLoginModal";
+import type { Ebook, User as UserType } from "@shared/schema";
 
 export default function EbookDetail() {
   const { id } = useParams<{ id: string }>();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  // Check if user is logged in as student
+  const { data: user } = useQuery<UserType>({
+    queryKey: ["/api/auth/student"],
+  });
+
+  const isLoggedIn = !!user;
   
   // Fetch specific ebook
   const { data: ebook, isLoading, error } = useQuery<Ebook>({
@@ -28,6 +38,11 @@ export default function EbookDetail() {
   });
 
   const handleDownload = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     if (ebook?.fileUrl) {
       window.open(ebook.fileUrl, '_blank');
     }
@@ -126,9 +141,19 @@ export default function EbookDetail() {
                   onClick={handleDownload}
                   className="w-full mt-6"
                   size="lg"
+                  variant={isLoggedIn ? "default" : "outline"}
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download eBook
+                  {isLoggedIn ? (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download eBook
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Login to Download
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -279,6 +304,12 @@ export default function EbookDetail() {
             </Card>
           </div>
         </div>
+
+        {/* Student Login Modal */}
+        <StudentLoginModal 
+          isOpen={showLoginModal} 
+          onClose={() => setShowLoginModal(false)} 
+        />
       </div>
     </div>
   );
