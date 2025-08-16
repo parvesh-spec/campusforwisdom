@@ -154,6 +154,12 @@ export default function AIExpertsManagement() {
     setEditingExpert(null);
     setSelectedDay("");
     setSkillsText("");
+    setExpertiseText("");
+    setToolsText("");
+    setCertificationsText("");
+    setAchievementsText("");
+    setPortfolioLinksText("");
+    setLanguagesText("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -194,6 +200,12 @@ export default function AIExpertsManagement() {
   const handleEdit = (expert: Expert) => {
     setEditingExpert(expert);
     setSkillsText((expert.skills || []).join(", "));
+    setExpertiseText((expert.expertise || []).join(", "));
+    setToolsText((expert.tools || []).join(", "));
+    setCertificationsText((expert.certifications || []).join(", "));
+    setAchievementsText((expert.achievements || []).join(", "));
+    setPortfolioLinksText((expert.portfolioLinks || []).join(", "));
+    setLanguagesText((expert.languages || []).join(", "));
     setFormData({
       name: expert.name,
       bio: expert.bio,
@@ -218,21 +230,55 @@ export default function AIExpertsManagement() {
     setShowCreateModal(true);
   };
 
+  // Separate state for comma-separated fields
   const [skillsText, setSkillsText] = useState("");
+  const [expertiseText, setExpertiseText] = useState("");
+  const [toolsText, setToolsText] = useState("");
+  const [certificationsText, setCertificationsText] = useState("");
+  const [achievementsText, setAchievementsText] = useState("");
+  const [portfolioLinksText, setPortfolioLinksText] = useState("");
+  const [languagesText, setLanguagesText] = useState("");
 
   const handleSkillsChange = (text: string) => {
-    console.log('Skills text input:', text);
     setSkillsText(text);
     const skills = text.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
-    console.log('Skills parsed:', skills);
     setFormData(prev => ({ ...prev, skills }));
   };
 
-  const handleArrayFieldChange = (field: string, text: string) => {
-    console.log(`Handling ${field}:`, text);
-    const items = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
-    console.log(`Parsed ${field}:`, items);
-    setFormData(prev => ({ ...prev, [field]: items }));
+  const handleExpertiseChange = (text: string) => {
+    setExpertiseText(text);
+    const expertise = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, expertise }));
+  };
+
+  const handleToolsChange = (text: string) => {
+    setToolsText(text);
+    const tools = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, tools }));
+  };
+
+  const handleCertificationsChange = (text: string) => {
+    setCertificationsText(text);
+    const certifications = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, certifications }));
+  };
+
+  const handleAchievementsChange = (text: string) => {
+    setAchievementsText(text);
+    const achievements = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, achievements }));
+  };
+
+  const handlePortfolioLinksChange = (text: string) => {
+    setPortfolioLinksText(text);
+    const portfolioLinks = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, portfolioLinks }));
+  };
+
+  const handleLanguagesChange = (text: string) => {
+    setLanguagesText(text);
+    const languages = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, languages }));
   };
 
   return (
@@ -748,8 +794,8 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="certifications">Certifications (comma separated)</Label>
                 <Input
                   id="certifications"
-                  value={(formData.certifications || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('certifications', e.target.value)}
+                  value={certificationsText}
+                  onChange={(e) => handleCertificationsChange(e.target.value)}
                   placeholder="Google Cloud ML Engineer, AWS ML Specialty, TensorFlow Developer"
                 />
               </div>
@@ -758,8 +804,8 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="achievements">Achievements (comma separated)</Label>
                 <Input
                   id="achievements"
-                  value={(formData.achievements || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('achievements', e.target.value)}
+                  value={achievementsText}
+                  onChange={(e) => handleAchievementsChange(e.target.value)}
                   placeholder="Published 20+ research papers, Won AI Innovation Award 2023"
                 />
               </div>
@@ -774,23 +820,17 @@ export default function AIExpertsManagement() {
                 <Input
                   id="skills"
                   value={skillsText}
-                  onChange={(e) => {
-                    console.log('Skills onChange triggered with:', e.target.value);
-                    handleSkillsChange(e.target.value);
-                  }}
+                  onChange={(e) => handleSkillsChange(e.target.value)}
                   placeholder="Python, TensorFlow, Machine Learning, NLP"
                 />
-                <div className="text-xs text-gray-500">
-                  Current array: [{(formData.skills || []).map(s => `"${s}"`).join(', ')}]
-                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="expertise">Areas of Expertise (comma separated)</Label>
                 <Input
                   id="expertise"
-                  value={(formData.expertise || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('expertise', e.target.value)}
+                  value={expertiseText}
+                  onChange={(e) => handleExpertiseChange(e.target.value)}
                   placeholder="Computer Vision, Natural Language Processing, Deep Learning"
                 />
               </div>
@@ -799,8 +839,8 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="tools">Tools & Technologies (comma separated)</Label>
                 <Input
                   id="tools"
-                  value={(formData.tools || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('tools', e.target.value)}
+                  value={toolsText}
+                  onChange={(e) => handleToolsChange(e.target.value)}
                   placeholder="PyTorch, Jupyter, Docker, AWS, Google Cloud"
                 />
               </div>
@@ -825,8 +865,8 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="portfolioLinks">Portfolio Links (comma separated)</Label>
                 <Input
                   id="portfolioLinks"
-                  value={(formData.portfolioLinks || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('portfolioLinks', e.target.value)}
+                  value={portfolioLinksText}
+                  onChange={(e) => handlePortfolioLinksChange(e.target.value)}
                   placeholder="https://github.com/username, https://portfolio.com, https://research.com"
                 />
               </div>
@@ -845,8 +885,8 @@ export default function AIExpertsManagement() {
                 <Label htmlFor="languages">Languages (comma separated)</Label>
                 <Input
                   id="languages"
-                  value={(formData.languages || []).join(", ")}
-                  onChange={(e) => handleArrayFieldChange('languages', e.target.value)}
+                  value={languagesText}
+                  onChange={(e) => handleLanguagesChange(e.target.value)}
                   placeholder="Hindi, English, Spanish"
                 />
               </div>
