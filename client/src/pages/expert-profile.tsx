@@ -12,11 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StudentLoginModal from "@/components/StudentLoginModal";
-import { Star, Clock, Users, Calendar, MapPin, MessageSquare, ArrowLeft, Video, BookOpen, Award } from "lucide-react";
+import { Star, Clock, Users, Calendar, MapPin, MessageSquare, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Expert, User, Consultation, LiveSession } from "@shared/schema";
+import type { Expert, User, Consultation, LiveSession, Ebook } from "@shared/schema";
 
 export default function ExpertProfile() {
   const [, params] = useRoute("/experts/:id");
@@ -53,6 +53,13 @@ export default function ExpertProfile() {
     queryKey: [`/api/experts/${expertId}/sessions`],
     enabled: !!expertId,
   });
+
+  // Fetch expert's eBooks
+  const { data: allEbooks = [] } = useQuery<Ebook[]>({
+    queryKey: ["/api/ebooks"],
+  });
+
+  const expertEbooks = allEbooks.filter((ebook) => ebook.authorId === expertId);
 
   const isLoggedIn = !!user;
   const expertConsultations = consultations.filter((c: any) => c.expertId === expertId);
@@ -220,9 +227,10 @@ export default function ExpertProfile() {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="ebooks">eBooks</TabsTrigger>
             <TabsTrigger value="consultations">Consultations</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
@@ -403,6 +411,105 @@ export default function ExpertProfile() {
                 <p className="text-gray-600">This expert's courses will be available here soon.</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="ebooks" className="space-y-6">
+            {expertEbooks.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {expertEbooks.map((ebook) => (
+                  <Card key={ebook.id} className="group hover:shadow-lg transition-shadow duration-300">
+                    <CardHeader className="p-0">
+                      {ebook.coverImage ? (
+                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
+                          <img 
+                            src={ebook.coverImage} 
+                            alt={ebook.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
+                          <BookOpen className="h-16 w-16 text-blue-400" />
+                        </div>
+                      )}
+                    </CardHeader>
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {/* Title and Category */}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                            {ebook.title}
+                          </h3>
+                          <Badge variant="secondary" className="mb-2">
+                            {ebook.category}
+                          </Badge>
+                        </div>
+
+                        {/* Description */}
+                        <CardDescription className="line-clamp-3">
+                          {ebook.shortDescription || ebook.description}
+                        </CardDescription>
+
+                        {/* Stats */}
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center space-x-4">
+                            {ebook.rating && Number(ebook.rating) > 0 && (
+                              <div className="flex items-center">
+                                <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                                <span>{Number(ebook.rating).toFixed(1)}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center">
+                              <Download className="h-4 w-4 mr-1" />
+                              <span>{ebook.downloadCount || 0}</span>
+                            </div>
+                            {ebook.pageCount && (
+                              <div className="flex items-center">
+                                <FileText className="h-4 w-4 mr-1" />
+                                <span>{ebook.pageCount} pages</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs">
+                            {ebook.language}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="text-lg font-bold text-primary">
+                            {ebook.price === "0" ? "FREE" : `₹${ebook.price}`}
+                          </div>
+                          <div className="flex space-x-2">
+                            {ebook.pdfFile && (
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={ebook.pdfFile} target="_blank" rel="noopener noreferrer">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Preview
+                                </a>
+                              </Button>
+                            )}
+                            <Button size="sm">
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No eBooks Available</h3>
+                  <p className="text-gray-600">This expert hasn't published any eBooks yet.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
