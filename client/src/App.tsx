@@ -12,6 +12,7 @@ import Home from "@/pages/home";
 import Courses from "@/pages/courses";
 import LiveSessions from "@/pages/live-sessions";
 import AIExperts from "@/pages/ai-experts";
+import ExpertProfile from "@/pages/expert-profile";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
@@ -80,6 +81,11 @@ function Router() {
       <Route path="/ai-experts">
         <PublicLayout>
           <AIExperts />
+        </PublicLayout>
+      </Route>
+      <Route path="/experts/:id">
+        <PublicLayout>
+          <ExpertProfile />
         </PublicLayout>
       </Route>
       <Route path="/about">

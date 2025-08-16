@@ -710,6 +710,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get expert by ID
+  app.get("/api/experts/:id", async (req, res) => {
+    try {
+      const expert = await storage.getExpert(req.params.id);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+      res.json(expert);
+    } catch (error) {
+      console.error("Error fetching expert:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get student consultations
   app.get("/api/student/consultations", async (req, res) => {
     try {

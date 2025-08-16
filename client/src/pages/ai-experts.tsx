@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import { Search, Star, Clock, Users, Calendar, LogIn } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import type { Expert, User } from "@shared/schema";
 
 export default function AIExperts() {
@@ -26,7 +27,7 @@ export default function AIExperts() {
   });
 
   // Fetch user's consultations if logged in
-  const { data: userConsultations = [] } = useQuery({
+  const { data: userConsultations = [] } = useQuery<any[]>({
     queryKey: ["/api/student/consultations"],
     enabled: !!user,
   });
@@ -182,9 +183,10 @@ export default function AIExperts() {
         ) : filteredExperts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredExperts.map((expert) => (
-              <Card key={expert.id} className="hover:shadow-xl transition-shadow duration-300">
-                <CardHeader>
-                  <div className="flex items-start space-x-4">
+              <Link key={expert.id} href={`/experts/${expert.id}`}>
+                <Card className="hover:shadow-xl transition-shadow duration-300 cursor-pointer h-full">
+                  <CardHeader>
+                    <div className="flex items-start space-x-4">
                     <Avatar className="w-16 h-16">
                       <AvatarImage src={expert.avatar || ""} alt={expert.name} />
                       <AvatarFallback>{expert.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -205,9 +207,9 @@ export default function AIExperts() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                   <p className="text-sm text-gray-600 line-clamp-3">{expert.bio}</p>
                   
                   <div className="space-y-3">
@@ -237,15 +239,9 @@ export default function AIExperts() {
                       </div>
                     </div>
                   </div>
-
-                  <Button 
-                    className="w-full" 
-                    onClick={() => handleBookConsultation(expert.id)}
-                  >
-                    Book Consultation
-                  </Button>
                 </CardContent>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
