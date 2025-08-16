@@ -442,7 +442,7 @@ export default function ConsultationsManagement() {
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-gray-400" />
-                      {new Date(consultation.scheduledAt).toLocaleDateString()}
+                      {new Date(consultation.scheduledAt).toLocaleDateString('en-IN', {timeZone: 'Asia/Kolkata'})} at {new Date(consultation.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit', timeZone: 'Asia/Kolkata'})} IST
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4 text-gray-400" />

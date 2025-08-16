@@ -1083,14 +1083,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter consultations for this expert on this date that are scheduled or confirmed
       const bookedSlots = consultations
-        .filter(consultation => 
-          consultation.expertId === expertId &&
-          consultation.scheduledAt.startsWith(date) &&
-          (consultation.status === 'scheduled' || consultation.status === 'confirmed')
-        )
+        .filter(consultation => {
+          try {
+            const consultationDate = new Date(consultation.scheduledAt).toISOString().split('T')[0];
+            return consultation.expertId === expertId &&
+              consultationDate === date &&
+              (consultation.status === 'scheduled' || consultation.status === 'confirmed');
+          } catch (error) {
+            console.error('Error processing consultation:', consultation, error);
+            return false;
+          }
+        })
         .map(consultation => {
+          // Convert to IST timezone first
           const scheduledDate = new Date(consultation.scheduledAt);
-          const timeString = scheduledDate.toTimeString().slice(0, 5); // HH:mm format
+          const istDate = new Date(scheduledDate.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+          const timeString = istDate.toTimeString().slice(0, 5); // HH:mm format
           
           // Convert to 12-hour format
           const [hours, minutes] = timeString.split(':');

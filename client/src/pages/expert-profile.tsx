@@ -30,6 +30,7 @@ export default function ExpertProfile() {
     duration: 60
   });
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch expert data
@@ -71,11 +72,32 @@ export default function ExpertProfile() {
     if (!isLoggedIn) {
       setShowLoginModal(true);
     } else {
+      // Reset form when opening modal
+      setBookingForm({
+        title: "",
+        description: "",
+        selectedSlot: "",
+        duration: 60
+      });
+      setSelectedDate("");
+      setBookedSlots([]);
       setShowBookingModal(true);
     }
   };
 
-  // Function to get available slots for a specific date
+  // Function to fetch booked slots for expert and date
+  const fetchBookedSlots = async (expertId: string, date: string) => {
+    try {
+      const response = await fetch(`/api/experts/${expertId}/booked-slots/${date}`);
+      const slots = await response.json();
+      setBookedSlots(slots);
+    } catch (error) {
+      console.error('Error fetching booked slots:', error);
+      setBookedSlots([]);
+    }
+  };
+
+  // Function to get available slots for a specific date (excluding booked ones)
   const getAvailableSlotsForDate = (date: string): string[] => {
     if (!expert?.availableSlots) return [];
     
@@ -87,7 +109,7 @@ export default function ExpertProfile() {
     );
     
     // Extract time from slots and convert to display format
-    return daySlots.map(slot => {
+    const allSlots = daySlots.map(slot => {
       // Extract time from "Monday-01:00" format
       const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
       if (timeMatch) {
@@ -106,6 +128,9 @@ export default function ExpertProfile() {
       const timeB = b.includes('AM') || b.includes('PM') ? b : '12:00 AM';
       return timeA.localeCompare(timeB);
     });
+
+    // Filter out booked slots
+    return allSlots.filter(slot => !bookedSlots.includes(slot));
   };
 
   const handleBookingSubmit = async () => {
@@ -599,7 +624,7 @@ export default function ExpertProfile() {
                                  consultation.status === 'completed' ? 'Completed' : consultation.status}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                {new Date(consultation.scheduledAt).toLocaleDateString()} at {new Date(consultation.scheduledAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                {new Date(consultation.scheduledAt).toLocaleDateString('en-IN', {timeZone: 'Asia/Kolkata'})} at {new Date(consultation.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit', timeZone: 'Asia/Kolkata'})} IST
                               </span>
                             </div>
                             
@@ -821,7 +846,16 @@ export default function ExpertProfile() {
                     id="date"
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={async (e) => {
+                      const newDate = e.target.value;
+                      setSelectedDate(newDate);
+                      setBookingForm({...bookingForm, selectedSlot: ""}); // Reset selected slot
+                      
+                      // Fetch booked slots for this expert and date
+                      if (expert && newDate) {
+                        await fetchBookedSlots(expert.id, newDate);
+                      }
+                    }}
                     min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
@@ -845,9 +879,25 @@ export default function ExpertProfile() {
                           {slot}
                         </button>
                       ))}
+                      
+                      {/* Show booked slots as disabled */}
+                      {bookedSlots.map((bookedSlot, index) => (
+                        <button
+                          key={`booked-${index}`}
+                          type="button"
+                          disabled
+                          className="p-2 text-sm border rounded bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          title="This slot is already booked"
+                        >
+                          {bookedSlot} (Booked)
+                        </button>
+                      ))}
                     </div>
-                    {getAvailableSlotsForDate(selectedDate).length === 0 && (
+                    {getAvailableSlotsForDate(selectedDate).length === 0 && bookedSlots.length === 0 && (
                       <p className="text-sm text-gray-500 mt-2">No available slots for this date</p>
+                    )}
+                    {getAvailableSlotsForDate(selectedDate).length === 0 && bookedSlots.length > 0 && (
+                      <p className="text-sm text-gray-500 mt-2">All slots are booked for this date</p>
                     )}
                   </div>
                 )}
