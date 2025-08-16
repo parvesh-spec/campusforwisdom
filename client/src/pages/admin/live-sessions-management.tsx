@@ -154,6 +154,7 @@ export default function WebinarManagement() {
       title: formData.title,
       description: formData.description,
       duration: parseInt(formData.duration),
+      price: parseInt(formData.price),
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
       timezone: formData.timezone,
       participants,
@@ -174,6 +175,7 @@ export default function WebinarManagement() {
       description: session.description,
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
+      price: session.price?.toString() || "499",
       timezone: session.timezone || "Asia/Calcutta",
       participantEmails: (session.participants || []).join(', '),
       expertId: session.expertId || undefined
@@ -290,6 +292,18 @@ export default function WebinarManagement() {
                       value={formData.duration}
                       onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                       placeholder="60"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Session Fee (₹) *
+                    </label>
+                    <Input
+                      required
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="499"
                     />
                   </div>
                   <div>
@@ -598,20 +612,20 @@ export default function WebinarManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Related Course
+                      AI Expert
                     </label>
                     <Select
-                      value={formData.courseId || "none"}
-                      onValueChange={(value) => setFormData({ ...formData, courseId: value === "none" ? undefined : value })}
+                      value={formData.expertId || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, expertId: value === "none" ? undefined : value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select course" />
+                        <SelectValue placeholder="Select AI Expert" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No course</SelectItem>
-                        {courses?.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.title}
+                        <SelectItem value="none">No expert</SelectItem>
+                        {experts?.map((expert) => (
+                          <SelectItem key={expert.id} value={expert.id}>
+                            {expert.name} - {expert.specialization}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -635,7 +649,7 @@ export default function WebinarManagement() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Scheduled Date & Time *
@@ -657,6 +671,18 @@ export default function WebinarManagement() {
                       value={formData.duration}
                       onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                       placeholder="60"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Session Fee (₹) *
+                    </label>
+                    <Input
+                      required
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="499"
                     />
                   </div>
                   <div>
@@ -740,8 +766,10 @@ export default function WebinarManagement() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          navigator.clipboard.writeText(managingParticipants.registrationLink || '');
-                          toast({ title: "Registration link copied!" });
+                          if (managingParticipants.registrationLink) {
+                            navigator.clipboard.writeText(managingParticipants.registrationLink);
+                            toast({ title: "Registration link copied!" });
+                          }
                         }}
                       >
                         <Copy className="h-4 w-4 mr-1" />
@@ -750,7 +778,7 @@ export default function WebinarManagement() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(managingParticipants.registrationLink, '_blank')}
+                        onClick={() => managingParticipants.registrationLink && window.open(managingParticipants.registrationLink, '_blank')}
                       >
                         Open
                       </Button>
