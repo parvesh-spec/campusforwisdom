@@ -127,23 +127,39 @@ export default function LiveSessions() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Live Sessions Banner - Show at top if any live sessions exist */}
+            {/* Live Sessions Section - Show live sessions if any exist */}
             {liveSessions.length > 0 && (
-              <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <h3 className="text-lg font-semibold text-red-800">
-                      {liveSessions.length} Live Session{liveSessions.length > 1 ? 's' : ''} Now
-                    </h3>
+              <div className="mb-8">
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                      <h3 className="text-lg font-semibold text-red-800">
+                        {liveSessions.length} Live Session{liveSessions.length > 1 ? 's' : ''} Now
+                      </h3>
+                    </div>
                   </div>
-                  <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-100">
-                    Join Live
-                  </Button>
+                  <p className="text-red-700 mt-2">
+                    Don't miss out! Join the live sessions happening right now.
+                  </p>
                 </div>
-                <p className="text-red-700 mt-2">
-                  Don't miss out! Join the live sessions happening right now.
-                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {liveSessions.map((session) => (
+                    <SessionCard 
+                      key={session.id} 
+                      session={session}
+                      onJoin={(sessionId) => {
+                        if (!isLoggedIn) {
+                          setShowLoginModal(true);
+                        } else {
+                          // TODO: Implement join live functionality
+                          alert('Join live functionality will be implemented soon!');
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -157,7 +173,18 @@ export default function LiveSessions() {
             ) : upcomingSessions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {upcomingSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
+                  <SessionCard 
+                    key={session.id} 
+                    session={session} 
+                    onBook={(sessionId) => {
+                      if (!isLoggedIn) {
+                        setShowLoginModal(true);
+                      } else {
+                        // TODO: Implement booking functionality
+                        alert('Booking functionality will be implemented soon!');
+                      }
+                    }}
+                  />
                 ))}
               </div>
             ) : (
@@ -187,7 +214,10 @@ export default function LiveSessions() {
             ) : completedSessions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {completedSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
+                  <SessionCard 
+                    key={session.id} 
+                    session={session}
+                  />
                 ))}
               </div>
             ) : (
