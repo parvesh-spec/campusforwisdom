@@ -15,7 +15,7 @@ import StudentLoginModal from "@/components/StudentLoginModal";
 import { Star, Clock, Users, Calendar, MapPin, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Expert, User, Consultation, LiveSession, Ebook } from "@shared/schema";
 
 export default function ExpertProfile() {
@@ -47,6 +47,8 @@ export default function ExpertProfile() {
   const { data: consultations = [] } = useQuery<Consultation[]>({
     queryKey: ["/api/student/consultations"],
     enabled: !!user && !!expertId,
+    refetchInterval: 3000, // Auto-refresh every 3 seconds
+    refetchIntervalInBackground: true, // Keep refreshing even when tab is not active
   });
 
   // Fetch expert's live sessions
@@ -159,8 +161,8 @@ export default function ExpertProfile() {
       });
       setSelectedDate("");
       
-      // Refresh consultations
-      // queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
+      // Refresh consultations immediately
+      queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
       
     } catch (error: any) {
       toast({
