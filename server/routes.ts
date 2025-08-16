@@ -742,6 +742,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete webinar
+  app.delete("/api/admin/live-sessions/:id", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      
+      console.log('🗑️ Deleting webinar:', sessionId);
+      
+      // Delete session from database
+      const isDeleted = await storage.deleteLiveSession(sessionId);
+      
+      if (!isDeleted) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      console.log('✅ Webinar deleted successfully');
+      res.json({ success: true, message: "Webinar deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting webinar:", error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
   // ===== EXPERTS & CONSULTATIONS API =====
 
   // Get all experts

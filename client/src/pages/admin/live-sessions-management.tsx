@@ -19,6 +19,7 @@ export default function WebinarManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<LiveSession | null>(null);
   const [managingParticipants, setManagingParticipants] = useState<LiveSession | null>(null);
+  const [deletingSession, setDeletingSession] = useState<LiveSession | null>(null);
   const [newParticipantEmail, setNewParticipantEmail] = useState("");
   const [formData, setFormData] = useState({
     title: "",
@@ -518,38 +519,21 @@ export default function WebinarManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {session.status === "scheduled" && (
-                            <Button
-                              size="sm"
-                              onClick={() => startSessionMutation.mutate(session.id)}
-                              disabled={startSessionMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Play className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {session.status === "live" && (
-                            <Button
-                              size="sm"
-                              onClick={() => endSessionMutation.mutate(session.id)}
-                              disabled={endSessionMutation.isPending}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              <Square className="h-4 w-4" />
-                            </Button>
-                          )}
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => startEditing(session)}
+                            title="Edit Webinar"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => deleteSessionMutation.mutate(session.id)}
+                            onClick={() => setDeletingSession(session)}
                             disabled={deleteSessionMutation.isPending}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete Webinar"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -846,6 +830,42 @@ export default function WebinarManagement() {
                 <div className="flex justify-end pt-4">
                   <Button onClick={() => setManagingParticipants(null)}>
                     Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {deletingSession && (
+          <Dialog open={true} onOpenChange={() => setDeletingSession(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Delete Webinar</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Are you sure you want to delete "<strong>{deletingSession.title}</strong>"? 
+                  This action cannot be undone.
+                </p>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeletingSession(null)}
+                    disabled={deleteSessionMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      deleteSessionMutation.mutate(deletingSession.id);
+                      setDeletingSession(null);
+                    }}
+                    disabled={deleteSessionMutation.isPending}
+                  >
+                    {deleteSessionMutation.isPending ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
               </div>
