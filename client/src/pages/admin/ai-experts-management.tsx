@@ -34,6 +34,15 @@ export default function AIExpertsManagement() {
     hourlyRate: "",
     skills: [],
     languages: ["Hindi", "English"],
+    education: "",
+    certifications: [],
+    achievements: [],
+    workHistory: "",
+    expertise: [],
+    tools: [],
+    portfolioLinks: [],
+    socialLinks: "",
+    methodology: "",
   });
 
   const { data: experts, isLoading } = useQuery<Expert[]>({
@@ -123,6 +132,15 @@ export default function AIExpertsManagement() {
       hourlyRate: "",
       skills: [],
       languages: ["Hindi", "English"],
+      education: "",
+      certifications: [],
+      achievements: [],
+      workHistory: "",
+      expertise: [],
+      tools: [],
+      portfolioLinks: [],
+      socialLinks: "",
+      methodology: "",
     });
   };
 
@@ -138,6 +156,15 @@ export default function AIExpertsManagement() {
       hourlyRate: formData.hourlyRate!,
       skills: formData.skills || [],
       languages: formData.languages || ["Hindi", "English"],
+      education: formData.education,
+      certifications: formData.certifications || [],
+      achievements: formData.achievements || [],
+      workHistory: formData.workHistory,
+      expertise: formData.expertise || [],
+      tools: formData.tools || [],
+      portfolioLinks: formData.portfolioLinks || [],
+      socialLinks: formData.socialLinks,
+      methodology: formData.methodology,
     };
 
     if (editingExpert) {
@@ -158,6 +185,15 @@ export default function AIExpertsManagement() {
       hourlyRate: expert.hourlyRate.toString(),
       skills: expert.skills || [],
       languages: expert.languages || ["Hindi", "English"],
+      education: expert.education || "",
+      certifications: expert.certifications || [],
+      achievements: expert.achievements || [],
+      workHistory: expert.workHistory || "",
+      expertise: expert.expertise || [],
+      tools: expert.tools || [],
+      portfolioLinks: expert.portfolioLinks || [],
+      socialLinks: expert.socialLinks || "",
+      methodology: expert.methodology || "",
     });
     setShowCreateModal(true);
   };
@@ -165,6 +201,11 @@ export default function AIExpertsManagement() {
   const handleSkillsChange = (skillsText: string) => {
     const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
     setFormData(prev => ({ ...prev, skills }));
+  };
+
+  const handleArrayFieldChange = (field: string, text: string) => {
+    const items = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    setFormData(prev => ({ ...prev, [field]: items }));
   };
 
   return (
@@ -391,7 +432,7 @@ export default function AIExpertsManagement() {
 
       {/* Create/Edit Expert Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingExpert ? "Edit Expert" : "Add New Expert"}
@@ -401,87 +442,210 @@ export default function AIExpertsManagement() {
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    required
+                    value={formData.name || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Dr. John Doe"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="specialization">Specialization</Label>
+                  <Input
+                    id="specialization"
+                    required
+                    value={formData.specialization || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                    placeholder="AI Software Development"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
                   required
-                  value={formData.name || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Dr. John Doe"
+                  rows={3}
+                  value={formData.bio || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                  placeholder="Expert's background, experience, and expertise..."
                 />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Experience</Label>
+                  <Input
+                    id="experience"
+                    required
+                    value={formData.experience || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                    placeholder="5+ years"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
+                  <Input
+                    id="hourlyRate"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={formData.hourlyRate || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                    placeholder="2500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="avatar">Avatar Image</Label>
+                <ImageUpload
+                  value={formData.avatar || ""}
+                  onChange={(url) => setFormData(prev => ({ ...prev, avatar: url }))}
+                  disabled={createExpertMutation.isPending || updateExpertMutation.isPending}
+                />
+              </div>
+            </div>
+
+            {/* Professional Background */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Professional Background</h3>
               
               <div className="space-y-2">
-                <Label htmlFor="specialization">Specialization</Label>
-                <Input
-                  id="specialization"
-                  required
-                  value={formData.specialization || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                  placeholder="AI Software Development"
+                <Label htmlFor="education">Education</Label>
+                <Textarea
+                  id="education"
+                  rows={2}
+                  value={formData.education || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
+                  placeholder="PhD in Computer Science from IIT Delhi, M.Tech in AI..."
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                required
-                rows={3}
-                value={formData.bio || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                placeholder="Expert's background, experience, and expertise..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="experience">Experience</Label>
-                <Input
-                  id="experience"
-                  required
-                  value={formData.experience || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
-                  placeholder="5+ years"
+                <Label htmlFor="workHistory">Work History</Label>
+                <Textarea
+                  id="workHistory"
+                  rows={3}
+                  value={formData.workHistory || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, workHistory: e.target.value }))}
+                  placeholder="Senior AI Engineer at Google (2020-2024), ML Research Scientist at Microsoft..."
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="certifications">Certifications (comma separated)</Label>
+                <Input
+                  id="certifications"
+                  value={(formData.certifications || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('certifications', e.target.value)}
+                  placeholder="Google Cloud ML Engineer, AWS ML Specialty, TensorFlow Developer"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="achievements">Achievements (comma separated)</Label>
+                <Input
+                  id="achievements"
+                  value={(formData.achievements || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('achievements', e.target.value)}
+                  placeholder="Published 20+ research papers, Won AI Innovation Award 2023"
+                />
+              </div>
+            </div>
+
+            {/* Skills & Expertise */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Skills & Expertise</h3>
               
               <div className="space-y-2">
-                <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
+                <Label htmlFor="skills">Core Skills (comma separated)</Label>
                 <Input
-                  id="hourlyRate"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={formData.hourlyRate || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                  placeholder="2500"
+                  id="skills"
+                  value={(formData.skills || []).join(", ")}
+                  onChange={(e) => handleSkillsChange(e.target.value)}
+                  placeholder="Python, TensorFlow, Machine Learning, NLP"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expertise">Areas of Expertise (comma separated)</Label>
+                <Input
+                  id="expertise"
+                  value={(formData.expertise || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('expertise', e.target.value)}
+                  placeholder="Computer Vision, Natural Language Processing, Deep Learning"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tools">Tools & Technologies (comma separated)</Label>
+                <Input
+                  id="tools"
+                  value={(formData.tools || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('tools', e.target.value)}
+                  placeholder="PyTorch, Jupyter, Docker, AWS, Google Cloud"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodology">Teaching/Consultation Methodology</Label>
+                <Textarea
+                  id="methodology"
+                  rows={2}
+                  value={formData.methodology || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, methodology: e.target.value }))}
+                  placeholder="Hands-on project-based learning, personalized guidance, real-world case studies..."
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="avatar">Avatar Image</Label>
-              <ImageUpload
-                value={formData.avatar || ""}
-                onChange={(url) => setFormData(prev => ({ ...prev, avatar: url }))}
-                disabled={createExpertMutation.isPending || updateExpertMutation.isPending}
-              />
-            </div>
+            {/* Additional Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Information</h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="portfolioLinks">Portfolio Links (comma separated)</Label>
+                <Input
+                  id="portfolioLinks"
+                  value={(formData.portfolioLinks || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('portfolioLinks', e.target.value)}
+                  placeholder="https://github.com/username, https://portfolio.com, https://research.com"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="skills">Skills (comma separated)</Label>
-              <Input
-                id="skills"
-                value={(formData.skills || []).join(", ")}
-                onChange={(e) => handleSkillsChange(e.target.value)}
-                placeholder="Python, TensorFlow, Machine Learning, NLP"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="socialLinks">Social Media Links (JSON format)</Label>
+                <Input
+                  id="socialLinks"
+                  value={formData.socialLinks || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, socialLinks: e.target.value }))}
+                  placeholder='{"linkedin":"https://linkedin.com/in/username","twitter":"@username"}'
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="languages">Languages (comma separated)</Label>
+                <Input
+                  id="languages"
+                  value={(formData.languages || []).join(", ")}
+                  onChange={(e) => handleArrayFieldChange('languages', e.target.value)}
+                  placeholder="Hindi, English, Spanish"
+                />
+              </div>
             </div>
 
             <DialogFooter>

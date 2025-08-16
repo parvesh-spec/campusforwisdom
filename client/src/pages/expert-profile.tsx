@@ -234,12 +234,42 @@ export default function ExpertProfile() {
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Skills */}
+              {/* Education */}
+              {expert.education && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Award className="w-5 h-5 mr-2" />
+                      Education
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 whitespace-pre-line">{expert.education}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Work History */}
+              {expert.workHistory && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Professional Experience
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 whitespace-pre-line">{expert.workHistory}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Core Skills */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Award className="w-5 h-5 mr-2" />
-                    Skills & Expertise
+                    Core Skills
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -252,6 +282,92 @@ export default function ExpertProfile() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Areas of Expertise */}
+              {expert.expertise && expert.expertise.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Star className="w-5 h-5 mr-2" />
+                      Areas of Expertise
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {expert.expertise.map((area, idx) => (
+                        <Badge key={idx} variant="outline">
+                          {area}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Certifications */}
+              {expert.certifications && expert.certifications.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Award className="w-5 h-5 mr-2" />
+                      Certifications
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {expert.certifications.map((cert, idx) => (
+                        <div key={idx} className="flex items-center">
+                          <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                          <span className="text-gray-700">{cert}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Achievements */}
+              {expert.achievements && expert.achievements.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Star className="w-5 h-5 mr-2" />
+                      Key Achievements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {expert.achievements.map((achievement, idx) => (
+                        <div key={idx} className="flex items-center">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                          <span className="text-gray-700">{achievement}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Tools & Technologies */}
+              {expert.tools && expert.tools.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Award className="w-5 h-5 mr-2" />
+                      Tools & Technologies
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {expert.tools.map((tool, idx) => (
+                        <Badge key={idx} variant="secondary">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Languages */}
               {expert.languages && expert.languages.length > 0 && (
@@ -271,11 +387,57 @@ export default function ExpertProfile() {
                 </Card>
               )}
 
+              {/* Teaching Methodology */}
+              {expert.methodology && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Teaching Methodology
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 whitespace-pre-line">{expert.methodology}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Portfolio Links */}
+              {expert.portfolioLinks && expert.portfolioLinks.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Eye className="w-5 h-5 mr-2" />
+                      Portfolio & Work Samples
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {expert.portfolioLinks.map((link, idx) => (
+                        <a
+                          key={idx}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center text-primary hover:underline"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          {link.length > 50 ? `${link.substring(0, 50)}...` : link}
+                        </a>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Availability */}
               {expert.availability && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Availability</CardTitle>
+                    <CardTitle className="flex items-center">
+                      <Clock className="w-5 h-5 mr-2" />
+                      Availability
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700">{expert.availability}</p>

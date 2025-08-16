@@ -122,6 +122,16 @@ export const experts = pgTable("experts", {
   skills: text("skills").array().default([]), // Array of skills
   languages: text("languages").array().default(["Hindi", "English"]),
   timezone: text("timezone").default("Asia/Calcutta"),
+  // New fields for detailed overview
+  education: text("education"), // Educational background
+  certifications: text("certifications").array().default([]), // Professional certifications
+  achievements: text("achievements").array().default([]), // Key achievements
+  workHistory: text("work_history"), // Professional work experience
+  expertise: text("expertise").array().default([]), // Areas of expertise
+  tools: text("tools").array().default([]), // Tools and technologies
+  portfolioLinks: text("portfolio_links").array().default([]), // Portfolio/work samples
+  socialLinks: text("social_links"), // JSON string for social media links
+  methodology: text("methodology"), // Teaching/consultation methodology
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
