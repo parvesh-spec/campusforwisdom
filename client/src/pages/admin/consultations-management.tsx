@@ -54,6 +54,39 @@ export default function ConsultationsManagement() {
     queryKey: ["/api/admin/experts"],
   });
 
+  // Get selected expert's details
+  const selectedExpert = experts?.find(expert => expert.id === formData.expertId);
+
+  // Function to get available time slots for selected expert
+  const getAvailableTimeSlots = (): string[] => {
+    if (!selectedExpert?.availableSlots) return [];
+    
+    // Extract unique time slots from expert's available slots (format: "Monday-01:00")
+    const timeSlots = selectedExpert.availableSlots.map(slot => {
+      const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
+      return timeMatch ? timeMatch[1] : null;
+    }).filter((time): time is string => time !== null);
+    
+    // Remove duplicates and sort
+    return [...new Set(timeSlots)].sort();
+  };
+
+  // Function to check if a given datetime is within expert's available slots
+  const isTimeSlotAvailable = (dateTimeString: string): boolean => {
+    if (!selectedExpert?.availableSlots || !dateTimeString) return false;
+    
+    const date = new Date(dateTimeString);
+    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const timeString = date.toTimeString().slice(0, 5); // Get HH:mm format
+    
+    // Check if this day-time combination exists in expert's available slots
+    const slotExists = selectedExpert.availableSlots.some(slot => 
+      slot === `${dayOfWeek}-${timeString}`
+    );
+    
+    return slotExists;
+  };
+
   const filteredConsultations = consultations?.filter((consultation) => {
     const matchesSearch = consultation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          consultation.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -142,6 +175,16 @@ export default function ConsultationsManagement() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate if the scheduled time is within expert's available slots
+    if (formData.scheduledAt && selectedExpert && !isTimeSlotAvailable(formData.scheduledAt)) {
+      toast({
+        title: "Invalid Time Slot",
+        description: "Selected time is not available for this expert. Please choose from their available slots.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (editingConsultation) {
       updateConsultationMutation.mutate({
@@ -504,7 +547,15 @@ export default function ConsultationsManagement() {
                 <Label htmlFor="expertId">AI Expert *</Label>
                 <Select
                   value={formData.expertId || ""}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, expertId: value }))}
+                  onValueChange={(value) => {
+                    const expert = experts?.find(e => e.id === value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      expertId: value,
+                      scheduledAt: "", // Reset scheduled time when expert changes
+                      amount: expert ? (expert.hourlyRate * (prev.duration / 60)).toFixed(2) : "" // Auto-calculate amount
+                    }));
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select expert" />
@@ -563,8 +614,29 @@ export default function ConsultationsManagement() {
                   type="datetime-local"
                   required
                   value={formData.scheduledAt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, scheduledAt: e.target.value }))}
+                  onChange={(e) => {
+                    const newDateTime = e.target.value;
+                    // Validate if the selected time is within expert's available slots
+                    if (newDateTime && selectedExpert && !isTimeSlotAvailable(newDateTime)) {
+                      toast({
+                        title: "Invalid Time Slot",
+                        description: "Selected time is not available for this expert. Please choose from their available slots.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setFormData(prev => ({ ...prev, scheduledAt: newDateTime }));
+                  }}
                 />
+                {selectedExpert && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    <p className="font-medium">Available times:</p>
+                    <p className="text-xs">{getAvailableTimeSlots().join(', ') || 'No availability set'}</p>
+                    <p className="text-xs mt-1">Available days: {
+                      [...new Set(selectedExpert.availableSlots?.map(slot => slot.split('-')[0]) || [])].join(', ')
+                    }</p>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -577,7 +649,15 @@ export default function ConsultationsManagement() {
                   step="15"
                   required
                   value={formData.duration || 60}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                  onChange={(e) => {
+                    const newDuration = parseInt(e.target.value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      duration: newDuration,
+                      // Auto-update amount when duration changes
+                      amount: selectedExpert ? (selectedExpert.hourlyRate * (newDuration / 60)).toFixed(2) : prev.amount
+                    }));
+                  }}
                 />
               </div>
               
