@@ -822,11 +822,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Admin access required' });
       }
 
+      console.log("Creating ebook with data:", req.body);
       const ebookData = insertEbookSchema.parse(req.body);
+      console.log("Parsed ebook data:", ebookData);
       const ebook = await storage.createEbook(ebookData);
       res.json(ebook);
     } catch (error) {
       console.error("Error creating ebook:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -839,7 +844,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Admin access required' });
       }
 
+      console.log("Updating ebook with data:", req.body);
       const ebookData = insertEbookSchema.partial().parse(req.body);
+      console.log("Parsed ebook data:", ebookData);
       const ebook = await storage.updateEbook(req.params.id, ebookData);
       
       if (!ebook) {
@@ -849,6 +856,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(ebook);
     } catch (error) {
       console.error("Error updating ebook:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
       res.status(500).json({ error: "Internal server error" });
     }
   });
