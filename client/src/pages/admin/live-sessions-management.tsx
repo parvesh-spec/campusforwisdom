@@ -154,7 +154,7 @@ export default function WebinarManagement() {
       title: formData.title,
       description: formData.description,
       duration: parseInt(formData.duration),
-      price: parseInt(formData.price),
+      price: formData.price, // Keep as string since schema expects varchar
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
       timezone: formData.timezone,
       participants,
