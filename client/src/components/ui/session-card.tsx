@@ -74,9 +74,9 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
               )}
             </Badge>
             
-            {spotsLeft <= 5 && spotsLeft > 0 && (
+            {spotsLeft <= 10 && spotsLeft > 0 && (
               <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
-                Only {spotsLeft} spots left!
+                Only {spotsLeft} seats left!
               </span>
             )}
           </div>
@@ -120,7 +120,7 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
 
         {/* Session Details */}
         <div className="px-6 pb-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="flex items-center text-gray-600">
               <Calendar className="h-4 w-4 mr-2 text-blue-500" />
               <span>{formatDate(session.scheduledAt)}</span>
@@ -128,10 +128,6 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
             <div className="flex items-center text-gray-600">
               <Clock className="h-4 w-4 mr-2 text-green-500" />
               <span>{formatTime(session.scheduledAt)}</span>
-            </div>
-            <div className="flex items-center text-gray-600">
-              <Users className="h-4 w-4 mr-2 text-purple-500" />
-              <span>{session.currentParticipants || 0}/{session.maxParticipants || 100} joined</span>
             </div>
             <div className="flex items-center text-gray-600">
               <Video className="h-4 w-4 mr-2 text-indigo-500" />
@@ -178,9 +174,9 @@ export default function SessionCard({ session, onJoin, onBook }: SessionCardProp
                 </Button>
               )}
               
-              {isScheduled && spotsLeft > 0 && (
+              {isScheduled && spotsLeft > 0 && spotsLeft <= 20 && (
                 <span className="text-xs text-gray-500">
-                  {spotsLeft} spots available
+                  {spotsLeft} seats available
                 </span>
               )}
             </div>
