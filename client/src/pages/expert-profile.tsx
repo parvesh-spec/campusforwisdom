@@ -79,15 +79,30 @@ export default function ExpertProfile() {
     
     const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
     
-    // Filter slots for the selected day
+    // Filter slots for the selected day (format from DB: "Monday-01:00")
     const daySlots = expert.availableSlots.filter(slot => 
-      slot.startsWith(dayOfWeek)
+      slot.startsWith(dayOfWeek + '-')
     );
     
-    // Extract time from slots (format: "Monday 09:00-10:00")
+    // Extract time from slots and convert to display format
     return daySlots.map(slot => {
-      const timeMatch = slot.match(/(\d{2}:\d{2}-\d{2}:\d{2})/);
-      return timeMatch ? timeMatch[1] : slot;
+      // Extract time from "Monday-01:00" format
+      const timeMatch = slot.match(/-(\d{2}:\d{2})$/);
+      if (timeMatch) {
+        const time = timeMatch[1];
+        // Convert to 12-hour format for display
+        const [hours, minutes] = time.split(':');
+        const hour24 = parseInt(hours);
+        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+        const ampm = hour24 >= 12 ? 'PM' : 'AM';
+        return `${hour12}:${minutes} ${ampm}`;
+      }
+      return slot;
+    }).sort((a, b) => {
+      // Sort by time
+      const timeA = a.includes('AM') || a.includes('PM') ? a : '12:00 AM';
+      const timeB = b.includes('AM') || b.includes('PM') ? b : '12:00 AM';
+      return timeA.localeCompare(timeB);
     });
   };
 
@@ -102,8 +117,20 @@ export default function ExpertProfile() {
     }
 
     // Combine date and time slot to create scheduledAt
-    const [startTime] = bookingForm.selectedSlot.split('-');
-    const scheduledAt = `${selectedDate}T${startTime}:00`;
+    // Convert 12-hour format back to 24-hour format
+    const convertTo24Hour = (time12: string): string => {
+      const [time, period] = time12.split(' ');
+      const [hours, minutes] = time.split(':');
+      let hour24 = parseInt(hours);
+      
+      if (period === 'AM' && hour24 === 12) hour24 = 0;
+      else if (period === 'PM' && hour24 !== 12) hour24 += 12;
+      
+      return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+    };
+    
+    const startTime24 = convertTo24Hour(bookingForm.selectedSlot);
+    const scheduledAt = `${selectedDate}T${startTime24}:00`;
     
     const consultationData = {
       expertId: expertId!,
