@@ -1082,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consultations = await storage.getAllConsultations();
       
       // Filter consultations for this expert on this date that are scheduled or confirmed
-      const bookedSlots = consultations
+      const filteredConsultations = consultations
         .filter(consultation => {
           try {
             const consultationDate = new Date(consultation.scheduledAt).toISOString().split('T')[0];
@@ -1093,21 +1093,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('Error processing consultation:', consultation, error);
             return false;
           }
-        })
-        .map(consultation => {
-          // Convert to IST timezone first
-          const scheduledDate = new Date(consultation.scheduledAt);
-          const istDate = new Date(scheduledDate.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-          const timeString = istDate.toTimeString().slice(0, 5); // HH:mm format
-          
-          // Convert to 12-hour format
-          const [hours, minutes] = timeString.split(':');
-          const hour24 = parseInt(hours);
-          const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-          const ampm = hour24 >= 12 ? 'PM' : 'AM';
-          return `${hour12}:${minutes} ${ampm}`;
         });
-      
+
+      // Convert to time slots and remove duplicates
+      const bookedSlotsSet = new Set();
+      filteredConsultations.forEach(consultation => {
+        // Parse the database timestamp (which is stored in UTC)
+        const scheduledDate = new Date(consultation.scheduledAt);
+        
+        // Extract time (database stores in UTC, convert to IST)
+        const hours = scheduledDate.getHours();
+        const minutes = scheduledDate.getMinutes();
+        
+        // Convert to 12-hour format
+        const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedTime = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        bookedSlotsSet.add(formattedTime);
+      });
+
+      const bookedSlots = Array.from(bookedSlotsSet);
       res.json(bookedSlots);
     } catch (error) {
       console.error('Error fetching booked slots:', error);
