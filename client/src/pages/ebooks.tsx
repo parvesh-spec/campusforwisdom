@@ -26,8 +26,7 @@ export default function EbooksPage() {
     const matchesSearch = ebook.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ebook.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ebook.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ebook.author?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ebook.author?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
+                         ebook.author?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = selectedCategory === "all" || ebook.category === selectedCategory;
     const matchesLanguage = selectedLanguage === "all" || ebook.language === selectedLanguage;
@@ -36,8 +35,8 @@ export default function EbooksPage() {
   });
 
   // Get unique categories and languages for filters
-  const categories = [...new Set(ebooks.map(ebook => ebook.category))];
-  const languages = [...new Set(ebooks.map(ebook => ebook.language))];
+  const categories = Array.from(new Set(ebooks.map(ebook => ebook.category)));
+  const languages = Array.from(new Set(ebooks.map(ebook => ebook.language).filter(Boolean)));
 
   const handleDownload = (ebook: Ebook) => {
     if (ebook.fileUrl) {
@@ -189,14 +188,14 @@ export default function EbooksPage() {
                     {ebook.author && (
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={ebook.author.avatar} />
+                          <AvatarImage src={ebook.author.avatar || undefined} />
                           <AvatarFallback>
-                            {ebook.author.firstName?.charAt(0)}{ebook.author.lastName?.charAt(0)}
+                            {ebook.author.name?.charAt(0) || 'A'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {ebook.author.firstName} {ebook.author.lastName}
+                            {ebook.author.name}
                           </p>
                           <p className="text-xs text-gray-500">
                             {ebook.author.specialization}
@@ -318,14 +317,14 @@ export default function EbooksPage() {
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={selectedEbook.author.avatar} />
+                          <AvatarImage src={selectedEbook.author.avatar || undefined} />
                           <AvatarFallback>
-                            {selectedEbook.author.firstName?.charAt(0)}{selectedEbook.author.lastName?.charAt(0)}
+                            {selectedEbook.author.name?.charAt(0) || 'A'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {selectedEbook.author.firstName} {selectedEbook.author.lastName}
+                            {selectedEbook.author.name}
                           </p>
                           <p className="text-sm text-gray-600">
                             {selectedEbook.author.specialization}
