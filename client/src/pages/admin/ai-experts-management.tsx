@@ -560,44 +560,108 @@ export default function AIExpertsManagement() {
                     <p className="text-xs text-gray-500">
                       Select the time slots when this expert is available for consultations
                     </p>
-                    <div className="border rounded-lg p-4 bg-gray-50 max-h-48 overflow-y-auto">
-                      <div className="space-y-3">
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                          <div key={day} className="space-y-2">
-                            <h4 className="text-sm font-medium text-gray-900">{day}</h4>
-                            <div className="grid grid-cols-4 gap-1">
-                              {Array.from({ length: 24 }, (_, i) => {
-                                const hour = i.toString().padStart(2, '0');
-                                const timeSlot = `${day}-${hour}:00`;
-                                const isSelected = (formData.availableSlots || []).includes(timeSlot);
-                                return (
-                                  <button
-                                    key={timeSlot}
-                                    type="button"
-                                    className={`text-xs py-1 px-2 rounded transition-colors ${
-                                      isSelected 
-                                        ? 'bg-primary text-white' 
-                                        : 'bg-white hover:bg-gray-100 border'
-                                    }`}
-                                    onClick={() => {
-                                      const currentSlots = formData.availableSlots || [];
-                                      const newSlots = isSelected 
-                                        ? currentSlots.filter(slot => slot !== timeSlot)
-                                        : [...currentSlots, timeSlot];
-                                      setFormData(prev => ({ ...prev, availableSlots: newSlots }));
-                                    }}
-                                  >
-                                    {hour}:00
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
+                    
+                    {/* Day Selector */}
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                          const fullDay = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index];
+                          const daySlots = (formData.availableSlots || []).filter(slot => slot.startsWith(fullDay));
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                                daySlots.length > 0 
+                                  ? 'bg-primary text-white border-primary' 
+                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                              }`}
+                              onClick={() => {
+                                const currentSlots = formData.availableSlots || [];
+                                if (daySlots.length > 0) {
+                                  // Remove all slots for this day
+                                  const newSlots = currentSlots.filter(slot => !slot.startsWith(fullDay));
+                                  setFormData(prev => ({ ...prev, availableSlots: newSlots }));
+                                } else {
+                                  // Add common work hours for this day (9 AM to 6 PM)
+                                  const workHours = Array.from({ length: 10 }, (_, i) => {
+                                    const hour = (i + 9).toString().padStart(2, '0');
+                                    return `${fullDay}-${hour}:00`;
+                                  });
+                                  const newSlots = [...currentSlots, ...workHours];
+                                  setFormData(prev => ({ ...prev, availableSlots: newSlots }));
+                                }
+                              }}
+                            >
+                              {day}
+                              {daySlots.length > 0 && (
+                                <span className="ml-1 text-xs">({daySlots.length})</span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
+                      
+                      {/* Hour Grid - Only show if any day has slots */}
+                      {(formData.availableSlots || []).length > 0 && (
+                        <div className="border rounded-lg p-3 bg-gray-50">
+                          <div className="text-xs text-gray-600 mb-2">Fine-tune specific hours (click to toggle):</div>
+                          <div className="grid grid-cols-8 gap-1">
+                            {Array.from({ length: 24 }, (_, i) => {
+                              const hour = i.toString().padStart(2, '0');
+                              const displayTime = i === 0 ? '12AM' : i < 12 ? `${i}AM` : i === 12 ? '12PM' : `${i-12}PM`;
+                              
+                              return (
+                                <div key={hour} className="text-center">
+                                  <div className="text-xs text-gray-500 mb-1">{displayTime}</div>
+                                  <div className="space-y-1">
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
+                                      const fullDay = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][dayIndex];
+                                      const timeSlot = `${fullDay}-${hour}:00`;
+                                      const isSelected = (formData.availableSlots || []).includes(timeSlot);
+                                      
+                                      return (
+                                        <button
+                                          key={timeSlot}
+                                          type="button"
+                                          className={`w-6 h-6 rounded text-xs transition-colors ${
+                                            isSelected 
+                                              ? 'bg-primary text-white' 
+                                              : 'bg-white border hover:bg-gray-100'
+                                          }`}
+                                          onClick={() => {
+                                            const currentSlots = formData.availableSlots || [];
+                                            const newSlots = isSelected 
+                                              ? currentSlots.filter(slot => slot !== timeSlot)
+                                              : [...currentSlots, timeSlot];
+                                            setFormData(prev => ({ ...prev, availableSlots: newSlots }));
+                                          }}
+                                          title={`${day} ${displayTime}`}
+                                        >
+                                          {day.charAt(0)}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      Selected slots: {(formData.availableSlots || []).length} out of 168 total slots
+                    
+                    <div className="text-xs text-gray-600 flex items-center justify-between">
+                      <span>Selected slots: {(formData.availableSlots || []).length} out of 168 total</span>
+                      {(formData.availableSlots || []).length > 0 && (
+                        <button
+                          type="button"
+                          className="text-red-500 hover:text-red-700 underline"
+                          onClick={() => setFormData(prev => ({ ...prev, availableSlots: [] }))}
+                        >
+                          Clear all
+                        </button>
+                      )}
                     </div>
                   </div>
                 </>
