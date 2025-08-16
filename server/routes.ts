@@ -705,6 +705,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update webinar
+  app.put("/api/admin/live-sessions/:id", requireAdmin, async (req, res) => {
+    try {
+      const sessionData = insertWebinarSchema.parse(req.body);
+      const sessionId = req.params.id;
+      
+      console.log('📝 Updating webinar with data:', {
+        id: sessionId,
+        title: sessionData.title,
+        scheduledAt: sessionData.scheduledAt,
+        duration: sessionData.duration
+      });
+      
+      // Update session in database
+      const updatedSession = await storage.updateLiveSession(sessionId, sessionData);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      console.log('✅ Webinar updated successfully');
+      res.json(updatedSession);
+    } catch (error) {
+      console.error("Error updating webinar:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Invalid webinar data", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
   // ===== EXPERTS & CONSULTATIONS API =====
 
   // Get all experts
