@@ -442,7 +442,20 @@ export default function ConsultationsManagement() {
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-gray-400" />
-                      {new Date(consultation.scheduledAt).toLocaleDateString('en-IN', {timeZone: 'Asia/Kolkata'})} at {new Date(consultation.scheduledAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit', timeZone: 'Asia/Kolkata'})} IST
+{(() => {
+                        // Parse as IST directly since database stores IST times
+                        const date = new Date(consultation.scheduledAt);
+                        const dateStr = date.toLocaleDateString('en-IN');
+                        
+                        // Extract hours and minutes directly without timezone conversion
+                        const hours = date.getHours();
+                        const minutes = date.getMinutes();
+                        const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                        
+                        return `${dateStr} at ${timeStr} IST`;
+                      })()}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4 text-gray-400" />
