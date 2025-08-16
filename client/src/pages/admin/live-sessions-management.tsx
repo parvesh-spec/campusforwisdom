@@ -418,6 +418,7 @@ export default function WebinarManagement() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Webinar</TableHead>
+                    <TableHead>Expert</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
                     <TableHead>Registration Link</TableHead>
@@ -427,7 +428,9 @@ export default function WebinarManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sessions.map((session) => (
+                  {sessions.map((session) => {
+                    const sessionExpert = experts?.find(expert => expert.id === session.expertId);
+                    return (
                     <TableRow key={session.id}>
                       <TableCell>
                         <div>
@@ -435,6 +438,24 @@ export default function WebinarManagement() {
                           <div className="text-sm text-gray-500 truncate max-w-xs">
                             {session.description}
                           </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {sessionExpert ? (
+                            <div className="flex items-center space-x-2">
+                              {sessionExpert.avatar && (
+                                <img 
+                                  src={sessionExpert.avatar} 
+                                  alt={sessionExpert.name}
+                                  className="w-6 h-6 rounded-full object-cover"
+                                />
+                              )}
+                              <span className="font-medium text-gray-900">{sessionExpert.name}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No expert assigned</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -532,7 +553,8 @@ export default function WebinarManagement() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
