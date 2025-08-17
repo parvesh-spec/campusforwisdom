@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CourseCard from "@/components/ui/course-card";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import { Search, Filter, LogIn } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Course, User } from "@shared/schema";
 
 export default function Courses() {
@@ -14,6 +16,8 @@ export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: courses, isLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses"],
@@ -24,23 +28,43 @@ export default function Courses() {
     queryKey: ["/api/auth/student"],
   });
 
-  // Fetch user's enrollments if logged in
-  const { data: userEnrollments } = useQuery({
+  // Fetch user's enrolled courses if logged in
+  const { data: userEnrolledCourses } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: !!user,
   });
 
   const isLoggedIn = !!user;
 
+  // Enrollment mutation
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      return apiRequest(`/api/enroll`, {
+        method: "POST",
+        body: { courseId },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Enrollment Successful!",
+        description: "You have successfully enrolled in the course.",
+      });
+      // Refresh enrolled courses
+      queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Enrollment Failed",
+        description: error.message || "Failed to enroll in course. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter courses based on view mode
-  const viewFilteredCourses = courses?.filter(course => {
-    if (viewMode === "my" && isLoggedIn && userEnrollments) {
-      // Show only courses user has enrolled in
-      const enrolledCourseIds = userEnrollments.map((enrollment: any) => enrollment.courseId);
-      return enrolledCourseIds.includes(course.id);
-    }
-    return true; // Show all courses for "all" mode
-  }) || [];
+  const viewFilteredCourses = viewMode === "my" && isLoggedIn && userEnrolledCourses
+    ? userEnrolledCourses // Show only enrolled courses
+    : courses || []; // Show all courses for "all" mode
 
   const filteredCourses = viewFilteredCourses.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,6 +81,20 @@ export default function Courses() {
     } else {
       setViewMode("my");
     }
+  };
+
+  const handleEnroll = (courseId: string) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    } else {
+      enrollMutation.mutate(courseId);
+    }
+  };
+
+  // Check if user is enrolled in a course
+  const isEnrolledInCourse = (courseId: string) => {
+    if (!userEnrolledCourses) return false;
+    return userEnrolledCourses.some(course => course.id === courseId);
   };
 
   const categories = Array.from(new Set(courses?.map(course => course.category) || []));
@@ -166,7 +204,13 @@ export default function Courses() {
         ) : filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+              <CourseCard 
+                key={course.id} 
+                course={course} 
+                onEnroll={handleEnroll}
+                isEnrolled={isEnrolledInCourse(course.id)}
+                isEnrolling={enrollMutation.isPending}
+              />
             ))}
           </div>
         ) : (

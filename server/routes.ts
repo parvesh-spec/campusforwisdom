@@ -382,6 +382,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Course enrollment endpoint
+  app.post("/api/enroll", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student login required' });
+      }
+
+      const { courseId } = req.body;
+      if (!courseId) {
+        return res.status(400).json({ error: "Course ID is required" });
+      }
+
+      // Check if course exists and is active
+      const course = await storage.getCourse(courseId);
+      if (!course || !course.isActive) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+
+      // Check if student is already enrolled
+      const existingEnrollment = await storage.getEnrollmentByStudentAndCourse(studentUser.id, courseId);
+      if (existingEnrollment) {
+        return res.status(400).json({ error: "You are already enrolled in this course" });
+      }
+
+      // Create enrollment
+      const enrollment = await storage.createEnrollment({
+        studentId: studentUser.id,
+        courseId: courseId,
+        enrolledAt: new Date(),
+      });
+
+      res.json({ 
+        success: true, 
+        enrollment,
+        message: "Successfully enrolled in course" 
+      });
+    } catch (error) {
+      console.error("Error enrolling in course:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get student's course enrollments
+  app.get("/api/student/enrollments", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser || studentUser.role !== 'student') {
+        return res.status(401).json({ error: 'Student login required' });
+      }
+
+      const enrollments = await storage.getStudentEnrollments(studentUser.id);
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Error fetching student enrollments:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get live sessions with booking status
   app.get("/api/live-sessions", async (req, res) => {
     try {

@@ -119,6 +119,8 @@ export interface IStorage {
   // Enrollment methods
   getEnrollmentsWithDetails(): Promise<EnrollmentWithDetails[]>;
   createEnrollment(enrollment: InsertEnrollment): Promise<Enrollment>;
+  getEnrollmentByStudentAndCourse(studentId: string, courseId: string): Promise<Enrollment | undefined>;
+  getStudentEnrollments(studentId: string): Promise<Course[]>;
 
   // Payment methods
   getPaymentsWithDetails(): Promise<PaymentWithDetails[]>;
@@ -501,6 +503,30 @@ export class DatabaseStorage implements IStorage {
     }
 
     return newEnrollment;
+  }
+
+  async getEnrollmentByStudentAndCourse(studentId: string, courseId: string): Promise<Enrollment | undefined> {
+    const [enrollment] = await db
+      .select()
+      .from(enrollments)
+      .where(and(
+        eq(enrollments.studentId, studentId),
+        eq(enrollments.courseId, courseId)
+      ));
+    return enrollment;
+  }
+
+  async getStudentEnrollments(studentId: string): Promise<Course[]> {
+    const result = await db
+      .select({
+        course: courses,
+      })
+      .from(enrollments)
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(eq(enrollments.studentId, studentId))
+      .orderBy(desc(enrollments.enrolledAt));
+
+    return result.map(row => row.course);
   }
 
   // Student management methods

@@ -1,16 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Clock, Users, BookOpen, Award, Play, Calendar, ChevronRight } from "lucide-react";
+import { Star, Clock, Users, BookOpen, Award, Play, Calendar, ChevronRight, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 import type { Course } from "@shared/schema";
 
 interface CourseCardProps {
   course: Course;
   onEnroll?: (courseId: string) => void;
+  isEnrolled?: boolean;
+  isEnrolling?: boolean;
 }
 
-export default function CourseCard({ course, onEnroll }: CourseCardProps) {
+export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnrolling = false }: CourseCardProps) {
   const levelColors = {
     beginner: "bg-emerald-100 text-emerald-800 border-emerald-200",
     intermediate: "bg-amber-100 text-amber-800 border-amber-200", 
@@ -151,14 +153,33 @@ export default function CourseCard({ course, onEnroll }: CourseCardProps) {
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
             <Button 
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold group-hover:shadow-lg transition-all"
+              className={`flex-1 font-semibold group-hover:shadow-lg transition-all ${
+                isEnrolled 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+              }`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onEnroll?.(course.id);
+                if (!isEnrolled && onEnroll) {
+                  onEnroll(course.id);
+                }
               }}
+              disabled={isEnrolled || isEnrolling}
             >
-              Enroll Now
+              {isEnrolling ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Enrolling...</span>
+                </div>
+              ) : isEnrolled ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Enrolled</span>
+                </div>
+              ) : (
+                <span>Enroll Now</span>
+              )}
             </Button>
             <Button 
               variant="outline" 
