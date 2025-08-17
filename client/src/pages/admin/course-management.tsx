@@ -1232,106 +1232,587 @@ export default function CourseManagement() {
         {/* Edit Course Modal */}
         {editingCourse && (
           <Dialog open={true} onOpenChange={() => setEditingCourse(null)}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
               <DialogHeader>
                 <DialogTitle>Edit Course</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Title *
-                    </label>
-                    <Input
-                      required
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="AI Software Development"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <Input
-                      required
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      placeholder="AI Software Development"
-                    />
-                  </div>
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-5">
+                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                    <TabsTrigger value="content">Course Content</TabsTrigger>
+                    <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+                    <TabsTrigger value="features">Features</TabsTrigger>
+                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                  </TabsList>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Short Description *
-                  </label>
-                  <Input
-                    required
-                    value={formData.shortDescription}
-                    onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                    placeholder="Brief description for course cards"
-                  />
-                </div>
+                  <TabsContent value="basic" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Title *
+                        </label>
+                        <Input
+                          required
+                          value={formData.title}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          placeholder="Complete AI Development Masterclass"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Category *
+                        </label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AI Software Development">AI Software Development</SelectItem>
+                            <SelectItem value="AI Video Creation">AI Video Creation</SelectItem>
+                            <SelectItem value="AI Presentation Design">AI Presentation Design</SelectItem>
+                            <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                            <SelectItem value="Data Science">Data Science</SelectItem>
+                            <SelectItem value="Web Development">Web Development</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Description *
-                  </label>
-                  <Textarea
-                    required
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Detailed course description..."
-                    rows={4}
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Short Description *
+                      </label>
+                      <Input
+                        required
+                        value={formData.shortDescription}
+                        onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                        placeholder="Brief description for course cards and search results"
+                      />
+                    </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Level *
-                    </label>
-                    <Select
-                      value={formData.level}
-                      onValueChange={(value) => setFormData({ ...formData, level: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration *
-                    </label>
-                    <Input
-                      required
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      placeholder="12 weeks"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price (₹) *
-                    </label>
-                    <Input
-                      required
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="15999"
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Description *
+                      </label>
+                      <Textarea
+                        required
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Detailed course description explaining what students will learn, the course structure, and benefits..."
+                        rows={4}
+                      />
+                    </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Type *
+                        </label>
+                        <Select
+                          value={formData.courseType}
+                          onValueChange={(value) => setFormData({ ...formData, courseType: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="recorded">Recorded Course</SelectItem>
+                            <SelectItem value="live">Live Course</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Format
+                        </label>
+                        <Select
+                          value={formData.format}
+                          onValueChange={(value) => setFormData({ ...formData, format: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="video">Video-based</SelectItem>
+                            <SelectItem value="text">Text-based</SelectItem>
+                            <SelectItem value="mixed">Mixed Format</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Level *
+                        </label>
+                        <Select
+                          value={formData.level}
+                          onValueChange={(value) => setFormData({ ...formData, level: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration
+                        </label>
+                        <Input
+                          value={formData.duration}
+                          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                          placeholder="12 weeks"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Price (₹) *
+                        </label>
+                        <Input
+                          required
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          placeholder="15999"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Language
+                        </label>
+                        <Select
+                          value={formData.language}
+                          onValueChange={(value) => setFormData({ ...formData, language: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Hindi">Hindi</SelectItem>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Hinglish">Hinglish</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tags (comma separated)
+                      </label>
+                      <Input
+                        value={formData.tags}
+                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                        placeholder="AI, Development, Python, Machine Learning"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Assign AI Expert (Instructor)
+                        </label>
+                        <Select
+                          value={formData.expertId}
+                          onValueChange={(value) => setFormData({ ...formData, expertId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an AI expert for this course" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {expertsData?.map((expert) => (
+                              <SelectItem key={expert.id} value={expert.id}>
+                                {expert.name} - {expert.specialty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-gray-500 mt-1">
+                          This expert will be the instructor for this course.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Cover Image
+                        </label>
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {formData.thumbnail && (
+                            <div className="mt-2">
+                              <img 
+                                src={formData.thumbnail} 
+                                alt="Course cover preview" 
+                                className="w-32 h-20 object-cover rounded-md border"
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setFormData({ ...formData, thumbnail: "" })}
+                                className="mt-1"
+                              >
+                                Remove Image
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Upload course cover image (recommended: 1200x630px)
+                        </p>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="content" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        What You Will Learn *
+                      </label>
+                      <Textarea
+                        required
+                        value={formData.whatYouWillLearn}
+                        onChange={(e) => setFormData({ ...formData, whatYouWillLearn: e.target.value })}
+                        placeholder="• Build AI-powered applications from scratch&#10;• Master machine learning algorithms&#10;• Deploy models to production&#10;• Integrate AI APIs effectively"
+                        rows={6}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        List key learning outcomes (use bullet points for better readability)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Course Requirements
+                      </label>
+                      <Textarea
+                        value={formData.courseRequirements}
+                        onChange={(e) => setFormData({ ...formData, courseRequirements: e.target.value })}
+                        placeholder="• Basic programming knowledge&#10;• Computer with internet connection&#10;• No prior AI experience required"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Target Audience
+                      </label>
+                      <Textarea
+                        value={formData.targetAudience}
+                        onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                        placeholder="• Software developers wanting to learn AI&#10;• Students interested in machine learning&#10;• Professionals looking to upskill in AI"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Total Lectures
+                        </label>
+                        <Input
+                          type="number"
+                          value={formData.totalLectures}
+                          onChange={(e) => setFormData({ ...formData, totalLectures: e.target.value })}
+                          placeholder="45"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Total Projects
+                        </label>
+                        <Input
+                          type="number"
+                          value={formData.totalProjects}
+                          onChange={(e) => setFormData({ ...formData, totalProjects: e.target.value })}
+                          placeholder="5"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="curriculum" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Course Curriculum
+                      </label>
+                      {formData.courseCurriculum.map((section, sectionIndex) => (
+                        <div key={sectionIndex} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-sm font-medium">Section {sectionIndex + 1}</h4>
+                            {formData.courseCurriculum.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newCurriculum = formData.courseCurriculum.filter((_, i) => i !== sectionIndex);
+                                  setFormData({ ...formData, courseCurriculum: newCurriculum });
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          <Input
+                            value={section.sectionTitle}
+                            onChange={(e) => {
+                              const newCurriculum = [...formData.courseCurriculum];
+                              newCurriculum[sectionIndex].sectionTitle = e.target.value;
+                              setFormData({ ...formData, courseCurriculum: newCurriculum });
+                            }}
+                            placeholder="Section Title (e.g., Introduction to AI)"
+                          />
+                          
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-gray-600">Lectures</label>
+                            {section.lectures.map((lecture, lectureIndex) => (
+                              <div key={lectureIndex} className="grid grid-cols-12 gap-2">
+                                <Input
+                                  className="col-span-8"
+                                  value={lecture.title}
+                                  onChange={(e) => {
+                                    const newCurriculum = [...formData.courseCurriculum];
+                                    newCurriculum[sectionIndex].lectures[lectureIndex].title = e.target.value;
+                                    setFormData({ ...formData, courseCurriculum: newCurriculum });
+                                  }}
+                                  placeholder="Lecture title"
+                                />
+                                <Input
+                                  className="col-span-2"
+                                  value={lecture.duration}
+                                  onChange={(e) => {
+                                    const newCurriculum = [...formData.courseCurriculum];
+                                    newCurriculum[sectionIndex].lectures[lectureIndex].duration = e.target.value;
+                                    setFormData({ ...formData, courseCurriculum: newCurriculum });
+                                  }}
+                                  placeholder="Duration"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="col-span-2"
+                                  onClick={() => {
+                                    const newCurriculum = [...formData.courseCurriculum];
+                                    newCurriculum[sectionIndex].lectures = section.lectures.filter((_, i) => i !== lectureIndex);
+                                    setFormData({ ...formData, courseCurriculum: newCurriculum });
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newCurriculum = [...formData.courseCurriculum];
+                                newCurriculum[sectionIndex].lectures.push({ title: "", duration: "" });
+                                setFormData({ ...formData, courseCurriculum: newCurriculum });
+                              }}
+                            >
+                              Add Lecture
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            courseCurriculum: [...formData.courseCurriculum, { sectionTitle: "", lectures: [{ title: "", duration: "" }] }]
+                          });
+                        }}
+                      >
+                        Add Section
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="features" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Course Features & Benefits</h3>
+                      
+                      <div className="grid grid-cols-2 gap-6 mb-6">
+                        <div className="space-y-4">
+                          <h4 className="text-md font-medium text-gray-800">Accessibility Features</h4>
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="lifetimeAccess"
+                                checked={formData.lifetimeAccess}
+                                onChange={(e) => setFormData({ ...formData, lifetimeAccess: e.target.checked })}
+                                className="rounded"
+                              />
+                              <label htmlFor="lifetimeAccess" className="text-sm font-medium text-gray-700">
+                                Lifetime Access
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="mobileAccess"
+                                checked={formData.mobileAccess}
+                                onChange={(e) => setFormData({ ...formData, mobileAccess: e.target.checked })}
+                                className="rounded"
+                              />
+                              <label htmlFor="mobileAccess" className="text-sm font-medium text-gray-700">
+                                Mobile Access
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="downloadableContent"
+                                checked={formData.downloadableContent}
+                                onChange={(e) => setFormData({ ...formData, downloadableContent: e.target.checked })}
+                                className="rounded"
+                              />
+                              <label htmlFor="downloadableContent" className="text-sm font-medium text-gray-700">
+                                Downloadable Content
+                              </label>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Support Level
+                            </label>
+                            <Select
+                              value={formData.supportLevel}
+                              onValueChange={(value) => setFormData({ ...formData, supportLevel: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="basic">Basic Support</SelectItem>
+                                <SelectItem value="standard">Standard Support</SelectItem>
+                                <SelectItem value="premium">Premium Support</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {formData.courseType === 'live' && (
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-4">Live Course Settings</h3>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Maximum Students
+                              </label>
+                              <Input
+                                type="number"
+                                value={formData.maxStudents}
+                                onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
+                                placeholder="50"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Timezone
+                              </label>
+                              <Select
+                                value={formData.timezone}
+                                onValueChange={(value) => setFormData({ ...formData, timezone: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Asia/Calcutta">Asia/Calcutta (IST)</SelectItem>
+                                  <SelectItem value="UTC">UTC</SelectItem>
+                                  <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="settings" className="space-y-4 mt-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Frequently Asked Questions
+                      </label>
+                      {formData.faq.map((faqItem, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-sm font-medium">FAQ {index + 1}</h4>
+                            {formData.faq.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newFaq = formData.faq.filter((_, i) => i !== index);
+                                  setFormData({ ...formData, faq: newFaq });
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          <Input
+                            value={faqItem.question}
+                            onChange={(e) => {
+                              const newFaq = [...formData.faq];
+                              newFaq[index].question = e.target.value;
+                              setFormData({ ...formData, faq: newFaq });
+                            }}
+                            placeholder="Question"
+                          />
+                          <Textarea
+                            value={faqItem.answer}
+                            onChange={(e) => {
+                              const newFaq = [...formData.faq];
+                              newFaq[index].answer = e.target.value;
+                              setFormData({ ...formData, faq: newFaq });
+                            }}
+                            placeholder="Answer"
+                            rows={3}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            faq: [...formData.faq, { question: "", answer: "" }]
+                          });
+                        }}
+                      >
+                        Add FAQ
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <div className="flex justify-end space-x-2 pt-6 border-t">
                   <Button
                     type="button"
                     variant="outline"
