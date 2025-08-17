@@ -16,7 +16,7 @@ import { Star, Clock, Users, Calendar, MapPin, ArrowLeft, Video, BookOpen, Award
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Expert, User, Consultation, LiveSession, Ebook } from "@shared/schema";
+import type { Expert, User, Consultation, LiveSession, Ebook, Course } from "@shared/schema";
 
 export default function ExpertProfile() {
   const [, params] = useRoute("/experts/:id");
@@ -72,6 +72,13 @@ export default function ExpertProfile() {
   });
 
   const expertEbooks = allEbooks.filter((ebook) => ebook.authorId === expertId);
+
+  // Fetch expert's courses
+  const { data: allCourses = [] } = useQuery<Course[]>({
+    queryKey: ["/api/courses"],
+  });
+
+  const expertCourses = allCourses.filter((course) => course.expertId === expertId);
 
   const expertConsultations = consultations.filter((c: any) => c.expertId === expertId);
 
@@ -863,13 +870,100 @@ export default function ExpertProfile() {
           </TabsContent>
 
           <TabsContent value="courses" className="space-y-6">
-            <Card>
-              <CardContent className="p-12 text-center">
-                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Courses Coming Soon</h3>
-                <p className="text-gray-600">This expert's courses will be available here soon.</p>
-              </CardContent>
-            </Card>
+            {expertCourses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {expertCourses.map((course) => (
+                  <Link key={course.id} href={`/courses/${course.id}`}>
+                    <Card className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                      <CardHeader className="p-0">
+                        {course.thumbnail ? (
+                          <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
+                            <img 
+                              src={course.thumbnail} 
+                              alt={course.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        ) : (
+                          <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
+                            <Video className="h-16 w-16 text-blue-400" />
+                          </div>
+                        )}
+                      </CardHeader>
+                      
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          {/* Level Badge */}
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary" className="text-xs">
+                              {course.level.toUpperCase()}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {course.category}
+                            </Badge>
+                          </div>
+
+                          {/* Title */}
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                              {course.title}
+                            </h3>
+                          </div>
+
+                          {/* Description */}
+                          <CardDescription className="line-clamp-3">
+                            {course.shortDescription || course.description}
+                          </CardDescription>
+
+                          {/* Course Info */}
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center">
+                                <Clock className="h-4 w-4 mr-1" />
+                                <span>{course.duration}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Users className="h-4 w-4 mr-1" />
+                                <span>{course.studentsCount || 0}</span>
+                              </div>
+                              {course.totalLectures && (
+                                <div className="flex items-center">
+                                  <Video className="h-4 w-4 mr-1" />
+                                  <span>{course.totalLectures} lectures</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Rating and Price */}
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center space-x-2">
+                              {course.rating && Number(course.rating) > 0 && (
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                                  <span className="text-sm">{Number(course.rating).toFixed(1)}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-lg font-bold text-primary">
+                              {course.price === "0" ? "FREE" : `₹${course.price}`}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Courses Available</h3>
+                  <p className="text-gray-600">This expert hasn't created any courses yet.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="ebooks" className="space-y-6">
