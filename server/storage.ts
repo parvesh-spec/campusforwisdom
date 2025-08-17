@@ -264,6 +264,8 @@ export class DatabaseStorage implements IStorage {
         thumbnail: insertCourse.thumbnail || null,
         studentsCount: 0,
         isActive: true,
+        isDraft: true,
+        lastUpdated: new Date(),
       })
       .returning();
     return course;

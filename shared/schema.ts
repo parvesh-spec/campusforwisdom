@@ -38,7 +38,50 @@ export const courses = pgTable("courses", {
   studentsCount: integer("students_count").default(0),
   thumbnail: text("thumbnail"),
   category: text("category").notNull(), // AI Software Development, AI Video Creation, etc.
+  
+  // Course Type and Format
+  courseType: text("course_type").notNull().default("recorded"), // recorded, live, hybrid
+  format: text("format").default("video"), // video, text, mixed, interactive
+  
+  // Detailed Course Information
+  whatYouWillLearn: text("what_you_will_learn").array().default([]), // Learning outcomes
+  courseRequirements: text("course_requirements"), // Prerequisites
+  targetAudience: text("target_audience"), // Who this course is for
+  courseCurriculum: jsonb("course_curriculum").default(sql`'[]'::jsonb`), // Detailed curriculum structure
+  
+  // Course Content
+  totalLectures: integer("total_lectures").default(0),
+  totalDuration: text("total_duration"), // e.g., "25 hours on-demand video"
+  resources: text("resources").array().default([]), // Downloadable resources
+  assignments: integer("assignments").default(0),
+  quizzes: integer("quizzes").default(0),
+  projects: integer("projects").default(0),
+  
+  // Access and Completion
+  lifetime_access: boolean("lifetime_access").default(true),
+  mobileAccess: boolean("mobile_access").default(true),
+  certificateOfCompletion: boolean("certificate_of_completion").default(true),
+  downloadableContent: boolean("downloadable_content").default(false),
+  
+  // Live Course Specific
+  liveSchedule: jsonb("live_schedule").default(sql`'[]'::jsonb`), // For live courses
+  maxStudents: integer("max_students"), // Maximum enrollment for live courses
+  timezone: text("timezone").default("Asia/Calcutta"),
+  
+  // Additional Details
+  language: text("language").default("Hindi"),
+  tags: text("tags").array().default([]),
+  faq: jsonb("faq").default(sql`'[]'::jsonb`), // FAQ as JSON array
+  
+  // Instructor and Support
+  supportLevel: text("support_level").default("standard"), // basic, standard, premium
+  
+  // Status and Publishing
   isActive: boolean("is_active").default(true),
+  isDraft: boolean("is_draft").default(true),
+  publishedAt: timestamp("published_at"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  
   instructorId: varchar("instructor_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -222,6 +265,8 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
   createdAt: true,
   rating: true,
   studentsCount: true,
+  publishedAt: true,
+  lastUpdated: true,
 });
 
 export const insertWebinarSchema = createInsertSchema(webinars).omit({
