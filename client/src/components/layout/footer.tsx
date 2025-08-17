@@ -64,13 +64,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">Help Center</a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">Live Chat</a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">Community</a>
+                <Link href="/about">
+                  <a className="hover:text-white transition-colors">About</a>
+                </Link>
               </li>
             </ul>
           </div>
