@@ -1755,7 +1755,7 @@ export default function CourseManagement() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="settings" className="space-y-4 mt-6">
+                  <TabsContent value="settings" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-4">
                         Frequently Asked Questions
