@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 // Public pages
 import Home from "@/pages/home";
 import Courses from "@/pages/courses";
+import CourseDetail from "@/pages/course-detail";
 import LiveSessions from "@/pages/live-sessions";
 import WebinarDetail from "@/pages/webinar-detail";
 import AIExperts from "@/pages/ai-experts";
@@ -76,6 +77,11 @@ function Router() {
       <Route path="/courses">
         <PublicLayout>
           <Courses />
+        </PublicLayout>
+      </Route>
+      <Route path="/course/:courseId">
+        <PublicLayout>
+          <CourseDetail />
         </PublicLayout>
       </Route>
       <Route path="/live-sessions">
