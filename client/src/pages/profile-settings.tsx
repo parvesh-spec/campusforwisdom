@@ -52,6 +52,12 @@ export default function ProfileSettings() {
     enabled: isAuthenticated,
   });
 
+  // Get user transactions
+  const { data: transactions, isLoading: transactionsLoading } = useQuery<any>({
+    queryKey: ['/api/student/transactions'],
+    enabled: isAuthenticated,
+  });
+
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -706,11 +712,6 @@ export default function ProfileSettings() {
   );
 
   const renderBillingSection = () => {
-    const { data: transactions, isLoading: transactionsLoading } = useQuery({
-      queryKey: ['/api/student/transactions'],
-      enabled: isAuthenticated,
-    });
-
     const getTransactionIcon = (type: string) => {
       switch (type) {
         case 'course_enrollment':
