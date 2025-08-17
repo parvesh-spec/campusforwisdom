@@ -1561,6 +1561,42 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  async calculateExpertAverageRating(expertId: string): Promise<number> {
+    try {
+      // Get consultation-based ratings
+      const consultationRatings = await db
+        .select({ rating: consultations.rating })
+        .from(consultations)
+        .where(
+          and(
+            eq(consultations.expertId, expertId),
+            eq(consultations.status, "completed"),
+            isNotNull(consultations.rating)
+          )
+        );
+
+      // Get direct review ratings
+      const directReviews = await this.getDirectReviewsForExpert(expertId);
+      const directRatings = directReviews.map(review => ({ rating: review.rating }));
+
+      // Combine all ratings
+      const allRatings = [
+        ...consultationRatings,
+        ...directRatings
+      ].filter(r => r.rating !== null && r.rating !== undefined);
+
+      if (allRatings.length === 0) {
+        return 0;
+      }
+
+      const sum = allRatings.reduce((total, r) => total + (r.rating || 0), 0);
+      return sum / allRatings.length;
+    } catch (error) {
+      console.error("Error calculating expert average rating:", error);
+      return 0;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
