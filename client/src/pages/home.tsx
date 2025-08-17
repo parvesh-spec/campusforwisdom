@@ -72,7 +72,7 @@ export default function Home() {
 
   // Get featured items (2 each)
   const featuredCourses = courses?.filter(c => (c as any).isFeatured).slice(0, 2) || [];
-  const featuredSessions = liveSessions?.filter(s => s.status === "scheduled" || s.status === "live").slice(0, 2) || [];
+  const featuredWebinars = liveSessions?.filter(s => (s as any).isFeatured && (s.status === "scheduled" || s.status === "live")).slice(0, 2) || [];
   const featuredExperts = experts?.slice(0, 2) || [];
   const featuredEbooks = ebooks?.filter(e => e.isFeatured).slice(0, 2) || [];
 
@@ -417,7 +417,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredSessions.map((session) => {
+            {featuredWebinars.map((session) => {
               const isLive = session.status === "live";
               const isScheduled = session.status === "scheduled";
               const sessionData = session as any;

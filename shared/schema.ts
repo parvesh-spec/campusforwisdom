@@ -123,6 +123,8 @@ export const webinars = pgTable("webinars", {
   participants: text("participants").array().default([]), // Array of participant emails
   // Legacy field for backward compatibility
   meetingUrl: text("meeting_url"),
+  // Featured status
+  isFeatured: boolean("is_featured").default(false),
   instructorId: varchar("instructor_id").references(() => users.id),
   courseId: varchar("course_id").references(() => courses.id),
   expertId: varchar("expert_id").references(() => experts.id),

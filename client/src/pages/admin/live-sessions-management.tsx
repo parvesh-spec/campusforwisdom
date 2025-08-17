@@ -42,7 +42,8 @@ export default function WebinarManagement() {
     price: "499",
     timezone: "Asia/Calcutta",
     participantEmails: "",
-    expertId: undefined as string | undefined
+    expertId: undefined as string | undefined,
+    isFeatured: false
   });
   const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -229,7 +230,8 @@ export default function WebinarManagement() {
       price: "499",
       timezone: "Asia/Calcutta",
       participantEmails: "",
-      expertId: undefined
+      expertId: undefined,
+      isFeatured: false
     });
   };
 
@@ -263,7 +265,8 @@ export default function WebinarManagement() {
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
       timezone: formData.timezone,
       participants,
-      expertId: formData.expertId === "none" ? undefined : formData.expertId
+      expertId: formData.expertId === "none" ? undefined : formData.expertId,
+      isFeatured: formData.isFeatured
     };
 
     if (editingSession) {
@@ -296,7 +299,8 @@ export default function WebinarManagement() {
       price: session.price?.toString() || "499",
       timezone: session.timezone || "Asia/Calcutta",
       participantEmails: (session.participants || []).join(', '),
-      expertId: session.expertId || undefined
+      expertId: session.expertId || undefined,
+      isFeatured: (session as any).isFeatured || false
     });
   };
 
@@ -671,6 +675,49 @@ export default function WebinarManagement() {
                   </TabsContent>
 
                   <TabsContent value="settings" className="space-y-4 mt-6">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Webinar Settings</h3>
+                      
+                      {/* Featured Webinar Toggle */}
+                      <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg mb-6">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const currentFeaturedCount = sessions?.filter(s => (s as any).isFeatured).length || 0;
+                                if (currentFeaturedCount >= 2) {
+                                  toast({
+                                    title: "Featured Limit Reached",
+                                    description: "Maximum 2 webinars can be featured at once. Please unfeatured another webinar first.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                              }
+                              setFormData({ ...formData, isFeatured: e.target.checked });
+                            }}
+                            className="rounded"
+                          />
+                          <div className="space-y-1">
+                            <label htmlFor="isFeatured" className="text-sm font-medium text-gray-700">
+                              Featured Webinar (Max 2)
+                            </label>
+                            <p className="text-xs text-gray-500">
+                              Featured webinars appear on home page ({sessions?.filter(s => (s as any).isFeatured).length || 0}/2 used)
+                            </p>
+                          </div>
+                        </div>
+                        {formData.isFeatured && (
+                          <Badge className="bg-yellow-100 text-yellow-700">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1355,6 +1402,49 @@ export default function WebinarManagement() {
                   </TabsContent>
 
                   <TabsContent value="settings" className="space-y-4 mt-6">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Webinar Settings</h3>
+                      
+                      {/* Featured Webinar Toggle */}
+                      <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg mb-6">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="editFeatured"
+                            checked={formData.isFeatured}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const currentFeaturedCount = sessions?.filter(s => (s as any).isFeatured && s.id !== editingSession?.id).length || 0;
+                                if (currentFeaturedCount >= 2) {
+                                  toast({
+                                    title: "Featured Limit Reached",
+                                    description: "Maximum 2 webinars can be featured at once. Please unfeatured another webinar first.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                              }
+                              setFormData({ ...formData, isFeatured: e.target.checked });
+                            }}
+                            className="rounded"
+                          />
+                          <div className="space-y-1">
+                            <label htmlFor="editFeatured" className="text-sm font-medium text-gray-700">
+                              Featured Webinar (Max 2)
+                            </label>
+                            <p className="text-xs text-gray-500">
+                              Featured webinars appear on home page ({sessions?.filter(s => (s as any).isFeatured && s.id !== editingSession?.id).length || 0}/2 used)
+                            </p>
+                          </div>
+                        </div>
+                        {formData.isFeatured && (
+                          <Badge className="bg-yellow-100 text-yellow-700">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
