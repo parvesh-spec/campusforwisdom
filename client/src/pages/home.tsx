@@ -814,14 +814,18 @@ export default function Home() {
                   Start your journey today with our comprehensive courses and expert guidance.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 font-semibold">
-                    <Play className="mr-2 h-5 w-5" />
-                    Start Learning Today
-                  </Button>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                    <MessageSquare className="mr-2 h-5 w-5" />
-                    Talk to Expert
-                  </Button>
+                  <Link href="/ebooks">
+                    <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 font-semibold">
+                      <BookOpen className="mr-2 h-5 w-5" />
+                      Download eBooks
+                    </Button>
+                  </Link>
+                  <Link href="/live-sessions">
+                    <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                      <Video className="mr-2 h-5 w-5" />
+                      Join Live Sessions
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
