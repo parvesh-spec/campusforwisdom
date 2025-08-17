@@ -664,7 +664,7 @@ export default function Home() {
                               </Badge>
                               <div className="flex items-center text-yellow-300">
                                 <Star className="h-4 w-4 fill-current" />
-                                <span className="text-sm ml-1 font-medium">{expert.rating}</span>
+                                <span className="text-sm ml-1 font-medium">{expertData.rating || "0.0"}</span>
                               </div>
                             </div>
                             <p className="text-white/90 text-sm">
@@ -699,18 +699,30 @@ export default function Home() {
                         )}
 
                         {/* Stats */}
-                        <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="grid grid-cols-4 gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
                           <div className="text-center">
-                            <div className="text-lg font-bold text-gray-900">
+                            <div className="text-sm font-bold text-gray-900">
                               {expertData.hourlyRate ? `₹${expertData.hourlyRate}/hr` : 'Free'}
                             </div>
                             <div className="text-xs text-gray-500">Consultation</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-lg font-bold text-gray-900">
+                            <div className="text-sm font-bold text-gray-900">
                               {expertData.totalSessions || 0}
                             </div>
                             <div className="text-xs text-gray-500">Sessions</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-bold text-gray-900">
+                              {expertData.totalCourses || 0}
+                            </div>
+                            <div className="text-xs text-gray-500">Courses</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-bold text-gray-900">
+                              {expertData.totalEbooks || 0}
+                            </div>
+                            <div className="text-xs text-gray-500">Ebooks</div>
                           </div>
                         </div>
 

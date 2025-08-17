@@ -879,7 +879,28 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(experts.isFeatured, true), eq(experts.isActive, true)))
       .limit(2)
       .orderBy(desc(experts.createdAt));
-    return featuredExperts;
+    
+    // Calculate additional stats for each expert
+    const expertsWithStats = await Promise.all(
+      featuredExperts.map(async (expert) => {
+        const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
+        const expertCourses = await db.select().from(courses).where(eq(courses.expertId, expert.id));
+        const expertEbooks = await db.select().from(ebooks).where(eq(ebooks.authorId, expert.id));
+        
+        // Calculate average rating from both consultation-based and direct reviews
+        const averageRating = await this.calculateExpertAverageRating(expert.id);
+        
+        return {
+          ...expert,
+          totalSessions: sessions.length,
+          totalCourses: expertCourses.length,
+          totalEbooks: expertEbooks.length,
+          rating: averageRating > 0 ? averageRating.toFixed(1) : "0.0"
+        };
+      })
+    );
+    
+    return expertsWithStats;
   }
 
   // Consultation methods
