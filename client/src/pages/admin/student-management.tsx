@@ -7,14 +7,46 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, Users, GraduationCap, TrendingUp, Mail, Eye, UserCheck } from "lucide-react";
-import type { User, Enrollment, Course } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Search, Filter, Users, GraduationCap, TrendingUp, Mail, Eye, UserCheck, Plus, Phone, MapPin, Calendar, BookOpen, Video, MessageSquare, Download } from "lucide-react";
+import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import type { User, Enrollment, Course, insertUserSchema, WebinarAttendee, Consultation, UserEbookDownload } from "@shared/schema";
+import { z } from "zod";
+
+// Registration form schema
+const registrationSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  dateOfBirth: z.string().optional(),
+  gender: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().default("India"),
+  occupation: z.string().optional(),
+  education: z.string().optional(),
+  experience: z.string().optional(),
+});
+
+type RegistrationForm = z.infer<typeof registrationSchema>;
 
 interface StudentWithStats extends User {
   enrollmentCount: number;
   completedCourses: number;
   totalProgress: number;
+  webinarAttendeeCount: number;
+  consultationCount: number;
+  ebookDownloadCount: number;
 }
 
 interface EnrollmentWithCourse extends Enrollment {
@@ -22,10 +54,36 @@ interface EnrollmentWithCourse extends Enrollment {
   student: User;
 }
 
+interface StudentDetailData {
+  student: User;
+  enrollments: EnrollmentWithCourse[];
+  webinarAttendees: WebinarAttendee[];
+  consultations: Consultation[];
+  ebookDownloads: UserEbookDownload[];
+  stats: {
+    totalEnrollments: number;
+    completedCourses: number;
+    avgProgress: number;
+    totalWebinars: number;
+    totalConsultations: number;
+    totalDownloads: number;
+  };
+}
+
 export default function StudentManagement() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
+
+  // Registration form
+  const form = useForm<RegistrationForm>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      country: "India",
+    },
+  });
 
   const { data: students, isLoading: studentsLoading } = useQuery<StudentWithStats[]>({
     queryKey: ["/api/admin/students"],
@@ -44,16 +102,45 @@ export default function StudentManagement() {
     queryKey: ["/api/admin/student-stats"],
   });
 
+  // Registration mutation
+  const registerStudentMutation = useMutation({
+    mutationFn: async (data: RegistrationForm) => {
+      return await apiRequest("POST", "/api/admin/students/register", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Student registered successfully",
+      });
+      setShowRegistrationDialog(false);
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/students"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/student-stats"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Failed to register student",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredStudents = students?.filter((student) => {
     const matchesSearch = 
       student.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.username.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "all" || student.role === roleFilter;
     return matchesSearch && matchesRole;
   }) || [];
 
   const recentEnrollments = enrollments?.slice(0, 10) || [];
+
+  const handleRegistration = async (data: RegistrationForm) => {
+    registerStudentMutation.mutate(data);
+  };
 
   return (
     <div>
@@ -69,10 +156,259 @@ export default function StudentManagement() {
               <Mail className="h-4 w-4 mr-2" />
               Send Email
             </Button>
-            <Button className="bg-primary text-white hover:bg-primary/90">
-              <UserCheck className="h-4 w-4 mr-2" />
-              Add Student
-            </Button>
+            <Dialog open={showRegistrationDialog} onOpenChange={setShowRegistrationDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-white hover:bg-primary/90">
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Add Student
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Register New Student</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleRegistration)} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter first name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter last name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Username</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="Enter email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter phone number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Enter password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>City</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter city" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>State</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter state" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Enter full address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="occupation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Occupation</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter occupation" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="education"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Education</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter education level" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="experience"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Experience Level</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select experience level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="beginner">Beginner</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end space-x-4 pt-4">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowRegistrationDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={registerStudentMutation.isPending}
+                        className="bg-primary text-white hover:bg-primary/90"
+                      >
+                        {registerStudentMutation.isPending ? "Registering..." : "Register Student"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </header>
@@ -212,9 +548,12 @@ export default function StudentManagement() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <Link href={`/admin/students/${student.id}`}>
+                              <Button size="sm" variant="ghost" className="hover:bg-primary/10">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View Details
+                              </Button>
+                            </Link>
                           </TableCell>
                         </TableRow>
                       ))}

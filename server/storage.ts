@@ -501,6 +501,149 @@ export class DatabaseStorage implements IStorage {
     return newEnrollment;
   }
 
+  // Student management methods
+  async getAllStudentsWithStats(): Promise<any[]> {
+    const allUsers = await db.select().from(users).where(eq(users.role, "student"));
+    
+    const studentsWithStats = await Promise.all(
+      allUsers.map(async (user) => {
+        // Get enrollment count and progress
+        const userEnrollments = await db
+          .select()
+          .from(enrollments)
+          .where(eq(enrollments.studentId, user.id));
+
+        const completedCourses = userEnrollments.filter(e => e.completed).length;
+        const totalProgress = userEnrollments.length > 0 
+          ? Math.round(userEnrollments.reduce((sum, e) => sum + (e.progress || 0), 0) / userEnrollments.length)
+          : 0;
+
+        // Get webinar attendee count
+        const webinarAttendeeCount = await db
+          .select()
+          .from(webinarAttendees)
+          .where(eq(webinarAttendees.participantId, user.id));
+
+        // Get consultation count
+        const consultationCount = await db
+          .select()
+          .from(consultations)
+          .where(eq(consultations.studentId, user.id));
+
+        // Get ebook download count
+        const ebookDownloadCount = await db
+          .select()
+          .from(userEbookDownloads)
+          .where(eq(userEbookDownloads.userId, user.id));
+
+        return {
+          ...user,
+          enrollmentCount: userEnrollments.length,
+          completedCourses,
+          totalProgress,
+          webinarAttendeeCount: webinarAttendeeCount.length,
+          consultationCount: consultationCount.length,
+          ebookDownloadCount: ebookDownloadCount.length,
+        };
+      })
+    );
+
+    return studentsWithStats;
+  }
+
+  async getStudentDetailById(studentId: string): Promise<any | null> {
+    const student = await db.select().from(users).where(eq(users.id, studentId)).limit(1);
+    if (student.length === 0) return null;
+
+    const user = student[0];
+
+    // Get enrollments with course details
+    const enrollmentResults = await db
+      .select({
+        enrollment: enrollments,
+        course: courses,
+      })
+      .from(enrollments)
+      .innerJoin(courses, eq(enrollments.courseId, courses.id))
+      .where(eq(enrollments.studentId, studentId))
+      .orderBy(desc(enrollments.enrolledAt));
+
+    const enrollments_data = enrollmentResults.map(row => ({
+      ...row.enrollment,
+      course: row.course,
+    }));
+
+    // Get webinar attendees with webinar details
+    const webinarResults = await db
+      .select({
+        attendee: webinarAttendees,
+        webinar: webinars,
+      })
+      .from(webinarAttendees)
+      .innerJoin(webinars, eq(webinarAttendees.webinarId, webinars.id))
+      .where(eq(webinarAttendees.participantId, studentId))
+      .orderBy(desc(webinars.scheduledAt));
+
+    const webinarAttendees_data = webinarResults.map(row => ({
+      ...row.attendee,
+      webinar: row.webinar,
+    }));
+
+    // Get consultations with expert details
+    const consultationResults = await db
+      .select({
+        consultation: consultations,
+        expert: experts,
+      })
+      .from(consultations)
+      .innerJoin(experts, eq(consultations.expertId, experts.id))
+      .where(eq(consultations.studentId, studentId))
+      .orderBy(desc(consultations.scheduledAt));
+
+    const consultations_data = consultationResults.map(row => ({
+      ...row.consultation,
+      expert: row.expert,
+    }));
+
+    // Get ebook downloads with ebook details
+    const ebookResults = await db
+      .select({
+        download: userEbookDownloads,
+        ebook: ebooks,
+      })
+      .from(userEbookDownloads)
+      .innerJoin(ebooks, eq(userEbookDownloads.ebookId, ebooks.id))
+      .where(eq(userEbookDownloads.userId, studentId))
+      .orderBy(desc(userEbookDownloads.downloadedAt));
+
+    const ebookDownloads_data = ebookResults.map(row => ({
+      ...row.download,
+      ebook: row.ebook,
+    }));
+
+    // Calculate stats
+    const completedCourses = enrollments_data.filter(e => e.completed).length;
+    const avgProgress = enrollments_data.length > 0 
+      ? Math.round(enrollments_data.reduce((sum, e) => sum + (e.progress || 0), 0) / enrollments_data.length)
+      : 0;
+
+    return {
+      student: user,
+      enrollments: enrollments_data,
+      webinarAttendees: webinarAttendees_data,
+      consultations: consultations_data,
+      ebookDownloads: ebookDownloads_data,
+      stats: {
+        totalEnrollments: enrollments_data.length,
+        completedCourses,
+        avgProgress,
+        totalWebinars: webinarAttendees_data.length,
+        totalConsultations: consultations_data.length,
+        totalDownloads: ebookDownloads_data.length,
+      },
+    };
+  }
+
   // Basic stats methods
   async getStats(): Promise<{ totalStudents: number; totalCourses: number; averageRating: number }> {
     const studentCount = await db.select().from(users).where(eq(users.role, "student"));

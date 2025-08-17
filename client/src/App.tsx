@@ -24,6 +24,7 @@ import ProfileSettings from "@/pages/profile-settings";
 import AdminDashboard from "./pages/admin/dashboard";
 import CourseManagement from "./pages/admin/course-management";
 import StudentManagement from "./pages/admin/student-management";
+import StudentDetail from "./pages/admin/student-detail";
 import LiveSessionsManagement from "./pages/admin/live-sessions-management";
 import AIExpertsManagement from "./pages/admin/ai-experts-management";
 import ConsultationsManagement from "./pages/admin/consultations-management";
@@ -139,6 +140,11 @@ function Router() {
       <Route path="/admin/students">
         <AdminLayout>
           <StudentManagement />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/students/:id">
+        <AdminLayout>
+          <StudentDetail />
         </AdminLayout>
       </Route>
       <Route path="/admin/live-sessions">

@@ -596,10 +596,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Student Management (simplified)
   app.get("/api/admin/students", requireAdmin, async (req, res) => {
     try {
-      // Return empty array for now - would implement proper user listing
-      res.json([]);
+      const students = await storage.getAllStudentsWithStats();
+      res.json(students);
     } catch (error) {
       console.error("Error fetching students:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get individual student detail with comprehensive data
+  app.get("/api/admin/students/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const studentDetail = await storage.getStudentDetailById(id);
+      
+      if (!studentDetail) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+      
+      res.json(studentDetail);
+    } catch (error) {
+      console.error("Error fetching student detail:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Manual student registration by admin
+  app.post("/api/admin/students/register", requireAdmin, async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "User with this email already exists" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(userData.username);
+      if (existingUsername) {
+        return res.status(400).json({ error: "Username already taken" });
+      }
+
+      // Set role as student by default
+      const newUserData = {
+        ...userData,
+        role: "student" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const newUser = await storage.createUser(newUserData);
+      
+      res.json({ 
+        message: "Student registered successfully",
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+        }
+      });
+    } catch (error) {
+      console.error("Manual registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+
+  // Student stats for admin dashboard
+  app.get("/api/admin/student-stats", requireAdmin, async (req, res) => {
+    try {
+      const students = await storage.getAllStudentsWithStats();
+      const activeStudents = students.filter(s => s.enrollmentCount > 0).length;
+      const totalProgress = students.reduce((sum, s) => sum + s.totalProgress, 0);
+      const avgProgress = students.length > 0 ? Math.round(totalProgress / students.length) : 0;
+      const completedCount = students.reduce((sum, s) => sum + s.completedCourses, 0);
+      const totalEnrollments = students.reduce((sum, s) => sum + s.enrollmentCount, 0);
+      const completionRate = totalEnrollments > 0 ? Math.round((completedCount / totalEnrollments) * 100) : 0;
+
+      res.json({
+        totalStudents: students.length,
+        activeStudents,
+        completionRate,
+        avgProgress,
+      });
+    } catch (error) {
+      console.error("Error fetching student stats:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
