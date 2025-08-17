@@ -47,7 +47,7 @@ export default function ProfileSettings() {
   const [activeSection, setActiveSection] = React.useState('profile');
 
   // Get current user data
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading } = useQuery<any>({
     queryKey: ['/api/auth/student'],
     enabled: isAuthenticated,
   });
