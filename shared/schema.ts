@@ -83,6 +83,7 @@ export const courses = pgTable("courses", {
   lastUpdated: timestamp("last_updated").defaultNow(),
   
   instructorId: varchar("instructor_id").references(() => users.id),
+  expertId: varchar("expert_id").references(() => experts.id), // AI Expert assigned to this course
   createdAt: timestamp("created_at").defaultNow(),
 });
 

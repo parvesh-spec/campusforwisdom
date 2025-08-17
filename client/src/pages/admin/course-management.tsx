@@ -29,6 +29,7 @@ export default function CourseManagement() {
     category: "",
     thumbnail: "",
     instructorId: "",
+    expertId: "",
     
     // Course Type and Format
     courseType: "recorded",
@@ -126,6 +127,7 @@ export default function CourseManagement() {
       category: "",
       thumbnail: "",
       instructorId: "",
+      expertId: "",
       
       // Course Type and Format
       courseType: "recorded",
@@ -180,6 +182,7 @@ export default function CourseManagement() {
       category: formData.category,
       thumbnail: formData.thumbnail,
       instructorId: formData.instructorId || undefined,
+      expertId: formData.expertId || undefined,
       
       // Course Type and Format
       courseType: formData.courseType,
@@ -242,6 +245,7 @@ export default function CourseManagement() {
       category: course.category,
       thumbnail: course.thumbnail || "",
       instructorId: course.instructorId || "",
+      expertId: (course as any).expertId || "",
       
       // Course Type and Format
       courseType: (course as any).courseType || "recorded",
@@ -501,8 +505,8 @@ export default function CourseManagement() {
                         Assign AI Expert (Instructor)
                       </label>
                       <Select
-                        value={formData.instructorId}
-                        onValueChange={(value) => setFormData({ ...formData, instructorId: value })}
+                        value={formData.expertId}
+                        onValueChange={(value) => setFormData({ ...formData, expertId: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select an AI expert for this course" />
