@@ -970,88 +970,80 @@ export default function ExpertProfile() {
             {expertEbooks.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {expertEbooks.map((ebook) => (
-                  <Card key={ebook.id} className="group hover:shadow-lg transition-shadow duration-300">
-                    <CardHeader className="p-0">
-                      {ebook.coverImage ? (
-                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
-                          <img 
-                            src={ebook.coverImage} 
-                            alt={ebook.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      ) : (
-                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
-                          <BookOpen className="h-16 w-16 text-blue-400" />
-                        </div>
-                      )}
-                    </CardHeader>
-                    
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {/* Title and Category */}
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {ebook.title}
-                          </h3>
-                          <Badge variant="secondary" className="mb-2">
-                            {ebook.category}
-                          </Badge>
-                        </div>
+                  <Link key={ebook.id} href={`/ebooks/${ebook.id}`}>
+                    <Card className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                      <CardHeader className="p-0">
+                        {ebook.coverImage ? (
+                          <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
+                            <img 
+                              src={ebook.coverImage} 
+                              alt={ebook.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        ) : (
+                          <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg flex items-center justify-center">
+                            <BookOpen className="h-16 w-16 text-blue-400" />
+                          </div>
+                        )}
+                      </CardHeader>
+                      
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          {/* Title and Category */}
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                              {ebook.title}
+                            </h3>
+                            <Badge variant="secondary" className="mb-2">
+                              {ebook.category}
+                            </Badge>
+                          </div>
 
-                        {/* Description */}
-                        <CardDescription className="line-clamp-3">
-                          {ebook.shortDescription || ebook.summary}
-                        </CardDescription>
+                          {/* Description */}
+                          <CardDescription className="line-clamp-3">
+                            {ebook.shortDescription || ebook.summary}
+                          </CardDescription>
 
-                        {/* Stats */}
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center space-x-4">
-                            {ebook.rating && Number(ebook.rating) > 0 && (
+                          {/* Stats */}
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center space-x-4">
+                              {ebook.rating && Number(ebook.rating) > 0 && (
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                                  <span>{Number(ebook.rating).toFixed(1)}</span>
+                                </div>
+                              )}
                               <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                                <span>{Number(ebook.rating).toFixed(1)}</span>
+                                <Download className="h-4 w-4 mr-1" />
+                                <span>{ebook.downloadCount || 0}</span>
                               </div>
-                            )}
-                            <div className="flex items-center">
-                              <Download className="h-4 w-4 mr-1" />
-                              <span>{ebook.downloadCount || 0}</span>
+                              {ebook.pageCount && (
+                                <div className="flex items-center">
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  <span>{ebook.pageCount} pages</span>
+                                </div>
+                              )}
                             </div>
-                            {ebook.pageCount && (
-                              <div className="flex items-center">
-                                <FileText className="h-4 w-4 mr-1" />
-                                <span>{ebook.pageCount} pages</span>
-                              </div>
-                            )}
+                            <div className="text-xs">
+                              {ebook.language}
+                            </div>
                           </div>
-                          <div className="text-xs">
-                            {ebook.language}
-                          </div>
-                        </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="text-lg font-bold text-primary">
-                            {ebook.price === "0" ? "FREE" : `₹${ebook.price}`}
-                          </div>
-                          <div className="flex space-x-2">
-                            {ebook.fileUrl && (
-                              <Button size="sm" variant="outline" asChild>
-                                <a href={ebook.fileUrl} target="_blank" rel="noopener noreferrer">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Preview
-                                </a>
-                              </Button>
-                            )}
-                            <Button size="sm">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
+                          {/* Actions */}
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="text-lg font-bold text-primary">
+                              {ebook.price === "0" ? "FREE" : `₹${ebook.price}`}
+                            </div>
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
                             </Button>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             ) : (
