@@ -421,160 +421,286 @@ export default function ProfileSettings() {
       </div>
 
       {/* Mobile Layout */}
-      <div className="lg:hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Account Information - Mobile */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Lock className="h-5 w-5" />
-                Account Info
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Cannot be changed
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Username</Label>
-                <Input value={user?.username || ''} disabled className="bg-gray-100" />
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email
-                </Label>
-                <Input value={user?.email || ''} disabled className="bg-gray-100" />
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  WhatsApp
-                </Label>
-                <Input value={user?.phone || 'Not provided'} disabled className="bg-gray-100" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="lg:hidden space-y-6">
+        {/* Read-only Information - Mobile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Account Information
+            </CardTitle>
+            <CardDescription>
+              This information cannot be changed. Contact support if you need to update these details.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Username</Label>
+              <Input value={user?.username || ''} disabled className="bg-gray-100" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email Address
+              </Label>
+              <Input value={user?.email || ''} disabled className="bg-gray-100" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                WhatsApp Number
+              </Label>
+              <Input value={user?.phone || 'Not provided'} disabled className="bg-gray-100" />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Personal Information - Mobile */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5" />
-                Personal Info
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Update your details
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter first name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter last name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="dateOfBirth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date of Birth</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="gender"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Gender</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select gender" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="male">Male</SelectItem>
-                              <SelectItem value="female">Female</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                              <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="occupation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Occupation</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Software Engineer" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter city" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+        {/* Editable Profile Information - Mobile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Personal Information
+            </CardTitle>
+            <CardDescription>
+              Update your personal details and preferences.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Required Fields */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Required Information</h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your first name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your last name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-                  <div className="pt-4">
-                    <Button 
-                      type="submit" 
-                      disabled={updateProfileMutation.isPending}
-                      className="w-full"
-                    >
-                      {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+              <Separator />
+
+              {/* Personal Details */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Details</h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Date of Birth
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Address Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Address Information
+                </h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter your full address"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter city" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter state" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="India">India</SelectItem>
+                            <SelectItem value="USA">United States</SelectItem>
+                            <SelectItem value="UK">United Kingdom</SelectItem>
+                            <SelectItem value="Canada">Canada</SelectItem>
+                            <SelectItem value="Australia">Australia</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Professional Information */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Professional Information
+                </h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="occupation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Occupation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Software Engineer, Student" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="education"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Education
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Bachelor's in Computer Science" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="experience"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Experience</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Tell us about your work experience, skills, or interests in AI/technology"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={updateProfileMutation.isPending}
+                  className="w-full"
+                >
+                  {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
