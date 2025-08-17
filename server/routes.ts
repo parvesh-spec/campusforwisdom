@@ -593,6 +593,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/admin/courses/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const courseData = insertCourseSchema.partial().parse(req.body);
+      const course = await storage.updateCourse(id, courseData);
+      
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      
+      res.json(course);
+    } catch (error) {
+      console.error("Error updating course:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid course data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/admin/courses/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteCourse(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      
+      res.json({ message: "Course deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Student Management (simplified)
   app.get("/api/admin/students", requireAdmin, async (req, res) => {
     try {

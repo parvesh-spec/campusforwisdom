@@ -200,6 +200,7 @@ export default function CourseManagement() {
       
       // Course Content
       totalLectures: "0",
+      totalProjects: "0",
       totalDuration: "",
       resources: "",
       assignments: "0",
@@ -258,6 +259,7 @@ export default function CourseManagement() {
       
       // Course Content
       totalLectures: parseInt(formData.totalLectures) || 0,
+      totalProjects: parseInt(formData.totalProjects) || 0,
       totalDuration: formData.totalDuration,
       resources: formData.resources.split('\n').filter(resource => resource.trim().length > 0),
       assignments: parseInt(formData.assignments) || 0,
@@ -318,6 +320,7 @@ export default function CourseManagement() {
       
       // Course Content
       totalLectures: ((course as any).totalLectures || 0).toString(),
+      totalProjects: ((course as any).totalProjects || 0).toString(),
       totalDuration: (course as any).totalDuration || "",
       resources: ((course as any).resources || []).join('\n'),
       assignments: ((course as any).assignments || 0).toString(),
@@ -1246,7 +1249,7 @@ export default function CourseManagement() {
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-4 mt-6">
+                  <TabsContent value="basic" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
