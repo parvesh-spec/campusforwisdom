@@ -11,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Courses from "@/pages/courses";
 import LiveSessions from "@/pages/live-sessions";
+import WebinarDetail from "@/pages/webinar-detail";
 import AIExperts from "@/pages/ai-experts";
 import ExpertProfile from "@/pages/expert-profile";
 import EbooksPage from "@/pages/ebooks";
@@ -79,6 +80,11 @@ function Router() {
       <Route path="/live-sessions">
         <PublicLayout>
           <LiveSessions />
+        </PublicLayout>
+      </Route>
+      <Route path="/webinar/:sessionId">
+        <PublicLayout>
+          <WebinarDetail />
         </PublicLayout>
       </Route>
       <Route path="/ai-experts">

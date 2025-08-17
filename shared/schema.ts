@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -47,6 +47,21 @@ export const webinars = pgTable("webinars", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  // New informational fields for professional landing page
+  agenda: text("agenda"), // Detailed agenda
+  keyPoints: text("key_points").array().default([]), // Array of key learning points
+  prerequisites: text("prerequisites"), // Prerequisites for the session
+  targetAudience: text("target_audience"), // Target audience description
+  whatYouWillLearn: text("what_you_will_learn").array().default([]), // Learning outcomes
+  faq: jsonb("faq").default(sql`'[]'::jsonb`), // FAQ as JSON array
+  resources: text("resources").array().default([]), // Additional resources/links
+  speakerBio: text("speaker_bio"), // Speaker biography
+  tags: text("tags").array().default([]), // Tags for categorization
+  difficulty: text("difficulty").default("Beginner"), // Beginner, Intermediate, Advanced
+  language: text("language").default("Hindi"), // Session language
+  category: text("category"), // AI Development, Video Creation, etc.
+  thumbnail: text("thumbnail"), // Webinar thumbnail image
+  // Existing fields
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration_minutes").notNull(), // duration in minutes
   price: varchar("price").default("0"), // Session price

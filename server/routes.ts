@@ -410,6 +410,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual session details
+  app.get("/api/live-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const session = await storage.getLiveSessionById(id);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      // Check if session is booked by current student (if authenticated)
+      const studentUser = (req.session as any)?.studentUser;
+      let isBooked = false;
+      let registrationLink = null;
+
+      if (studentUser?.role === 'student') {
+        const attendee = await storage.getWebinarAttendee(session.id, studentUser.id);
+        isBooked = !!attendee;
+        registrationLink = attendee ? session.registrationLink : undefined;
+      }
+
+      const sessionWithBookingInfo = {
+        ...session,
+        isBooked,
+        registrationLink
+      };
+
+      res.json(sessionWithBookingInfo);
+    } catch (error) {
+      console.error("Error fetching session:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get published testimonials
   app.get("/api/testimonials", async (req, res) => {
     try {

@@ -287,6 +287,11 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(webinars).orderBy(desc(webinars.scheduledAt));
   }
 
+  async getLiveSessionById(id: string): Promise<LiveSession | undefined> {
+    const [session] = await db.select().from(webinars).where(eq(webinars.id, id));
+    return session || undefined;
+  }
+
   async createLiveSession(session: InsertLiveSession): Promise<LiveSession> {
     const [newSession] = await db
       .insert(webinars)

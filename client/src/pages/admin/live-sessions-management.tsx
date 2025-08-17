@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy, X } from "lucide-react";
 import type { LiveSession, Expert } from "@shared/schema";
 
 export default function WebinarManagement() {
@@ -24,6 +25,18 @@ export default function WebinarManagement() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    agenda: "",
+    keyPoints: "",
+    prerequisites: "",
+    targetAudience: "",
+    whatYouWillLearn: "",
+    faq: [{ question: "", answer: "" }],
+    resources: "",
+    speakerBio: "",
+    tags: "",
+    difficulty: "Beginner",
+    language: "Hindi",
+    category: "",
     scheduledAt: "",
     duration: "60",
     price: "499",
@@ -133,6 +146,18 @@ export default function WebinarManagement() {
     setFormData({
       title: "",
       description: "",
+      agenda: "",
+      keyPoints: "",
+      prerequisites: "",
+      targetAudience: "",
+      whatYouWillLearn: "",
+      faq: [{ question: "", answer: "" }],
+      resources: "",
+      speakerBio: "",
+      tags: "",
+      difficulty: "Beginner",
+      language: "Hindi",
+      category: "",
       scheduledAt: "",
       duration: "60",
       price: "499",
@@ -154,6 +179,18 @@ export default function WebinarManagement() {
     const sessionData = {
       title: formData.title,
       description: formData.description,
+      agenda: formData.agenda,
+      keyPoints: formData.keyPoints.split('\n').filter(point => point.trim().length > 0),
+      prerequisites: formData.prerequisites,
+      targetAudience: formData.targetAudience,
+      whatYouWillLearn: formData.whatYouWillLearn.split('\n').filter(item => item.trim().length > 0),
+      faq: formData.faq.filter(item => item.question.trim() && item.answer.trim()),
+      resources: formData.resources.split('\n').filter(resource => resource.trim().length > 0),
+      speakerBio: formData.speakerBio,
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+      difficulty: formData.difficulty,
+      language: formData.language,
+      category: formData.category,
       duration: parseInt(formData.duration),
       price: formData.price, // Keep as string since schema expects varchar
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
@@ -174,6 +211,18 @@ export default function WebinarManagement() {
     setFormData({
       title: session.title,
       description: session.description,
+      agenda: (session as any).agenda || "",
+      keyPoints: ((session as any).keyPoints || []).join('\n'),
+      prerequisites: (session as any).prerequisites || "",
+      targetAudience: (session as any).targetAudience || "",
+      whatYouWillLearn: ((session as any).whatYouWillLearn || []).join('\n'),
+      faq: (session as any).faq || [{ question: "", answer: "" }],
+      resources: ((session as any).resources || []).join('\n'),
+      speakerBio: (session as any).speakerBio || "",
+      tags: ((session as any).tags || []).join(', '),
+      difficulty: (session as any).difficulty || "Beginner",
+      language: (session as any).language || "Hindi",
+      category: (session as any).category || "",
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
       price: session.price?.toString() || "499",
@@ -216,122 +265,364 @@ export default function WebinarManagement() {
                   {editingSession ? "Edit Webinar" : "Create New Webinar"}
                 </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Webinar Topic *
-                    </label>
-                    <Input
-                      required
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="AI Marketing Strategies"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      The main topic or title of your webinar
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      AI Expert
-                    </label>
-                    <Select
-                      value={formData.expertId || "none"}
-                      onValueChange={(value) => setFormData({ ...formData, expertId: value === "none" ? undefined : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select AI Expert" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No expert</SelectItem>
-                        {experts?.map((expert) => (
-                          <SelectItem key={expert.id} value={expert.id}>
-                            {expert.name} - {expert.specialization}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                    <TabsTrigger value="content">Content Details</TabsTrigger>
+                    <TabsTrigger value="faq">FAQ</TabsTrigger>
+                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                  </TabsList>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Webinar Agenda *
-                  </label>
-                  <Textarea
-                    required
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Detailed agenda covering key topics, objectives, and learning outcomes..."
-                    rows={3}
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Provide a comprehensive agenda that participants will see
-                  </p>
-                </div>
+                  <TabsContent value="basic" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Webinar Topic *
+                        </label>
+                        <Input
+                          required
+                          value={formData.title}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          placeholder="AI Marketing Strategies"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          AI Expert
+                        </label>
+                        <Select
+                          value={formData.expertId || "none"}
+                          onValueChange={(value) => setFormData({ ...formData, expertId: value === "none" ? undefined : value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select AI Expert" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No expert</SelectItem>
+                            {experts?.map((expert) => (
+                              <SelectItem key={expert.id} value={expert.id}>
+                                {expert.name} - {expert.specialization}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (minutes) *
-                    </label>
-                    <Input
-                      required
-                      type="number"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      placeholder="60"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Fee (₹) *
-                    </label>
-                    <Input
-                      required
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="499"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Timezone
-                    </label>
-                    <Select
-                      value={formData.timezone}
-                      onValueChange={(value) => setFormData({ ...formData, timezone: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Asia/Calcutta">Asia/Calcutta (IST)</SelectItem>
-                        <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
-                        <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
-                        <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
-                        <SelectItem value="Australia/Sydney">Australia/Sydney (AEST)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description *
+                      </label>
+                      <Textarea
+                        required
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Brief description of the webinar..."
+                        rows={3}
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Scheduled Date & Time *
-                  </label>
-                  <Input
-                    required
-                    type="datetime-local"
-                    value={formData.scheduledAt}
-                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                    className="w-full"
-                  />
-                </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Category
+                        </label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AI Development">AI Development</SelectItem>
+                            <SelectItem value="AI Video Creation">AI Video Creation</SelectItem>
+                            <SelectItem value="AI Presentation Design">AI Presentation Design</SelectItem>
+                            <SelectItem value="Machine Learning">Machine Learning</SelectItem>
+                            <SelectItem value="Data Science">Data Science</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Difficulty Level
+                        </label>
+                        <Select
+                          value={formData.difficulty}
+                          onValueChange={(value) => setFormData({ ...formData, difficulty: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select difficulty" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Beginner">Beginner</SelectItem>
+                            <SelectItem value="Intermediate">Intermediate</SelectItem>
+                            <SelectItem value="Advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Language
+                        </label>
+                        <Select
+                          value={formData.language}
+                          onValueChange={(value) => setFormData({ ...formData, language: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Hindi">Hindi</SelectItem>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Hindi/English">Hindi/English (Mixed)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Tags
+                        </label>
+                        <Input
+                          value={formData.tags}
+                          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                          placeholder="AI, Marketing, Strategy (comma separated)"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="content" className="space-y-4 mt-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Detailed Agenda
+                      </label>
+                      <Textarea
+                        value={formData.agenda}
+                        onChange={(e) => setFormData({ ...formData, agenda: e.target.value })}
+                        placeholder="Detailed session agenda covering key topics, objectives, and timeline..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Key Points (one per line)
+                      </label>
+                      <Textarea
+                        value={formData.keyPoints}
+                        onChange={(e) => setFormData({ ...formData, keyPoints: e.target.value })}
+                        placeholder="Main topics to be covered&#10;Practical applications&#10;Industry examples"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        What You'll Learn (one per line)
+                      </label>
+                      <Textarea
+                        value={formData.whatYouWillLearn}
+                        onChange={(e) => setFormData({ ...formData, whatYouWillLearn: e.target.value })}
+                        placeholder="How to implement AI marketing strategies&#10;Tools and techniques for automation&#10;Best practices and case studies"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Prerequisites
+                        </label>
+                        <Textarea
+                          value={formData.prerequisites}
+                          onChange={(e) => setFormData({ ...formData, prerequisites: e.target.value })}
+                          placeholder="Basic knowledge of marketing, Computer with internet access..."
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Target Audience
+                        </label>
+                        <Textarea
+                          value={formData.targetAudience}
+                          onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                          placeholder="Marketing professionals, Business owners, Students..."
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Resources (one per line)
+                      </label>
+                      <Textarea
+                        value={formData.resources}
+                        onChange={(e) => setFormData({ ...formData, resources: e.target.value })}
+                        placeholder="https://example.com/tool1&#10;https://example.com/guide&#10;https://example.com/templates"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Speaker Bio
+                      </label>
+                      <Textarea
+                        value={formData.speakerBio}
+                        onChange={(e) => setFormData({ ...formData, speakerBio: e.target.value })}
+                        placeholder="Additional information about the speaker/expert for this session..."
+                        rows={3}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="faq" className="space-y-4 mt-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Frequently Asked Questions
+                      </label>
+                      {formData.faq.map((faqItem, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-sm font-medium">FAQ {index + 1}</h4>
+                            {formData.faq.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newFaq = formData.faq.filter((_, i) => i !== index);
+                                  setFormData({ ...formData, faq: newFaq });
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          <Input
+                            placeholder="Question"
+                            value={faqItem.question}
+                            onChange={(e) => {
+                              const newFaq = [...formData.faq];
+                              newFaq[index].question = e.target.value;
+                              setFormData({ ...formData, faq: newFaq });
+                            }}
+                          />
+                          <Textarea
+                            placeholder="Answer"
+                            value={faqItem.answer}
+                            onChange={(e) => {
+                              const newFaq = [...formData.faq];
+                              newFaq[index].answer = e.target.value;
+                              setFormData({ ...formData, faq: newFaq });
+                            }}
+                            rows={2}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            faq: [...formData.faq, { question: "", answer: "" }]
+                          });
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add FAQ
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="settings" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration (minutes) *
+                        </label>
+                        <Input
+                          required
+                          type="number"
+                          value={formData.duration}
+                          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                          placeholder="60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Session Fee (₹) *
+                        </label>
+                        <Input
+                          required
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          placeholder="499"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Timezone
+                        </label>
+                        <Select
+                          value={formData.timezone}
+                          onValueChange={(value) => setFormData({ ...formData, timezone: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Asia/Calcutta">Asia/Calcutta (IST)</SelectItem>
+                            <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
+                            <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
+                            <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                            <SelectItem value="Australia/Sydney">Australia/Sydney (AEST)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Scheduled Date & Time *
+                      </label>
+                      <Input
+                        required
+                        type="datetime-local"
+                        value={formData.scheduledAt}
+                        onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Participant Emails (comma separated)
+                      </label>
+                      <Textarea
+                        value={formData.participantEmails}
+                        onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
+                        placeholder="participant1@example.com, participant2@example.com"
+                        rows={3}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Pre-register specific participants (optional)
+                      </p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <div className="flex justify-end space-x-2 pt-4 border-t">
                   <Button
                     type="button"
                     variant="outline"

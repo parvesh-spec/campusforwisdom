@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Link } from "wouter";
 
 interface SessionCardProps {
   session: LiveSession & { 
@@ -123,21 +124,23 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
   const spotsLeft = (session.maxParticipants || 100) - (session.currentParticipants || 0);
 
   return (
-    <Card className="group relative bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-      {/* Live indicator */}
-      {isLive && (
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-2 z-10">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            <span className="text-sm font-medium">LIVE NOW</span>
-          </div>
-        </div>
-      )}
+    <div className="group relative">
+      <Link href={`/webinar/${session.id}`} className="block">
+        <Card className="bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer">
+          {/* Live indicator */}
+          {isLive && (
+            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-2 z-10">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                <span className="text-sm font-medium">LIVE NOW</span>
+              </div>
+            </div>
+          )}
 
-      <CardContent className={`p-0 ${isLive ? 'pt-12' : ''}`}>
-        {/* Header Section */}
-        <div className="p-6 pb-4">
-          <div className="flex items-center justify-between mb-3">
+          <CardContent className={`p-0 ${isLive ? 'pt-12' : ''}`}>
+            {/* Header Section */}
+            <div className="p-6 pb-4">
+              <div className="flex items-center justify-between mb-3">
             <Badge className={`${(statusColors as Record<string, string>)[session.status] || statusColors.scheduled} border`}>
               {session.status === "live" ? (
                 <><Play className="w-3 h-3 mr-1" /> Live Now</>
@@ -152,22 +155,22 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
               <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
                 Only {spotsLeft} seats left!
               </span>
-            )}
-          </div>
-          
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-            {session.title}
-          </h3>
-          
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-            {session.description}
-          </p>
-        </div>
+              )}
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                {session.title}
+              </h3>
+              
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                {session.description}
+              </p>
+            </div>
 
-        {/* Expert Section */}
-        {expert && (
-          <div className="px-6 pb-4">
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            {/* Expert Section */}
+            {expert && (
+              <div className="px-6 pb-4">
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <div className="relative">
                 <img
                   src={expert.avatar || '/api/placeholder/40/40'}
@@ -187,14 +190,14 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                     <span className="text-xs text-gray-600 ml-1">{expert.rating}</span>
                   </div>
                 )}
+                </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Session Details */}
-        <div className="px-6 pb-4">
-          <div className="grid grid-cols-3 gap-4 text-sm">
+            {/* Session Details */}
+            <div className="px-6 pb-4">
+              <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="flex items-center text-gray-600">
               <Calendar className="h-4 w-4 mr-2 text-blue-500" />
               <span>{formatDate(session.scheduledAt)}</span>
@@ -206,30 +209,34 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
             <div className="flex items-center text-gray-600">
               <Video className="h-4 w-4 mr-2 text-indigo-500" />
               <span>{session.duration} minutes</span>
+              </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Price and Action */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {price > 0 ? (
-                <>
-                  <IndianRupee className="h-5 w-5 text-green-600" />
-                  <span className="text-2xl font-bold text-gray-900">₹{price}</span>
-                  <span className="text-sm text-gray-500">per person</span>
-                </>
-              ) : (
-                <span className="text-2xl font-bold text-green-600">FREE</span>
-              )}
-            </div>
-            
-            <div className="flex flex-col items-end space-y-2">
+            {/* Price and Action */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {price > 0 ? (
+                    <>
+                      <IndianRupee className="h-5 w-5 text-green-600" />
+                      <span className="text-2xl font-bold text-gray-900">₹{price}</span>
+                      <span className="text-sm text-gray-500">per person</span>
+                    </>
+                  ) : (
+                    <span className="text-2xl font-bold text-green-600">FREE</span>
+                  )}
+                </div>
+                
+                <div className="flex flex-col items-end space-y-2">
               {isLive ? (
                 <Button 
                   className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg transform transition-all duration-200 hover:scale-105"
-                  onClick={() => onJoin?.(session.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onJoin?.(session.id);
+                  }}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   Join Live
@@ -249,7 +256,11 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                         size="sm"
                         variant="ghost"
                         className="text-blue-600 hover:text-blue-800 h-6 px-2 text-xs"
-                        onClick={() => window.open(session.registrationLink, '_blank')}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.open(session.registrationLink, '_blank');
+                        }}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Join Meeting
@@ -259,7 +270,11 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                 ) : (
                   <Button 
                     className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
-                    onClick={handleBookSession}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleBookSession();
+                    }}
                     disabled={spotsLeft <= 0 || isBooking}
                   >
                     {isBooking ? (
@@ -286,17 +301,19 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                 <Button variant="outline" disabled className="cursor-not-allowed">
                   {session.status === "completed" ? "Session Ended" : "Unavailable"}
                 </Button>
-              )}
-              
-              {isScheduled && spotsLeft > 0 && spotsLeft <= 20 && (
-                <span className="text-xs text-gray-500">
-                  {spotsLeft} seats available
-                </span>
-              )}
+                )}
+                
+                {isScheduled && spotsLeft > 0 && spotsLeft <= 20 && (
+                  <span className="text-xs text-gray-500">
+                    {spotsLeft} seats available
+                  </span>
+                )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      </Link>
+    </div>
   );
 }
