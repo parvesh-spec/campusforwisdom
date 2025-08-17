@@ -270,13 +270,15 @@ export default function CourseDetail() {
             <Card>
               <CardContent className="p-6">
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                    <TabsTrigger value="instructor">Instructor</TabsTrigger>
-                    <TabsTrigger value="faq">FAQ</TabsTrigger>
-                    <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                  </TabsList>
+                  <div className="w-full overflow-x-auto scrollbar-hide">
+                    <TabsList className="inline-flex w-max min-w-full gap-1 sm:gap-2 p-1">
+                      <TabsTrigger value="overview" className="whitespace-nowrap px-3 py-2 text-sm">Overview</TabsTrigger>
+                      <TabsTrigger value="curriculum" className="whitespace-nowrap px-3 py-2 text-sm">Curriculum</TabsTrigger>
+                      <TabsTrigger value="instructor" className="whitespace-nowrap px-3 py-2 text-sm">Instructor</TabsTrigger>
+                      <TabsTrigger value="faq" className="whitespace-nowrap px-3 py-2 text-sm">FAQ</TabsTrigger>
+                      <TabsTrigger value="reviews" className="whitespace-nowrap px-3 py-2 text-sm">Reviews</TabsTrigger>
+                    </TabsList>
+                  </div>
 
                   <TabsContent value="overview" className="mt-6 space-y-6">
                     {/* What You'll Learn */}
