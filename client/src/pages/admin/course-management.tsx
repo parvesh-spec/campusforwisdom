@@ -835,45 +835,6 @@ export default function CourseManagement() {
                   <TabsContent value="features" className="space-y-4 mt-6">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-4">Course Features & Access</h3>
-                      
-                      {/* Featured Course Toggle */}
-                      <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg mb-6">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="isFeatured"
-                            checked={formData.isFeatured}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                const currentFeaturedCount = courses?.filter(c => (c as any).isFeatured && c.id !== editingCourse?.id).length || 0;
-                                if (currentFeaturedCount >= 2) {
-                                  toast({
-                                    title: "Featured Limit Reached",
-                                    description: "Maximum 2 courses can be featured at once. Please unfeatured another course first.",
-                                    variant: "destructive",
-                                  });
-                                  return;
-                                }
-                              }
-                              setFormData({ ...formData, isFeatured: e.target.checked });
-                            }}
-                            className="rounded"
-                          />
-                          <div className="space-y-1">
-                            <label htmlFor="isFeatured" className="text-sm font-medium text-gray-700">
-                              Featured Course (Max 2)
-                            </label>
-                            <p className="text-xs text-gray-500">
-                              Featured courses appear on home page ({courses?.filter(c => (c as any).isFeatured).length || 0}/2 used)
-                            </p>
-                          </div>
-                        </div>
-                        {formData.isFeatured && (
-                          <Badge className="bg-yellow-100 text-yellow-700">
-                            Featured
-                          </Badge>
-                        )}
-                      </div>
                       <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div className="flex items-center space-x-2">
@@ -1051,6 +1012,47 @@ export default function CourseManagement() {
 
                   <TabsContent value="settings" className="space-y-4 mt-6">
                     <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Course Settings</h3>
+                      
+                      {/* Featured Course Toggle */}
+                      <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg mb-6">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const currentFeaturedCount = courses?.filter(c => (c as any).isFeatured && c.id !== editingCourse?.id).length || 0;
+                                if (currentFeaturedCount >= 2) {
+                                  toast({
+                                    title: "Featured Limit Reached",
+                                    description: "Maximum 2 courses can be featured at once. Please unfeatured another course first.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                              }
+                              setFormData({ ...formData, isFeatured: e.target.checked });
+                            }}
+                            className="rounded"
+                          />
+                          <div className="space-y-1">
+                            <label htmlFor="isFeatured" className="text-sm font-medium text-gray-700">
+                              Featured Course (Max 2)
+                            </label>
+                            <p className="text-xs text-gray-500">
+                              Featured courses appear on home page ({courses?.filter(c => (c as any).isFeatured).length || 0}/2 used)
+                            </p>
+                          </div>
+                        </div>
+                        {formData.isFeatured && (
+                          <Badge className="bg-yellow-100 text-yellow-700">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+
                       <label className="block text-sm font-medium text-gray-700 mb-4">
                         Frequently Asked Questions
                       </label>
