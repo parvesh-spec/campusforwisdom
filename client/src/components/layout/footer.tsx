@@ -5,8 +5,8 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="col-span-1 md:col-span-1">
             <h3 className="text-2xl font-bold mb-4 gradient-text">
               CampusForWisdom
             </h3>
@@ -30,32 +30,6 @@ export default function Footer() {
           </div>
           
           <div>
-            <h4 className="text-lg font-semibold mb-4">Courses</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <Link href="/courses">
-                  <a className="hover:text-white transition-colors">AI Software Development</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses">
-                  <a className="hover:text-white transition-colors">AI Video Creation</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses">
-                  <a className="hover:text-white transition-colors">AI Presentation Design</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses">
-                  <a className="hover:text-white transition-colors">Machine Learning Basics</a>
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
             <h4 className="text-lg font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-gray-300">
               <li>
@@ -71,6 +45,24 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-white transition-colors">Community</a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Legal</h4>
+            <ul className="space-y-2 text-gray-300">
+              <li>
+                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">Refund Policy</a>
               </li>
             </ul>
           </div>
