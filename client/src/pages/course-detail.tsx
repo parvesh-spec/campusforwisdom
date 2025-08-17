@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,12 +23,16 @@ import {
   PlayCircle
 } from "lucide-react";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Course, User } from "@shared/schema";
 import StudentLoginModal from "@/components/StudentLoginModal";
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch course details
   const { data: course, isLoading } = useQuery<Course>({
@@ -41,14 +45,47 @@ export default function CourseDetail() {
     queryKey: ["/api/auth/student"],
   });
 
-  // Fetch user's enrollments if logged in
-  const { data: userEnrollments } = useQuery({
+  // Fetch user's enrolled courses if logged in
+  const { data: userEnrolledCourses } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: !!user,
   });
 
   const isLoggedIn = !!user;
-  const isEnrolled = userEnrollments?.some((enrollment: any) => enrollment.courseId === courseId);
+  const isEnrolled = userEnrolledCourses?.some((enrolledCourse: Course) => enrolledCourse.id === courseId);
+
+  // Enrollment mutation
+  const enrollMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      return apiRequest(`/api/enroll`, {
+        method: "POST",
+        body: { courseId },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Enrollment Successful!",
+        description: "You have successfully enrolled in the course.",
+      });
+      // Refresh enrolled courses
+      queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Enrollment Failed",
+        description: error.message || "Failed to enroll in course. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEnroll = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    } else if (courseId) {
+      enrollMutation.mutate(courseId);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -80,15 +117,6 @@ export default function CourseDetail() {
     beginner: "bg-emerald-100 text-emerald-800 border-emerald-200",
     intermediate: "bg-amber-100 text-amber-800 border-amber-200", 
     advanced: "bg-rose-100 text-rose-800 border-rose-200",
-  };
-
-  const handleEnroll = () => {
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
-    } else {
-      // Handle enrollment logic
-      console.log("Enrolling in course:", courseId);
-    }
   };
 
   return (
