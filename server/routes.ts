@@ -807,6 +807,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Start webinar session
+  app.post("/api/admin/live-sessions/:id/start", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      
+      console.log('▶️ Starting webinar session:', sessionId);
+      
+      const updatedSession = await storage.startLiveSession(sessionId);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      console.log('✅ Webinar session started successfully');
+      res.json({ 
+        success: true, 
+        message: "Session started successfully",
+        session: updatedSession 
+      });
+    } catch (error) {
+      console.error("Error starting webinar session:", error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
+  // End webinar session
+  app.post("/api/admin/live-sessions/:id/end", requireAdmin, async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      
+      console.log('⏹️ Ending webinar session:', sessionId);
+      
+      const updatedSession = await storage.endLiveSession(sessionId);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      console.log('✅ Webinar session ended successfully');
+      res.json({ 
+        success: true, 
+        message: "Session ended successfully",
+        session: updatedSession 
+      });
+    } catch (error) {
+      console.error("Error ending webinar session:", error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
   // Delete webinar
   app.delete("/api/admin/live-sessions/:id", requireAdmin, async (req, res) => {
     try {

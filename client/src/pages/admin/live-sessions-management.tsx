@@ -815,6 +815,34 @@ export default function WebinarManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
+                          {/* Start Session Button (only if scheduled) */}
+                          {session.status === "scheduled" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startSessionMutation.mutate(session.id)}
+                              disabled={startSessionMutation.isPending}
+                              className="text-green-600 border-green-200 hover:bg-green-50"
+                              title="Start Session"
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* End Session Button (only if live) */}
+                          {session.status === "live" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => endSessionMutation.mutate(session.id)}
+                              disabled={endSessionMutation.isPending}
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              title="End Session"
+                            >
+                              <Square className="h-4 w-4" />
+                            </Button>
+                          )}
+
                           <Button
                             size="sm"
                             variant="ghost"
