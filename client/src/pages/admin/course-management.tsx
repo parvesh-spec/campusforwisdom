@@ -72,6 +72,11 @@ export default function CourseManagement() {
     queryKey: ["/api/admin/courses"],
   });
 
+  // Fetch experts data for assignment
+  const { data: expertsData } = useQuery({
+    queryKey: ["/api/experts"],
+  });
+
   const createCourseMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/admin/courses", data),
     onSuccess: () => {
@@ -489,6 +494,30 @@ export default function CourseManagement() {
                           placeholder="AI, Development, Python, Machine Learning"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Assign AI Expert (Instructor)
+                      </label>
+                      <Select
+                        value={formData.instructorId}
+                        onValueChange={(value) => setFormData({ ...formData, instructorId: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an AI expert for this course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {expertsData?.map((expert) => (
+                            <SelectItem key={expert.id} value={expert.id}>
+                              {expert.name} - {expert.specialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-gray-500 mt-1">
+                        This expert will be the instructor for this course and handle student queries.
+                      </p>
                     </div>
                   </TabsContent>
 
