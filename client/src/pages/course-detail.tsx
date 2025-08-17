@@ -59,6 +59,12 @@ export default function CourseDetail() {
     enabled: !!course?.expertId,
   });
 
+  // Fetch expert reviews to calculate actual rating
+  const { data: expertReviews } = useQuery<any[]>({
+    queryKey: [`/api/experts/${course?.expertId}/reviews`],
+    enabled: !!course?.expertId,
+  });
+
   const isLoggedIn = !!user;
   const isEnrolled = userEnrolledCourses?.some((enrolledCourse: Course) => enrolledCourse.id === courseId);
 
@@ -352,7 +358,7 @@ export default function CourseDetail() {
                   </TabsContent>
 
                   <TabsContent value="instructor" className="mt-6">
-                    <InstructorSection course={course} expert={expert} />
+                    <InstructorSection course={course} expert={expert} expertReviews={expertReviews} />
                   </TabsContent>
 
                   <TabsContent value="faq" className="mt-6">
@@ -451,8 +457,17 @@ export default function CourseDetail() {
 }
 
 // Instructor Section Component
-function InstructorSection({ course, expert }: { course: Course; expert?: Expert }) {
+function InstructorSection({ course, expert, expertReviews }: { course: Course; expert?: Expert; expertReviews?: any[] }) {
   const courseData = course as any;
+  
+  // Calculate actual rating from reviews
+  const calculateRating = () => {
+    if (!expertReviews || expertReviews.length === 0) return 0;
+    const totalRating = expertReviews.reduce((sum, review) => sum + review.rating, 0);
+    return totalRating / expertReviews.length;
+  };
+  
+  const actualRating = calculateRating();
   
   return (
     <div className="space-y-6">
@@ -489,7 +504,7 @@ function InstructorSection({ course, expert }: { course: Course; expert?: Expert
                     <Star
                       key={star}
                       className={`h-4 w-4 ${
-                        star <= Math.round(Number(expert.rating || 0))
+                        star <= Math.round(actualRating)
                           ? "fill-yellow-400 text-yellow-400" 
                           : "text-gray-300"
                       }`}
@@ -497,7 +512,7 @@ function InstructorSection({ course, expert }: { course: Course; expert?: Expert
                   ))}
                 </div>
                 <span className="text-sm text-gray-600">
-                  {Number(expert.rating || 0).toFixed(2)} rating
+                  {actualRating.toFixed(2)} rating ({expertReviews?.length || 0} reviews)
                 </span>
               </div>
               
