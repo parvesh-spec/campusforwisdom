@@ -51,12 +51,9 @@ function DirectReviewForm({ expertId, onSubmit, existingReview }: {
 
     setIsSubmitting(true);
     try {
-      await apiRequest(`/api/experts/${expertId}/direct-reviews`, {
-        method: "POST",
-        body: JSON.stringify({ rating, feedback: feedback.trim() }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      await apiRequest("POST", `/api/experts/${expertId}/direct-reviews`, {
+        rating,
+        feedback: feedback.trim()
       });
 
       toast({
