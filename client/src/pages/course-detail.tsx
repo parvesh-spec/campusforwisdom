@@ -57,10 +57,21 @@ export default function CourseDetail() {
   // Enrollment mutation
   const enrollMutation = useMutation({
     mutationFn: async (courseId: string) => {
-      return apiRequest(`/api/enroll`, {
+      const response = await fetch(`/api/enroll`, {
         method: "POST",
-        body: { courseId },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseId }),
+        credentials: 'include',
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Enrollment failed');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
