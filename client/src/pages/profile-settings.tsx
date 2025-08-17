@@ -133,10 +133,20 @@ export default function ProfileSettings() {
     );
   }
 
-  if (!isAuthenticated || !user) {
-    // Redirect to home page with login trigger
-    window.location.href = '/?showLogin=true';
-    return null;
+  // Only redirect if we've finished loading and user is still not authenticated
+  if (!isLoading && (!isAuthenticated || !user)) {
+    // Use React Router navigation instead of window.location to avoid refresh loop
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
+          <p className="text-gray-600 mb-6">Please log in to access your profile settings.</p>
+          <Link href="/?showLogin=true">
+            <Button>Go to Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
 
