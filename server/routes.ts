@@ -441,6 +441,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== COURSE REVIEWS API =====
+
+  // Get course reviews
+  app.get("/api/courses/:id/reviews", async (req, res) => {
+    try {
+      const courseId = req.params.id;
+      const course = await storage.getCourse(courseId);
+      if (!course || !course.isActive) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      
+      const reviews = await storage.getCourseReviews(courseId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching course reviews:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get user's review for a course
+  app.get("/api/courses/:id/my-review", requireAuth, async (req, res) => {
+    try {
+      const courseId = req.params.id;
+      const studentUser = (req.session as any)?.studentUser;
+      
+      if (!studentUser) {
+        return res.status(401).json({ error: "Student not authenticated" });
+      }
+
+      const review = await storage.getUserCourseReview(studentUser.id, courseId);
+      if (!review) {
+        return res.status(404).json({ error: "Review not found" });
+      }
+      
+      res.json(review);
+    } catch (error) {
+      console.error("Error fetching user course review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Create course review
+  app.post("/api/courses/:id/reviews", requireAuth, async (req, res) => {
+    try {
+      const courseId = req.params.id;
+      const studentUser = (req.session as any)?.studentUser;
+      const { rating, feedback } = req.body;
+
+      if (!studentUser) {
+        return res.status(401).json({ error: "Student not authenticated" });
+      }
+
+      // Validate input
+      if (!rating || !feedback || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Valid rating (1-5) and feedback are required" });
+      }
+
+      // Check if course exists
+      const course = await storage.getCourse(courseId);
+      if (!course || !course.isActive) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+
+      // Check if user already has a review for this course
+      const existingReview = await storage.getUserCourseReview(studentUser.id, courseId);
+      if (existingReview) {
+        return res.status(400).json({ error: "You have already reviewed this course" });
+      }
+
+      const review = await storage.createCourseReview(courseId, studentUser.id, rating, feedback);
+      res.status(201).json(review);
+    } catch (error) {
+      console.error("Error creating course review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update course review
+  app.put("/api/courses/:courseId/reviews/:reviewId", requireAuth, async (req, res) => {
+    try {
+      const { courseId, reviewId } = req.params;
+      const studentUser = (req.session as any)?.studentUser;
+      const { rating, feedback } = req.body;
+
+      if (!studentUser) {
+        return res.status(401).json({ error: "Student not authenticated" });
+      }
+
+      // Validate input
+      if (!rating || !feedback || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Valid rating (1-5) and feedback are required" });
+      }
+
+      const success = await storage.updateCourseReview(reviewId, studentUser.id, { rating, feedback });
+      if (!success) {
+        return res.status(404).json({ error: "Review not found or unauthorized" });
+      }
+
+      res.json({ success: true, message: "Review updated successfully" });
+    } catch (error) {
+      console.error("Error updating course review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get live sessions with booking status
   app.get("/api/live-sessions", async (req, res) => {
     try {

@@ -11,6 +11,7 @@ import {
   UserEbookDownload,
   WebinarAttendee,
   DirectReview,
+  CourseReview,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -23,6 +24,7 @@ import {
   InsertUserEbookDownload,
   InsertWebinarAttendee,
   InsertDirectReview,
+  InsertCourseReview,
   courses,
   users,
   webinars,
@@ -33,7 +35,8 @@ import {
   ebooks,
   userEbookDownloads,
   webinarAttendees,
-  directReviews
+  directReviews,
+  courseReviews
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -1594,6 +1597,125 @@ export class DatabaseStorage implements IStorage {
       return sum / allRatings.length;
     } catch (error) {
       console.error("Error calculating expert average rating:", error);
+      return 0;
+    }
+  }
+
+  // Course Review Methods
+  async createCourseReview(courseId: string, studentId: string, rating: number, feedback: string): Promise<CourseReview> {
+    try {
+      const query = `
+        INSERT INTO course_reviews (course_id, student_id, rating, feedback, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), NOW())
+        RETURNING *
+      `;
+      const result = await pool.query(query, [courseId, studentId, rating, feedback]);
+      const row = result.rows[0];
+      
+      return {
+        id: row.id,
+        courseId: row.course_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error creating course review:", error);
+      throw error;
+    }
+  }
+
+  async getCourseReviews(courseId: string): Promise<CourseReview[]> {
+    try {
+      const query = `
+        SELECT cr.*, u.first_name, u.last_name, u.avatar
+        FROM course_reviews cr
+        LEFT JOIN users u ON cr.student_id = u.id
+        WHERE cr.course_id = $1
+        ORDER BY cr.created_at DESC
+      `;
+      const result = await pool.query(query, [courseId]);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        courseId: row.course_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        student: {
+          id: row.student_id,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          avatar: row.avatar
+        }
+      }));
+    } catch (error) {
+      console.error("Error getting course reviews:", error);
+      return [];
+    }
+  }
+
+  async getUserCourseReview(userId: string, courseId: string): Promise<CourseReview | null> {
+    try {
+      const query = `
+        SELECT * FROM course_reviews 
+        WHERE student_id = $1 AND course_id = $2
+      `;
+      const result = await pool.query(query, [userId, courseId]);
+      if (result.rows.length === 0) return null;
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        courseId: row.course_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error getting user course review:", error);
+      return null;
+    }
+  }
+
+  async updateCourseReview(reviewId: string, userId: string, updates: { rating: number; feedback: string }): Promise<boolean> {
+    try {
+      const query = `
+        UPDATE course_reviews 
+        SET rating = $1, feedback = $2, updated_at = NOW()
+        WHERE id = $3 AND student_id = $4
+      `;
+      const result = await pool.query(query, [
+        updates.rating,
+        updates.feedback,
+        reviewId,
+        userId
+      ]);
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error updating course review:", error);
+      return false;
+    }
+  }
+
+  async calculateCourseAverageRating(courseId: string): Promise<number> {
+    try {
+      const reviews = await this.getCourseReviews(courseId);
+      
+      if (reviews.length === 0) {
+        return 0;
+      }
+
+      const sum = reviews.reduce((total, review) => total + review.rating, 0);
+      return sum / reviews.length;
+    } catch (error) {
+      console.error("Error calculating course average rating:", error);
       return 0;
     }
   }

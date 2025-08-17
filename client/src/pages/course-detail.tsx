@@ -25,8 +25,9 @@ import {
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Course, User } from "@shared/schema";
+import type { Course, User, CourseReview } from "@shared/schema";
 import StudentLoginModal from "@/components/StudentLoginModal";
+import CourseReviewsSection from "@/components/CourseReviewsSection";
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -347,9 +348,8 @@ export default function CourseDetail() {
                     <p className="text-gray-500">Instructor details will be available soon.</p>
                   </TabsContent>
 
-                  <TabsContent value="reviews" className="mt-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Student Reviews</h3>
-                    <p className="text-gray-500">Reviews will be available soon.</p>
+                  <TabsContent value="reviews" className="space-y-6">
+                    <CourseReviewsSection courseId={courseId!} isEnrolled={isEnrolled} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
