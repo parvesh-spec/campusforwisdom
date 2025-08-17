@@ -25,9 +25,10 @@ import {
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Course, User, CourseReview } from "@shared/schema";
+import type { Course, User, CourseReview, Expert } from "@shared/schema";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import CourseReviewsSection from "@/components/CourseReviewsSection";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -50,6 +51,12 @@ export default function CourseDetail() {
   const { data: userEnrolledCourses } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: !!user,
+  });
+
+  // Fetch expert details if course has expertId
+  const { data: expert } = useQuery<Expert>({
+    queryKey: [`/api/experts/${course?.expertId}`],
+    enabled: !!course?.expertId,
   });
 
   const isLoggedIn = !!user;
@@ -257,10 +264,11 @@ export default function CourseDetail() {
             <Card>
               <CardContent className="p-6">
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
                     <TabsTrigger value="instructor">Instructor</TabsTrigger>
+                    <TabsTrigger value="faq">FAQ</TabsTrigger>
                     <TabsTrigger value="reviews">Reviews</TabsTrigger>
                   </TabsList>
 
@@ -344,8 +352,11 @@ export default function CourseDetail() {
                   </TabsContent>
 
                   <TabsContent value="instructor" className="mt-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">About the Instructor</h3>
-                    <p className="text-gray-500">Instructor details will be available soon.</p>
+                    <InstructorSection course={course} expert={expert} />
+                  </TabsContent>
+
+                  <TabsContent value="faq" className="mt-6">
+                    <FAQSection course={course} />
                   </TabsContent>
 
                   <TabsContent value="reviews" className="space-y-6">
@@ -435,6 +446,164 @@ export default function CourseDetail() {
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
       />
+    </div>
+  );
+}
+
+// Instructor Section Component
+function InstructorSection({ course, expert }: { course: Course; expert?: Expert }) {
+  const courseData = course as any;
+  
+  return (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">About the Instructor</h3>
+      
+      {expert ? (
+        <div className="space-y-6">
+          {/* Expert Profile */}
+          <div className="flex items-start gap-6">
+            <div className="flex-shrink-0">
+              {expert.avatar ? (
+                <img 
+                  src={expert.avatar} 
+                  alt={expert.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-xl font-semibold text-blue-600">
+                    {expert.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1">
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">{expert.name}</h4>
+              <p className="text-blue-600 font-medium mb-3">{expert.specialization}</p>
+              
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-4 w-4 ${
+                        star <= Number(expert.rating) 
+                          ? "fill-yellow-400 text-yellow-400" 
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600">
+                  {expert.rating} rating
+                </span>
+              </div>
+              
+              {/* Stats */}
+              <div className="flex gap-6 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span>Expert Instructor</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>{expert.experience} experience</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bio */}
+          {expert.bio && (
+            <div>
+              <h5 className="font-semibold text-gray-900 mb-2">Biography</h5>
+              <p className="text-gray-700 leading-relaxed">{expert.bio}</p>
+            </div>
+          )}
+          
+          {/* Skills */}
+          {expert.skills && expert.skills.length > 0 && (
+            <div>
+              <h5 className="font-semibold text-gray-900 mb-3">Expertise</h5>
+              <div className="flex flex-wrap gap-2">
+                {expert.skills.map((skill, index) => (
+                  <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Education */}
+          {expert.education && (
+            <div>
+              <h5 className="font-semibold text-gray-900 mb-3">Education</h5>
+              <div className="text-gray-700">
+                {expert.education}
+              </div>
+            </div>
+          )}
+          
+          {/* Certifications */}
+          {expert.certifications && expert.certifications.length > 0 && (
+            <div>
+              <h5 className="font-semibold text-gray-900 mb-3">Certifications</h5>
+              <div className="space-y-2">
+                {expert.certifications.map((cert, index) => (
+                  <div key={index} className="flex items-center gap-2 text-gray-700">
+                    <Award className="h-4 w-4 text-blue-600" />
+                    <span>{cert}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <Users className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500">Instructor information will be available soon.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// FAQ Section Component
+function FAQSection({ course }: { course: Course }) {
+  const courseData = course as any;
+  const faqs = courseData.faq || [];
+  
+  return (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">Frequently Asked Questions</h3>
+      
+      {faqs && faqs.length > 0 ? (
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((faq: any, index: number) => (
+            <AccordionItem key={index} value={`item-${index}`}>
+              <AccordionTrigger className="text-left font-medium text-gray-900">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 leading-relaxed">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      ) : (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <MessageCircle className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500">No FAQs available yet. Check back later for common questions and answers.</p>
+        </div>
+      )}
     </div>
   );
 }
