@@ -21,7 +21,6 @@ export default function WebinarManagement() {
   const [editingSession, setEditingSession] = useState<LiveSession | null>(null);
   const [managingParticipants, setManagingParticipants] = useState<LiveSession | null>(null);
   const [deletingSession, setDeletingSession] = useState<LiveSession | null>(null);
-  const [newParticipantEmail, setNewParticipantEmail] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -1337,33 +1336,7 @@ export default function WebinarManagement() {
                   </div>
                 </div>
 
-                {/* Add Participant */}
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Add Participant</h3>
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="participant@example.com"
-                      value={newParticipantEmail}
-                      onChange={(e) => setNewParticipantEmail(e.target.value)}
-                      type="email"
-                    />
-                    <Button
-                      onClick={() => {
-                        if (newParticipantEmail) {
-                          // TODO: Add participant functionality
-                          toast({ title: "Add participant feature coming soon!" });
-                          setNewParticipantEmail("");
-                        }
-                      }}
-                      disabled={!newParticipantEmail}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Add participants manually or share the registration link for self-registration
-                  </p>
-                </div>
+
 
                 {/* Webinar Stats */}
                 <div className="border-t pt-4">
