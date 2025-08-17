@@ -21,7 +21,8 @@ import {
   Target,
   Zap,
   Heart,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
@@ -212,7 +213,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Featured AI Courses
+                AI Courses
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
                 Master AI skills with our comprehensive course library
@@ -239,7 +240,7 @@ export default function Home() {
                 <Link key={course.id} href={`/courses/${course.id}`}>
                   <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
                     {/* Course Image/Thumbnail */}
-                    <div className="relative w-full h-72 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                    <div className="relative w-full h-52 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
                       {courseData.thumbnail ? (
                         <img 
                           src={courseData.thumbnail} 
@@ -248,14 +249,21 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center">
-                          <div className="text-6xl text-white/80">📚</div>
+                          <div className="text-6xl text-white/80">
+                            {(courseData.courseType || 'recorded') === 'live' ? '🎥' : '📚'}
+                          </div>
                         </div>
                       )}
                       
-                      {/* Level Badge */}
+                      {/* Course Type Badge */}
                       <div className="absolute top-3 left-3">
-                        <Badge className={`${levelColors[course.level as keyof typeof levelColors]} border font-medium`}>
-                          {course.level}
+                        <Badge className={`${(courseData.courseType || 'recorded') === 'live' ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white border-0 flex items-center gap-1`}>
+                          {(courseData.courseType || 'recorded') === 'live' ? (
+                            <Calendar className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                          <span className="capitalize">{courseData.courseType || 'recorded'}</span>
                         </Badge>
                       </div>
 
@@ -282,8 +290,11 @@ export default function Home() {
                     </div>
 
                     <CardContent className="p-6">
-                      {/* Category */}
-                      <div className="mb-3">
+                      {/* Level and Category */}
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge className={`${levelColors[course.level as keyof typeof levelColors]} border font-medium`}>
+                          {course.level}
+                        </Badge>
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                           {course.category}
                         </span>
@@ -299,21 +310,72 @@ export default function Home() {
                         {courseData.shortDescription || course.description}
                       </p>
 
+                      {/* Key Features */}
+                      {courseData.whatYouWillLearn && courseData.whatYouWillLearn.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                            <BookOpen className="h-3 w-3" />
+                            What you'll learn:
+                          </p>
+                          <ul className="text-xs text-gray-600 space-y-1">
+                            {courseData.whatYouWillLearn.slice(0, 2).map((item: string, index: number) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-green-500 mt-1">✓</span>
+                                <span className="line-clamp-1">{item}</span>
+                              </li>
+                            ))}
+                            {courseData.whatYouWillLearn.length > 2 && (
+                              <li className="text-gray-400 font-medium">
+                                +{courseData.whatYouWillLearn.length - 2} more topics...
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
                       {/* Course Stats */}
-                      <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700 font-medium">{course.duration}</span>
+                      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <Clock className="h-3 w-3" />
+                          <span>{course.duration}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700 font-medium">{course.studentsCount || 0} students</span>
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <Users className="h-3 w-3" />
+                          <span>{course.studentsCount || 0} students</span>
                         </div>
+                        {courseData.totalLectures > 0 && (
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Play className="h-3 w-3" />
+                            <span>{courseData.totalLectures} lectures</span>
+                          </div>
+                        )}
+                        {courseData.certificateOfCompletion && (
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <Award className="h-3 w-3" />
+                            <span>Certificate</span>
+                          </div>
+                        )}
                       </div>
 
+                      {/* Features */}
+                      {(courseData.lifetimeAccess || courseData.certificateOfCompletion) && (
+                        <div className="flex flex-wrap gap-1 mb-4">
+                          {courseData.lifetimeAccess && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                              Lifetime Access
+                            </Badge>
+                          )}
+                          {courseData.certificateOfCompletion && (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              Certificate
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
                       {/* Action Button */}
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold group-hover:shadow-lg transition-all">
-                        <Play className="mr-2 h-4 w-4" />
+                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center justify-center gap-2 group-hover:shadow-lg transition-all">
+                        <CheckCircle className="h-4 w-4" />
                         Enroll Now
                       </Button>
                     </CardContent>
