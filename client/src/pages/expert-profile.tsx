@@ -18,6 +18,95 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Expert, User, Consultation, LiveSession, Ebook, Course } from "@shared/schema";
 
+// Rating Form Component
+function RatingForm({ consultationId, onSubmit }: { consultationId: string; onSubmit: () => void }) {
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a rating before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiRequest("PUT", `/api/consultations/${consultationId}/rating`, {
+        rating,
+        feedback: feedback.trim() || null
+      });
+
+      toast({
+        title: "Thank you!",
+        description: "Your rating and feedback have been submitted.",
+      });
+
+      onSubmit();
+    } catch (error: any) {
+      console.error("Rating submission error:", error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Unable to submit rating. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Rating:</label>
+        <div className="flex space-x-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              className="focus:outline-none"
+            >
+              <Star
+                className={`w-6 h-6 transition-colors ${
+                  star <= rating
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-300 hover:text-yellow-300"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Feedback (Optional):</label>
+        <Textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Share your experience with this consultation..."
+          className="resize-none"
+          rows={3}
+        />
+      </div>
+      
+      <Button 
+        onClick={handleSubmit} 
+        disabled={isSubmitting || rating === 0}
+        size="sm"
+        className="w-full"
+      >
+        {isSubmitting ? "Submitting..." : "Submit Rating"}
+      </Button>
+    </div>
+  );
+}
+
 export default function ExpertProfile() {
   const [, params] = useRoute("/experts/:id");
   const expertId = params?.id;
@@ -72,6 +161,12 @@ export default function ExpertProfile() {
   });
 
   const expertEbooks = allEbooks.filter((ebook) => ebook.authorId === expertId);
+
+  // Fetch expert reviews
+  const { data: reviews = [] } = useQuery<any[]>({
+    queryKey: [`/api/experts/${expertId}/reviews`],
+    enabled: !!expertId,
+  });
 
   // Fetch expert's courses
   const { data: allCourses = [] } = useQuery<Course[]>({
@@ -827,6 +922,42 @@ export default function ExpertProfile() {
                                 </div>
                               </div>
                             )}
+                            
+                            {/* Show rating form for completed consultations */}
+                            {consultation.status === 'completed' && !consultation.rating && (
+                              <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-800 font-medium mb-3">Share your experience:</p>
+                                <RatingForm consultationId={consultation.id} onSubmit={() => {
+                                  queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/reviews`] });
+                                }} />
+                              </div>
+                            )}
+                            
+                            {/* Show submitted rating for completed consultations */}
+                            {consultation.status === 'completed' && consultation.rating && (
+                              <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                <p className="text-sm text-gray-600 font-medium mb-2">Your Rating:</p>
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`w-4 h-4 ${
+                                          i < consultation.rating
+                                            ? "text-yellow-400 fill-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm text-gray-600">{consultation.rating}/5</span>
+                                </div>
+                                {consultation.feedback && (
+                                  <p className="text-sm text-gray-700 mt-2">{consultation.feedback}</p>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">₹{consultation.amount}</p>
@@ -1058,13 +1189,68 @@ export default function ExpertProfile() {
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Reviews Coming Soon</h3>
-                <p className="text-gray-600">Student reviews and feedback will be displayed here.</p>
-              </CardContent>
-            </Card>
+            {reviews.length > 0 ? (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <Card key={review.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={review.student.avatar} />
+                          <AvatarFallback>
+                            {review.student.firstName?.[0]}{review.student.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">
+                                {review.student.firstName} {review.student.lastName}
+                              </h4>
+                              <div className="flex items-center mt-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < review.rating
+                                        ? "text-yellow-400 fill-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                                <span className="ml-2 text-sm text-gray-600">
+                                  {review.rating}/5
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(review.createdAt).toLocaleDateString('en-IN')}
+                            </span>
+                          </div>
+                          
+                          <p className="text-gray-700 leading-relaxed">
+                            {review.feedback}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    No Reviews Yet
+                  </h3>
+                  <p className="text-gray-600">
+                    This expert hasn't received any reviews yet. Be the first to book a consultation and share your experience!
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
 

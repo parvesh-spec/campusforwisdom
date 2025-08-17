@@ -1115,6 +1115,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get expert reviews
+  app.get("/api/experts/:id/reviews", async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const expert = await storage.getExpert(expertId);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+      
+      const reviews = await storage.getExpertReviews(expertId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching expert reviews:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Submit rating and feedback for consultation
+  app.put("/api/consultations/:id/rating", async (req, res) => {
+    try {
+      const consultationId = req.params.id;
+      const { rating, feedback } = req.body;
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      }
+
+      // Get consultation to verify ownership and status
+      const consultation = await storage.getConsultation(consultationId);
+      if (!consultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+
+      if (consultation.studentId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      if (consultation.status !== "completed") {
+        return res.status(400).json({ error: "Can only rate completed consultations" });
+      }
+
+      if (consultation.rating) {
+        return res.status(400).json({ error: "Consultation already rated" });
+      }
+
+      // Update consultation with rating and feedback
+      await storage.updateConsultation(consultationId, {
+        rating: parseInt(rating),
+        feedback: feedback || null
+      });
+
+      res.json({ success: true, message: "Rating submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // ===== EBOOKS API =====
 
   // Get all ebooks

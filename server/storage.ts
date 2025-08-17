@@ -65,7 +65,7 @@ export type Activity = {
   timestamp: Date;
 };
 import { db, pool } from "./db";
-import { eq, desc, or, ilike, and } from "drizzle-orm";
+import { eq, desc, or, ilike, and, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -770,13 +770,31 @@ export class DatabaseStorage implements IStorage {
   async getExperts(): Promise<Expert[]> {
     const expertList = await db.select().from(experts).orderBy(desc(experts.createdAt));
     
-    // Calculate sessions count for each expert
+    // Calculate sessions count and average rating for each expert
     const expertsWithSessionCount = await Promise.all(
       expertList.map(async (expert) => {
         const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
+        
+        // Calculate average rating from completed consultations
+        const ratings = await db
+          .select({ rating: consultations.rating })
+          .from(consultations)
+          .where(
+            and(
+              eq(consultations.expertId, expert.id),
+              eq(consultations.status, "completed"),
+              isNotNull(consultations.rating)
+            )
+          );
+        
+        const avgRating = ratings.length > 0 
+          ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length 
+          : 0;
+        
         return {
           ...expert,
-          totalSessions: sessions.length
+          totalSessions: sessions.length,
+          rating: avgRating.toFixed(2)
         };
       })
     );
@@ -818,6 +836,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultations.studentId, studentId))
       .orderBy(desc(consultations.createdAt));
     return consultationList;
+  }
+
+  async getExpertReviews(expertId: string): Promise<any[]> {
+    const reviews = await db
+      .select({
+        consultation: consultations,
+        student: users
+      })
+      .from(consultations)
+      .innerJoin(users, eq(consultations.studentId, users.id))
+      .where(
+        and(
+          eq(consultations.expertId, expertId),
+          eq(consultations.status, "completed"),
+          isNotNull(consultations.rating),
+          isNotNull(consultations.feedback)
+        )
+      )
+      .orderBy(desc(consultations.createdAt));
+
+    return reviews.map(row => ({
+      id: row.consultation.id,
+      rating: row.consultation.rating,
+      feedback: row.consultation.feedback,
+      createdAt: row.consultation.createdAt,
+      student: {
+        id: row.student.id,
+        firstName: row.student.firstName,
+        lastName: row.student.lastName,
+        avatar: row.student.avatar
+      }
+    }));
   }
 
   async getAllConsultations(): Promise<ConsultationWithDetails[]> {
@@ -884,6 +934,14 @@ export class DatabaseStorage implements IStorage {
     return consultation || null;
   }
 
+  async getConsultation(id: string): Promise<Consultation | null> {
+    const [consultation] = await db
+      .select()
+      .from(consultations)
+      .where(eq(consultations.id, id));
+    return consultation || null;
+  }
+
   async getExpert(id: string): Promise<Expert | null> {
     const [expert] = await db
       .select()
@@ -895,9 +953,26 @@ export class DatabaseStorage implements IStorage {
     // Calculate sessions count for this expert
     const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
     
+    // Calculate average rating from completed consultations
+    const ratings = await db
+      .select({ rating: consultations.rating })
+      .from(consultations)
+      .where(
+        and(
+          eq(consultations.expertId, expert.id),
+          eq(consultations.status, "completed"),
+          isNotNull(consultations.rating)
+        )
+      );
+    
+    const avgRating = ratings.length > 0 
+      ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length 
+      : 0;
+    
     return {
       ...expert,
-      totalSessions: sessions.length
+      totalSessions: sessions.length,
+      rating: avgRating.toFixed(2)
     };
   }
 
