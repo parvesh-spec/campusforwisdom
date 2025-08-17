@@ -79,6 +79,7 @@ export const courses = pgTable("courses", {
   // Status and Publishing
   isActive: boolean("is_active").default(true),
   isDraft: boolean("is_draft").default(true),
+  isFeatured: boolean("is_featured").default(false),
   publishedAt: timestamp("published_at"),
   lastUpdated: timestamp("last_updated").defaultNow(),
   

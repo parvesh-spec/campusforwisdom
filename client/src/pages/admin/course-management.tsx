@@ -66,7 +66,10 @@ export default function CourseManagement() {
     faq: [{ question: "", answer: "" }],
     
     // Instructor and Support
-    supportLevel: "standard"
+    supportLevel: "standard",
+    
+    // Status
+    isFeatured: false
   });
 
   const { data: courses, isLoading } = useQuery<Course[]>({
@@ -284,7 +287,10 @@ export default function CourseManagement() {
       faq: formData.faq.filter(item => item.question.trim() && item.answer.trim()),
       
       // Instructor and Support
-      supportLevel: formData.supportLevel
+      supportLevel: formData.supportLevel,
+      
+      // Status
+      isFeatured: formData.isFeatured
     };
 
     if (editingCourse) {
@@ -320,7 +326,6 @@ export default function CourseManagement() {
       
       // Course Content
       totalLectures: ((course as any).totalLectures || 0).toString(),
-      totalProjects: ((course as any).totalProjects || 0).toString(),
       totalDuration: (course as any).totalDuration || "",
       resources: ((course as any).resources || []).join('\n'),
       assignments: ((course as any).assignments || 0).toString(),
@@ -344,7 +349,10 @@ export default function CourseManagement() {
       faq: (course as any).faq || [{ question: "", answer: "" }],
       
       // Instructor and Support
-      supportLevel: (course as any).supportLevel || "standard"
+      supportLevel: (course as any).supportLevel || "standard",
+      
+      // Status
+      isFeatured: (course as any).isFeatured || false
     });
   };
 
@@ -1004,6 +1012,47 @@ export default function CourseManagement() {
 
                   <TabsContent value="settings" className="space-y-4 mt-6">
                     <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Course Settings</h3>
+                      
+                      {/* Featured Course Toggle */}
+                      <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg mb-6">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const currentFeaturedCount = courses?.filter(c => (c as any).isFeatured && c.id !== editingCourse?.id).length || 0;
+                                if (currentFeaturedCount >= 2) {
+                                  toast({
+                                    title: "Featured Limit Reached",
+                                    description: "Maximum 2 courses can be featured at once. Please unfeatured another course first.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                              }
+                              setFormData({ ...formData, isFeatured: e.target.checked });
+                            }}
+                            className="rounded"
+                          />
+                          <div className="space-y-1">
+                            <label htmlFor="isFeatured" className="text-sm font-medium text-gray-700">
+                              Featured Course (Max 2)
+                            </label>
+                            <p className="text-xs text-gray-500">
+                              Featured courses appear on home page ({courses?.filter(c => (c as any).isFeatured).length || 0}/2 used)
+                            </p>
+                          </div>
+                        </div>
+                        {formData.isFeatured && (
+                          <Badge className="bg-yellow-100 text-yellow-700">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+
                       <label className="block text-sm font-medium text-gray-700 mb-4">
                         Frequently Asked Questions
                       </label>
@@ -1173,7 +1222,14 @@ export default function CourseManagement() {
                     <TableRow key={course.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium text-gray-900">{course.title}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium text-gray-900">{course.title}</div>
+                            {(course as any).isFeatured && (
+                              <Badge className="bg-yellow-100 text-yellow-700 text-xs">
+                                Featured
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-sm text-gray-500">{course.category}</div>
                         </div>
                       </TableCell>
