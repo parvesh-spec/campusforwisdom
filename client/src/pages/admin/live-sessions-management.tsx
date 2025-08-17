@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy, X } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy, X, Upload, Image } from "lucide-react";
 import type { LiveSession, Expert, WebinarAttendee } from "@shared/schema";
 
 export default function WebinarManagement() {
@@ -36,6 +36,7 @@ export default function WebinarManagement() {
     difficulty: "Beginner",
     language: "Hindi",
     category: "",
+    thumbnail: "",
     scheduledAt: "",
     duration: "60",
     price: "499",
@@ -43,6 +44,7 @@ export default function WebinarManagement() {
     participantEmails: "",
     expertId: undefined as string | undefined
   });
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const { data: sessions, isLoading } = useQuery<LiveSession[]>({
     queryKey: ["/api/admin/live-sessions"],
@@ -147,6 +149,64 @@ export default function WebinarManagement() {
     },
   });
 
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Cover image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingCover(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+    uploadFormData.append('folder', 'webinars/covers');
+
+    try {
+      const response = await fetch('/api/cloudinary/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      setFormData({ ...formData, thumbnail: data.secure_url });
+      
+      toast({
+        title: "Cover image uploaded",
+        description: "Cover image has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Cover upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload cover image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -163,6 +223,7 @@ export default function WebinarManagement() {
       difficulty: "Beginner",
       language: "Hindi",
       category: "",
+      thumbnail: "",
       scheduledAt: "",
       duration: "60",
       price: "499",
@@ -196,6 +257,7 @@ export default function WebinarManagement() {
       difficulty: formData.difficulty,
       language: formData.language,
       category: formData.category,
+      thumbnail: formData.thumbnail,
       duration: parseInt(formData.duration),
       price: formData.price, // Keep as string since schema expects varchar
       scheduledAt: new Date(formData.scheduledAt).toISOString(),
@@ -228,6 +290,7 @@ export default function WebinarManagement() {
       difficulty: (session as any).difficulty || "Beginner",
       language: (session as any).language || "Hindi",
       category: (session as any).category || "",
+      thumbnail: (session as any).thumbnail || "",
       scheduledAt: new Date(session.scheduledAt).toISOString().slice(0, 16),
       duration: session.duration.toString(),
       price: session.price?.toString() || "499",
@@ -397,6 +460,64 @@ export default function WebinarManagement() {
                           onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                           placeholder="AI, Marketing, Strategy (comma separated)"
                         />
+                      </div>
+                    </div>
+
+                    {/* Cover Image Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cover Image
+                      </label>
+                      <div className="flex items-center space-x-4">
+                        {formData.thumbnail && (
+                          <div className="relative w-32 h-20 rounded-lg overflow-hidden border">
+                            <img 
+                              src={formData.thumbnail} 
+                              alt="Cover preview" 
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, thumbnail: "" })}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverImageUpload}
+                            className="hidden"
+                            id="cover-upload"
+                            disabled={uploadingCover}
+                          />
+                          <label htmlFor="cover-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingCover}
+                              className="cursor-pointer"
+                              asChild
+                            >
+                              <span>
+                                {uploadingCover ? (
+                                  <>Uploading...</>
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload Cover Image
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Recommended: 16:9 aspect ratio, max 5MB (JPG, PNG)
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </TabsContent>
