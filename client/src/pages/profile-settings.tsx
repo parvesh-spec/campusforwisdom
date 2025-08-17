@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, HelpCircle } from "lucide-react";
+import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, HelpCircle, File } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useStudentAuth } from "@/hooks/useAuth";
@@ -705,19 +705,147 @@ export default function ProfileSettings() {
     </div>
   );
 
-  const renderBillingSection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing & Payments</CardTitle>
-          <CardDescription>Manage your payment methods and billing information.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Billing features will be available soon.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const renderBillingSection = () => {
+    const { data: transactions, isLoading: transactionsLoading } = useQuery({
+      queryKey: ['/api/student/transactions'],
+      enabled: isAuthenticated,
+    });
+
+    const getTransactionIcon = (type: string) => {
+      switch (type) {
+        case 'course_enrollment':
+          return <GraduationCap className="h-4 w-4 text-blue-600" />;
+        case 'consultation':
+          return <User className="h-4 w-4 text-green-600" />;
+        case 'ebook_download':
+          return <File className="h-4 w-4 text-purple-600" />;
+        case 'live_session':
+          return <Calendar className="h-4 w-4 text-orange-600" />;
+        default:
+          return <CreditCard className="h-4 w-4 text-gray-600" />;
+      }
+    };
+
+    const getStatusBadge = (status: string) => {
+      const statusConfig = {
+        completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
+        active: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Active' },
+        scheduled: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Scheduled' },
+        cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' },
+        'in-progress': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'In Progress' },
+      };
+
+      const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.completed;
+      
+      return (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+          {config.label}
+        </span>
+      );
+    };
+
+    const formatDate = (date: string | Date) => {
+      return new Date(date).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Transaction History
+            </CardTitle>
+            <CardDescription>
+              View all your transactions including course enrollments, consultations, and downloads.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {transactionsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : transactions && transactions.length > 0 ? (
+              <div className="space-y-4">
+                {transactions.map((transaction: any) => (
+                  <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      {getTransactionIcon(transaction.type)}
+                      <div>
+                        <h4 className="font-medium text-gray-900">{transaction.title}</h4>
+                        <p className="text-sm text-gray-600">{transaction.description}</p>
+                        <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      {transaction.amount && transaction.amount !== '₹0' && (
+                        <span className="font-semibold text-gray-900">{transaction.amount}</span>
+                      )}
+                      {getStatusBadge(transaction.status)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
+                <p className="text-gray-600">
+                  When you enroll in courses, book consultations, or download ebooks, your transaction history will appear here.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment Summary Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Summary</CardTitle>
+            <CardDescription>Overview of your spending and activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <GraduationCap className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-blue-900">
+                  {transactions?.filter((t: any) => t.type === 'course_enrollment').length || 0}
+                </p>
+                <p className="text-sm text-blue-700">Courses Enrolled</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <User className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-900">
+                  {transactions?.filter((t: any) => t.type === 'consultation').length || 0}
+                </p>
+                <p className="text-sm text-green-700">Consultations</p>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <File className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-purple-900">
+                  {transactions?.filter((t: any) => t.type === 'ebook_download').length || 0}
+                </p>
+                <p className="text-sm text-purple-700">Ebooks Downloaded</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <Calendar className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-900">
+                  {transactions?.filter((t: any) => t.type === 'live_session').length || 0}
+                </p>
+                <p className="text-sm text-orange-700">Live Sessions</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const renderHelpSection = () => (
     <div className="space-y-6">

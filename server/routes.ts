@@ -2211,5 +2211,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's transaction history
+  app.get("/api/student/transactions", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      const transactions = await storage.getUserTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching user transactions:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

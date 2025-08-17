@@ -70,6 +70,19 @@ export type Activity = {
   description: string;
   timestamp: Date;
 };
+
+export type Transaction = {
+  id: string;
+  type: 'course_enrollment' | 'consultation' | 'ebook_download' | 'live_session';
+  title: string;
+  description: string;
+  amount?: string;
+  status: string;
+  date: Date;
+  itemId?: string;
+  expertName?: string;
+  duration?: number;
+};
 import { db, pool } from "./db";
 import { eq, desc, or, ilike, and, isNotNull } from "drizzle-orm";
 
@@ -183,6 +196,9 @@ export interface IStorage {
   getUserEbookDownloads(userId: string): Promise<UserEbookDownload[]>;
   recordEbookDownload(userId: string, ebookId: string): Promise<UserEbookDownload>;
   hasUserDownloadedEbook(userId: string, ebookId: string): Promise<boolean>;
+
+  // Transaction methods
+  getUserTransactions(userId: string): Promise<Transaction[]>;
 }
 
 // Database storage implementation
@@ -1704,6 +1720,141 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error calculating course average rating:", error);
       return 0;
+    }
+  }
+
+  async getUserTransactions(userId: string): Promise<Transaction[]> {
+    try {
+      const transactions: Transaction[] = [];
+
+      // Get course enrollments
+      const courseEnrollments = await db
+        .select({
+          id: enrollments.id,
+          enrolledAt: enrollments.enrolledAt,
+          courseId: enrollments.courseId,
+          courseTitle: courses.title,
+          coursePrice: courses.price,
+          progress: enrollments.progress,
+          completed: enrollments.completed,
+        })
+        .from(enrollments)
+        .leftJoin(courses, eq(enrollments.courseId, courses.id))
+        .where(eq(enrollments.studentId, userId))
+        .orderBy(desc(enrollments.enrolledAt));
+
+      courseEnrollments.forEach((enrollment) => {
+        transactions.push({
+          id: enrollment.id,
+          type: 'course_enrollment',
+          title: enrollment.courseTitle || 'Course',
+          description: `Enrolled in course • ${enrollment.progress}% completed`,
+          amount: enrollment.coursePrice || '₹0',
+          status: enrollment.completed ? 'completed' : 'active',
+          date: enrollment.enrolledAt || new Date(),
+          itemId: enrollment.courseId || undefined,
+        });
+      });
+
+      // Get consultations
+      const userConsultations = await db
+        .select({
+          id: consultations.id,
+          title: consultations.title,
+          scheduledAt: consultations.scheduledAt,
+          duration: consultations.duration,
+          amount: consultations.amount,
+          status: consultations.status,
+          expertId: consultations.expertId,
+          expertName: experts.name,
+        })
+        .from(consultations)
+        .leftJoin(experts, eq(consultations.expertId, experts.id))
+        .where(eq(consultations.studentId, userId))
+        .orderBy(desc(consultations.scheduledAt));
+
+      userConsultations.forEach((consultation) => {
+        transactions.push({
+          id: consultation.id,
+          type: 'consultation',
+          title: consultation.title,
+          description: `Consultation with ${consultation.expertName} • ${consultation.duration} minutes`,
+          amount: `₹${consultation.amount}`,
+          status: consultation.status,
+          date: consultation.scheduledAt,
+          itemId: consultation.expertId || undefined,
+          expertName: consultation.expertName || undefined,
+          duration: consultation.duration,
+        });
+      });
+
+      // Get ebook downloads
+      const ebookDownloads = await db
+        .select({
+          id: userEbookDownloads.id,
+          downloadedAt: userEbookDownloads.downloadedAt,
+          ebookId: userEbookDownloads.ebookId,
+          ebookTitle: ebooks.title,
+          ebookPrice: ebooks.price,
+          authorName: experts.name,
+        })
+        .from(userEbookDownloads)
+        .leftJoin(ebooks, eq(userEbookDownloads.ebookId, ebooks.id))
+        .leftJoin(experts, eq(ebooks.authorId, experts.id))
+        .where(eq(userEbookDownloads.userId, userId))
+        .orderBy(desc(userEbookDownloads.downloadedAt));
+
+      ebookDownloads.forEach((download) => {
+        transactions.push({
+          id: download.id,
+          type: 'ebook_download',
+          title: download.ebookTitle || 'Ebook',
+          description: `Downloaded ebook by ${download.authorName}`,
+          amount: download.ebookPrice || '₹0',
+          status: 'completed',
+          date: download.downloadedAt || new Date(),
+          itemId: download.ebookId || undefined,
+          expertName: download.authorName || undefined,
+        });
+      });
+
+      // Get webinar attendances
+      const webinarAttendances = await db
+        .select({
+          id: webinarAttendees.id,
+          joinedAt: webinarAttendees.joinedAt,
+          webinarId: webinarAttendees.webinarId,
+          webinarTitle: webinars.title,
+          webinarPrice: webinars.price,
+          status: webinarAttendees.status,
+          duration: webinarAttendees.totalDuration,
+        })
+        .from(webinarAttendees)
+        .leftJoin(webinars, eq(webinarAttendees.webinarId, webinars.id))
+        .where(eq(webinarAttendees.participantId, userId))
+        .orderBy(desc(webinarAttendees.joinedAt));
+
+      webinarAttendances.forEach((attendance) => {
+        transactions.push({
+          id: attendance.id,
+          type: 'live_session',
+          title: attendance.webinarTitle || 'Live Session',
+          description: `Attended live session • ${attendance.duration || 0} minutes`,
+          amount: attendance.webinarPrice || '₹0',
+          status: attendance.status || 'completed',
+          date: attendance.joinedAt || new Date(),
+          itemId: attendance.webinarId || undefined,
+          duration: attendance.duration || undefined,
+        });
+      });
+
+      // Sort all transactions by date (newest first)
+      transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      return transactions;
+    } catch (error) {
+      console.error("Error fetching user transactions:", error);
+      return [];
     }
   }
 }
