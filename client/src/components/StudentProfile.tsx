@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { User, LogOut, BookOpen, Settings } from 'lucide-react';
+import { User, LogOut, Settings } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { User as UserType } from '@/hooks/useAuth';
@@ -48,10 +48,6 @@ export default function StudentProfile({ user }: StudentProfileProps) {
           <p className="text-xs text-gray-500">Student</p>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
-          <BookOpen className="h-4 w-4 mr-2" />
-          My Courses
-        </DropdownMenuItem>
         <DropdownMenuItem 
           className="cursor-pointer" 
           onClick={() => setLocation('/profile-settings')}
