@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Clock, Users, BookOpen, Award, Play, Calendar, ChevronRight, CheckCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { Course } from "@shared/schema";
 
 interface CourseCardProps {
@@ -13,6 +13,8 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnrolling = false }: CourseCardProps) {
+  const [, setLocation] = useLocation();
+  
   const levelColors = {
     beginner: "bg-emerald-100 text-emerald-800 border-emerald-200",
     intermediate: "bg-amber-100 text-amber-800 border-amber-200", 
@@ -33,7 +35,7 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
   const lifetimeAccess = courseData.lifetimeAccess;
 
   return (
-    <Link href={`/course/${course.id}`}>
+    <Link href={`/courses/${course.id}`}>
       <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
         {/* Course Image/Thumbnail */}
         <div className="relative w-full h-52 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
@@ -171,11 +173,13 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (!isEnrolled && onEnroll) {
+                if (isEnrolled) {
+                  setLocation(`/courses/${course.id}`);
+                } else if (onEnroll) {
                   onEnroll(course.id);
                 }
               }}
-              disabled={isEnrolled || isEnrolling}
+              disabled={isEnrolling}
             >
               {isEnrolling ? (
                 <div className="flex items-center gap-2">
@@ -198,6 +202,7 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                setLocation(`/courses/${course.id}`);
               }}
             >
               <ChevronRight className="h-4 w-4" />
