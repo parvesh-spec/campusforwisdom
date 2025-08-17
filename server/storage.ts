@@ -769,7 +769,19 @@ export class DatabaseStorage implements IStorage {
   // Expert methods
   async getExperts(): Promise<Expert[]> {
     const expertList = await db.select().from(experts).orderBy(desc(experts.createdAt));
-    return expertList;
+    
+    // Calculate sessions count for each expert
+    const expertsWithSessionCount = await Promise.all(
+      expertList.map(async (expert) => {
+        const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
+        return {
+          ...expert,
+          totalSessions: sessions.length
+        };
+      })
+    );
+    
+    return expertsWithSessionCount;
   }
 
   async createExpert(insertExpert: InsertExpert): Promise<Expert> {
@@ -877,7 +889,16 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(experts)
       .where(eq(experts.id, id));
-    return expert || null;
+    
+    if (!expert) return null;
+    
+    // Calculate sessions count for this expert
+    const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
+    
+    return {
+      ...expert,
+      totalSessions: sessions.length
+    };
   }
 
   // Ebook methods implementation
