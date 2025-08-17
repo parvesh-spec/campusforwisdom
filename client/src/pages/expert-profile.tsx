@@ -574,8 +574,9 @@ export default function ExpertProfile() {
               {expertSessions.length > 0 ? (
                 <div className="grid gap-4">
                   {expertSessions.map((session) => (
-                    <Card key={session.id} className="border hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
+                    <Link key={session.id} href={`/webinar/${session.id}`}>
+                      <Card className="border hover:shadow-md transition-shadow cursor-pointer">
+                        <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -622,6 +623,7 @@ export default function ExpertProfile() {
                                   variant="outline"
                                   className="border-green-600 text-green-700 bg-green-50 hover:bg-green-100"
                                   disabled
+                                  onClick={(e) => e.preventDefault()}
                                 >
                                   ✓ Booked
                                 </Button>
@@ -630,7 +632,11 @@ export default function ExpertProfile() {
                                     size="sm"
                                     variant="ghost"
                                     className="text-blue-600 hover:text-blue-800 h-6 px-2 text-xs"
-                                    onClick={() => window.open(session.registrationLink, '_blank')}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      window.open(session.registrationLink, '_blank');
+                                    }}
                                   >
                                     <div className="flex items-center gap-1">
                                       <div className="w-3 h-3">⚡</div>
@@ -642,7 +648,9 @@ export default function ExpertProfile() {
                             ) : (
                               <Button 
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   if (!isLoggedIn) {
                                     setShowLoginModal(true);
                                   } else {
@@ -656,8 +664,9 @@ export default function ExpertProfile() {
                             )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               ) : (
