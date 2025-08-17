@@ -227,54 +227,100 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredCourses.map((course) => (
-              <Card key={course.id} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white dark:bg-slate-800">
-                <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600">
-                  {course.thumbnail && (
-                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                  )}
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-white/90 text-blue-600 hover:bg-white">
-                      {course.level}
-                    </Badge>
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-green-500 text-white">
-                      {course.price}
-                    </Badge>
-                  </div>
-                </div>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="secondary" className="text-xs">
-                      {course.category}
-                    </Badge>
-                    <div className="flex items-center text-yellow-500">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span className="text-sm ml-1">{course.rating}</span>
+            {featuredCourses.map((course) => {
+              const courseData = course as any;
+              const levelColors = {
+                beginner: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                intermediate: "bg-amber-100 text-amber-800 border-amber-200", 
+                advanced: "bg-rose-100 text-rose-800 border-rose-200",
+              };
+              
+              return (
+                <Link key={course.id} href={`/courses/${course.id}`}>
+                  <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+                    {/* Course Image/Thumbnail */}
+                    <div className="relative w-full h-52 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                      {courseData.thumbnail ? (
+                        <img 
+                          src={courseData.thumbnail} 
+                          alt={course.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center">
+                          <div className="text-6xl text-white/80">📚</div>
+                        </div>
+                      )}
+                      
+                      {/* Level Badge */}
+                      <div className="absolute top-3 left-3">
+                        <Badge className={`${levelColors[course.level as keyof typeof levelColors]} border font-medium`}>
+                          {course.level}
+                        </Badge>
+                      </div>
+
+                      {/* Price Badge */}
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1">
+                        <span className="text-lg font-bold text-gray-900">₹{course.price}</span>
+                      </div>
+
+                      {/* Rating */}
+                      <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+                        {parseFloat(course.rating || '0') > 0 ? (
+                          <>
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-semibold text-gray-900">{course.rating}</span>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className="h-3 w-3 text-gray-300" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                    {course.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                    {course.shortDescription || course.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <Users className="h-4 w-4 mr-1" />
-                      {course.studentsCount} students
-                    </div>
-                    <Link href={`/courses/${course.id}`}>
-                      <Button size="sm">
-                        Learn More
-                        <ArrowRight className="ml-2 h-4 w-4" />
+
+                    <CardContent className="p-6">
+                      {/* Category */}
+                      <div className="mb-3">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                          {course.category}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {course.title}
+                      </h3>
+
+                      {/* Short Description */}
+                      <p className="text-gray-600 mb-4 line-clamp-2 text-sm leading-relaxed">
+                        {courseData.shortDescription || course.description}
+                      </p>
+
+                      {/* Course Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 font-medium">{course.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 font-medium">{course.studentsCount || 0} students</span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold group-hover:shadow-lg transition-all">
+                        <Play className="mr-2 h-4 w-4" />
+                        Enroll Now
                       </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 md:hidden">
@@ -309,48 +355,155 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredSessions.map((session) => (
-              <Card key={session.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white dark:bg-slate-800">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <Badge className="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {session.status === 'live' ? 'Live Now' : 'Upcoming'}
-                    </Badge>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(session.scheduledStart).toLocaleDateString()}
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                    {session.title}
-                  </h3>
-                  
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                    {session.description}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {session.duration}min
+            {featuredSessions.map((session) => {
+              const isLive = session.status === "live";
+              const isScheduled = session.status === "scheduled";
+              const sessionData = session as any;
+              
+              const formatDate = (date: Date | string) => {
+                return new Intl.DateTimeFormat("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                }).format(new Date(date));
+              };
+
+              const formatTime = (date: Date | string) => {
+                return new Intl.DateTimeFormat("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }).format(new Date(date));
+              };
+
+              const price = session.price ? parseFloat(session.price) : 0;
+              const spotsLeft = (session.maxParticipants || 100) - (session.currentParticipants || 0);
+
+              return (
+                <Link key={session.id} href={`/webinar/${session.id}`}>
+                  <Card className="group bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer">
+                    {/* Live indicator */}
+                    {isLive && (
+                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-2">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                          <span className="text-sm font-medium">LIVE NOW</span>
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        {session.currentParticipants}/{session.maxParticipants}
+                    )}
+
+                    <CardContent className={`p-0 ${isLive ? '' : ''}`}>
+                      {/* Cover Image */}
+                      {sessionData.thumbnail ? (
+                        <div className="relative w-full h-48 overflow-hidden">
+                          <img 
+                            src={sessionData.thumbnail} 
+                            alt={session.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        </div>
+                      ) : (
+                        <div className="relative w-full h-48 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
+                          <div className="text-6xl text-white/80">🎥</div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        </div>
+                      )}
+
+                      {/* Header Section */}
+                      <div className="p-6 pb-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge className={`${
+                            isLive ? 'bg-red-100 text-red-800 border-red-200' : 
+                            'bg-blue-100 text-blue-800 border-blue-200'
+                          } border`}>
+                            {isLive ? (
+                              <>
+                                <Play className="w-3 h-3 mr-1" /> Live Now
+                              </>
+                            ) : (
+                              "Upcoming"
+                            )}
+                          </Badge>
+                          
+                          {spotsLeft <= 10 && spotsLeft > 0 && (
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
+                              Only {spotsLeft} seats left!
+                            </span>
+                          )}
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                          {session.title}
+                        </h3>
+                        
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                          {session.description}
+                        </p>
                       </div>
-                    </div>
-                    <Link href={`/webinar/${session.id}`}>
-                      <Button size="sm" variant={session.status === 'live' ? 'default' : 'outline'}>
-                        {session.status === 'live' ? 'Join Now' : 'Register'}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                      {/* Session Details */}
+                      <div className="px-6 pb-4">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div className="flex items-center text-gray-600">
+                            <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                            <span>{formatDate(session.scheduledAt)}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600">
+                            <Clock className="h-4 w-4 mr-2 text-green-500" />
+                            <span>{formatTime(session.scheduledAt)}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600">
+                            <Video className="h-4 w-4 mr-2 text-indigo-500" />
+                            <span>{session.duration} min</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Price and Action */}
+                      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {price > 0 ? (
+                              <>
+                                <span className="text-2xl font-bold text-gray-900">₹{price}</span>
+                                <span className="text-sm text-gray-500">per person</span>
+                              </>
+                            ) : (
+                              <span className="text-2xl font-bold text-green-600">FREE</span>
+                            )}
+                          </div>
+                          
+                          <Button 
+                            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
+                          >
+                            {isLive ? (
+                              <>
+                                <Play className="h-4 w-4 mr-2" />
+                                Join Live
+                              </>
+                            ) : (
+                              <>
+                                <Users className="h-4 w-4 mr-2" />
+                                Book Seat
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {isScheduled && spotsLeft > 0 && spotsLeft <= 20 && (
+                          <div className="mt-2 text-center">
+                            <span className="text-xs text-gray-500">
+                              {spotsLeft} seats available
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 md:hidden">
@@ -385,45 +538,103 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredExperts.map((expert) => (
-              <Card key={expert.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white dark:bg-slate-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-                      {expert.name.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        {expert.name}
-                      </h3>
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Badge variant="secondary" className="text-xs">
-                          {expert.specialization}
-                        </Badge>
-                        <div className="flex items-center text-yellow-500">
-                          <Star className="h-4 w-4 fill-current" />
-                          <span className="text-sm ml-1">{expert.rating}</span>
+            {featuredExperts.map((expert) => {
+              const expertData = expert as any;
+              
+              return (
+                <Link key={expert.id} href={`/experts/${expert.id}`}>
+                  <Card className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white overflow-hidden cursor-pointer">
+                    <CardContent className="p-0">
+                      {/* Expert Header with Background */}
+                      <div className="relative bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 p-6 text-white">
+                        <div className="flex items-start space-x-4">
+                          <div className="relative">
+                            {expertData.avatar ? (
+                              <img
+                                src={expertData.avatar}
+                                alt={expert.name}
+                                className="w-20 h-20 rounded-full object-cover border-4 border-white/20 shadow-lg"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white/20">
+                                {expert.name.charAt(0)}
+                              </div>
+                            )}
+                            {expertData.isActive && (
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-100 transition-colors">
+                              {expert.name}
+                            </h3>
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                                {expert.specialization}
+                              </Badge>
+                              <div className="flex items-center text-yellow-300">
+                                <Star className="h-4 w-4 fill-current" />
+                                <span className="text-sm ml-1 font-medium">{expert.rating}</span>
+                              </div>
+                            </div>
+                            <p className="text-white/90 text-sm">
+                              {expert.experience} experience
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                        {expert.bio}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {expert.experience} experience
+
+                      {/* Expert Details */}
+                      <div className="p-6">
+                        <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+                          {expert.bio}
+                        </p>
+
+                        {/* Skills/Expertise */}
+                        {expertData.skills && expertData.skills.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              {expertData.skills.slice(0, 3).map((skill: string, index: number) => (
+                                <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {expertData.skills.length > 3 && (
+                                <Badge variant="outline" className="text-xs text-gray-500">
+                                  +{expertData.skills.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-gray-900">
+                              {expertData.hourlyRate ? `₹${expertData.hourlyRate}/hr` : 'Free'}
+                            </div>
+                            <div className="text-xs text-gray-500">Consultation</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-gray-900">
+                              {expertData.totalSessions || 0}
+                            </div>
+                            <div className="text-xs text-gray-500">Sessions</div>
+                          </div>
                         </div>
-                        <Link href={`/experts/${expert.id}`}>
-                          <Button size="sm">
-                            View Profile
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </Link>
+
+                        {/* Action Button */}
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold group-hover:shadow-lg transition-all">
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Book Consultation
+                        </Button>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 md:hidden">
@@ -458,54 +669,120 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredEbooks.map((ebook) => (
-              <Card key={ebook.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white dark:bg-slate-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-20 h-28 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white flex-shrink-0">
-                      <BookOpen className="h-8 w-8" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                          {ebook.category}
-                        </Badge>
-                        <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                          {ebook.price}
+            {featuredEbooks.map((ebook) => {
+              const ebookData = ebook as any;
+              
+              return (
+                <Link key={ebook.id} href={`/ebooks/${ebook.id}`}>
+                  <Card className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white overflow-hidden cursor-pointer">
+                    <CardContent className="p-0">
+                      {/* Ebook Cover */}
+                      <div className="relative w-full h-64 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                        {ebookData.coverImage ? (
+                          <img 
+                            src={ebookData.coverImage} 
+                            alt={ebook.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 flex items-center justify-center relative">
+                            {/* Book mockup design */}
+                            <div className="relative w-32 h-44 bg-white rounded-lg shadow-2xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                              <div className="absolute inset-2 bg-gradient-to-br from-blue-400 to-purple-600 rounded-md flex items-center justify-center">
+                                <BookOpen className="h-12 w-12 text-white" />
+                              </div>
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <div className="h-1 bg-white/60 rounded mb-1"></div>
+                                <div className="h-1 bg-white/40 rounded w-3/4"></div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Category Badge */}
+                        <div className="absolute top-3 left-3">
+                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 font-medium">
+                            {ebook.category}
+                          </Badge>
+                        </div>
+
+                        {/* Price Badge */}
+                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1">
+                          <span className="text-lg font-bold text-gray-900">{ebook.price}</span>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+                          {parseFloat(ebook.rating || '0') > 0 ? (
+                            <>
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm font-semibold text-gray-900">{ebook.rating}</span>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="h-3 w-3 text-gray-300" />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                        {ebook.title}
-                      </h3>
-                      
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                        {ebook.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center">
-                            <Download className="h-4 w-4 mr-1" />
-                            {ebook.downloadCount || 0} downloads
+
+                      {/* Ebook Details */}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                          {ebook.title}
+                        </h3>
+
+                        <p className="text-gray-600 mb-4 line-clamp-3 text-sm leading-relaxed">
+                          {ebook.description}
+                        </p>
+
+                        {/* Ebook Info */}
+                        <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Download className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-700 font-medium">
+                              {ebookData.downloadCount || 0} downloads
+                            </span>
                           </div>
-                          <div className="flex items-center text-yellow-500">
-                            <Star className="h-4 w-4 fill-current" />
-                            <span className="ml-1">{ebook.rating}</span>
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-700 font-medium">
+                              {ebookData.pageCount || 'PDF'} pages
+                            </span>
                           </div>
                         </div>
-                        <Link href={`/ebooks/${ebook.id}`}>
-                          <Button size="sm">
-                            Download
-                            <Download className="ml-2 h-4 w-4" />
-                          </Button>
-                        </Link>
+
+                        {/* Topics/Tags */}
+                        {ebookData.tags && ebookData.tags.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              {ebookData.tags.slice(0, 3).map((tag: string, index: number) => (
+                                <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {ebookData.tags.length > 3 && (
+                                <Badge variant="outline" className="text-xs text-gray-500">
+                                  +{ebookData.tags.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Button */}
+                        <Button className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold group-hover:shadow-lg transition-all">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Now
+                        </Button>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 md:hidden">
