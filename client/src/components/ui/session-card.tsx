@@ -140,7 +140,7 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
           <CardContent className={`p-0 ${isLive ? 'pt-12' : ''}`}>
             {/* Cover Image */}
             {(session as any).thumbnail && (
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="relative w-full h-32 overflow-hidden">
                 <img 
                   src={(session as any).thumbnail} 
                   alt={session.title}
