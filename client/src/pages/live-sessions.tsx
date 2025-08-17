@@ -33,6 +33,8 @@ export default function LiveSessions() {
 
   const liveSessions = filteredSessions.filter(s => s.status === "live");
   const upcomingSessions = filteredSessions.filter(s => s.status === "scheduled");
+  // Combine live and scheduled sessions for "upcoming" tab
+  const allUpcomingSessions = [...liveSessions, ...upcomingSessions];
   const completedSessions = filteredSessions.filter(s => s.status === "completed");
 
   const handleMySessionsClick = () => {
@@ -120,49 +122,14 @@ export default function LiveSessions() {
           <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upcoming">
-                Upcoming ({upcomingSessions.length})
+                Upcoming ({allUpcomingSessions.length})
               </TabsTrigger>
               <TabsTrigger value="completed">
                 Completed ({completedSessions.length})
               </TabsTrigger>
             </TabsList>
 
-            {/* Live Sessions Section - Show live sessions if any exist */}
-            {liveSessions.length > 0 && (
-              <div className="mb-8">
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <h3 className="text-lg font-semibold text-red-800">
-                        {liveSessions.length} Live Session{liveSessions.length > 1 ? 's' : ''} Now
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-red-700 mt-2">
-                    Don't miss out! Join the live sessions happening right now.
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {liveSessions.map((session) => (
-                    <SessionCard 
-                      key={session.id} 
-                      session={session}
-                      onJoin={(sessionId) => {
-                        if (!isLoggedIn) {
-                          setShowLoginModal(true);
-                        } else {
-                          // TODO: Implement join live functionality
-                          alert('Join live functionality will be implemented soon!');
-                        }
-                      }}
-                      onLoginRequired={() => setShowLoginModal(true)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+
 
           <TabsContent value="upcoming" className="mt-8">
             {isLoading ? (
@@ -171,9 +138,9 @@ export default function LiveSessions() {
                   <div key={i} className="animate-pulse bg-gray-200 rounded-xl h-64"></div>
                 ))}
               </div>
-            ) : upcomingSessions.length > 0 ? (
+            ) : allUpcomingSessions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {upcomingSessions.map((session) => (
+                {allUpcomingSessions.map((session) => (
                   <SessionCard 
                     key={session.id} 
                     session={session} 
