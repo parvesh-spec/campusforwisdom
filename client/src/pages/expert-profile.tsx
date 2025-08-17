@@ -873,7 +873,7 @@ export default function ExpertProfile() {
             {expertCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {expertCourses.map((course) => (
-                  <Link key={course.id} href={`/courses/${course.id}`}>
+                  <Link key={course.id} href={`/course/${course.id}`}>
                     <Card className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer">
                       <CardHeader className="p-0">
                         {course.thumbnail ? (
