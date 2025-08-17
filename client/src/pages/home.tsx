@@ -239,7 +239,7 @@ export default function Home() {
                 <Link key={course.id} href={`/courses/${course.id}`}>
                   <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
                     {/* Course Image/Thumbnail */}
-                    <div className="relative w-full h-64 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                    <div className="relative w-full h-72 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
                       {courseData.thumbnail ? (
                         <img 
                           src={courseData.thumbnail} 
@@ -395,7 +395,7 @@ export default function Home() {
                     <CardContent className={`p-0 ${isLive ? '' : ''}`}>
                       {/* Cover Image */}
                       {sessionData.thumbnail ? (
-                        <div className="relative w-full h-56 overflow-hidden">
+                        <div className="relative w-full h-72 overflow-hidden">
                           <img 
                             src={sessionData.thumbnail} 
                             alt={session.title}
@@ -404,7 +404,7 @@ export default function Home() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         </div>
                       ) : (
-                        <div className="relative w-full h-56 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
+                        <div className="relative w-full h-72 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
                           <div className="text-6xl text-white/80">🎥</div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         </div>
@@ -735,7 +735,7 @@ export default function Home() {
                         </h3>
 
                         <p className="text-gray-600 mb-4 line-clamp-3 text-sm leading-relaxed">
-                          {ebook.description}
+                          {ebookData.shortDescription || ebookData.summary || 'No description available'}
                         </p>
 
                         {/* Ebook Info */}
