@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, HelpCircle, File } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useStudentAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
@@ -49,12 +49,14 @@ export default function ProfileSettings() {
   // Get current user data
   const { data: user, isLoading } = useQuery<any>({
     queryKey: ['/api/auth/student'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
   });
 
   // Get user transactions
   const { data: transactions, isLoading: transactionsLoading } = useQuery<any>({
     queryKey: ['/api/student/transactions'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
   });
 
