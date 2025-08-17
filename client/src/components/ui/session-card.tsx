@@ -138,6 +138,18 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
           )}
 
           <CardContent className={`p-0 ${isLive ? 'pt-12' : ''}`}>
+            {/* Cover Image */}
+            {(session as any).thumbnail && (
+              <div className="relative w-full h-48 overflow-hidden">
+                <img 
+                  src={(session as any).thumbnail} 
+                  alt={session.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
+            )}
+
             {/* Header Section */}
             <div className="p-6 pb-4">
               <div className="flex items-center justify-between mb-3">

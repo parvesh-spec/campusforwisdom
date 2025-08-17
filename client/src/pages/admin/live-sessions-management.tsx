@@ -1138,6 +1138,64 @@ export default function WebinarManagement() {
                         placeholder="AI, Marketing, Strategy (comma separated)"
                       />
                     </div>
+
+                    {/* Cover Image Upload for Edit */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cover Image
+                      </label>
+                      <div className="flex items-center space-x-4">
+                        {formData.thumbnail && (
+                          <div className="relative w-32 h-20 rounded-lg overflow-hidden border">
+                            <img 
+                              src={formData.thumbnail} 
+                              alt="Cover preview" 
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, thumbnail: "" })}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverImageUpload}
+                            className="hidden"
+                            id="edit-cover-upload"
+                            disabled={uploadingCover}
+                          />
+                          <label htmlFor="edit-cover-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingCover}
+                              className="cursor-pointer"
+                              asChild
+                            >
+                              <span>
+                                {uploadingCover ? (
+                                  <>Uploading...</>
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload Cover Image
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Recommended: 16:9 aspect ratio, max 5MB (JPG, PNG)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="content" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto px-1">
