@@ -821,7 +821,7 @@ export default function Home() {
                     </Button>
                   </Link>
                   <Link href="/live-sessions">
-                    <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                    <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
                       <Video className="mr-2 h-5 w-5" />
                       Join Live Sessions
                     </Button>
