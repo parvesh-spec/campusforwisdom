@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, Settings, Shield, Bell, CreditCard, HelpCircle } from "lucide-react";
+import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, HelpCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useStudentAuth } from "@/hooks/useAuth";
@@ -36,9 +36,6 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 const sidebarItems = [
   { id: 'profile', label: 'Personal Information', icon: User },
-  { id: 'account', label: 'Account Settings', icon: Settings },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
   { id: 'help', label: 'Help & Support', icon: HelpCircle },
 ];
@@ -582,48 +579,6 @@ export default function ProfileSettings() {
     </div>
   );
 
-  const renderAccountSection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Settings</CardTitle>
-          <CardDescription>Manage your account preferences and settings.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Account settings features will be available soon.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderSecuritySection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Security & Privacy</CardTitle>
-          <CardDescription>Manage your password and security preferences.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Security settings features will be available soon.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderNotificationsSection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>Choose what notifications you want to receive.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Notification settings features will be available soon.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   const renderBillingSection = () => (
     <div className="space-y-6">
       <Card>
@@ -656,12 +611,6 @@ export default function ProfileSettings() {
     switch (activeSection) {
       case 'profile':
         return renderProfileSection();
-      case 'account':
-        return renderAccountSection();
-      case 'security':
-        return renderSecuritySection();
-      case 'notifications':
-        return renderNotificationsSection();
       case 'billing':
         return renderBillingSection();
       case 'help':
