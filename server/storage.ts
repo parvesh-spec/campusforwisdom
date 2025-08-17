@@ -318,7 +318,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLiveSessions(): Promise<LiveSession[]> {
-    return await db.select().from(webinars).orderBy(desc(webinars.scheduledAt));
+    const sessions = await db
+      .select({
+        id: webinars.id,
+        title: webinars.title,
+        description: webinars.description,
+        scheduledAt: webinars.scheduledAt,
+        duration: webinars.duration,
+        price: webinars.price,
+        maxParticipants: webinars.maxParticipants,
+        currentParticipants: webinars.currentParticipants,
+        status: webinars.status,
+        thumbnail: webinars.thumbnail,
+        meetingUrl: webinars.meetingUrl,
+        instructorId: webinars.instructorId,
+        courseId: webinars.courseId,
+        expertId: webinars.expertId,
+        registrationLink: webinars.registrationLink,
+        startLink: webinars.startLink,
+        webinarId: webinars.webinarId,
+        isFeatured: webinars.isFeatured,
+        createdAt: webinars.createdAt,
+        updatedAt: webinars.updatedAt,
+        expert: {
+          id: experts.id,
+          name: experts.name,
+          avatar: experts.avatar,
+          specialization: experts.specialization,
+          rating: experts.rating,
+          isActive: experts.isActive,
+        }
+      })
+      .from(webinars)
+      .leftJoin(experts, eq(webinars.expertId, experts.id))
+      .orderBy(desc(webinars.scheduledAt));
+
+    return sessions.map(session => ({
+      ...session,
+      expert: session.expert.id ? session.expert : undefined
+    }));
   }
 
   async getLiveSessionById(id: string): Promise<LiveSession | undefined> {

@@ -504,6 +504,34 @@ export default function Home() {
                         </p>
                       </div>
 
+                      {/* Expert/Instructor Section */}
+                      {sessionData.expert && (
+                        <div className="px-6 pb-4">
+                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="relative">
+                              <img
+                                src={sessionData.expert.avatar || '/api/placeholder/40/40'}
+                                alt={sessionData.expert.name}
+                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                              />
+                              {sessionData.expert.isActive && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">{sessionData.expert.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{sessionData.expert.specialization}</p>
+                              {sessionData.expert.rating && (
+                                <div className="flex items-center mt-1">
+                                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                  <span className="text-xs text-gray-600 ml-1">{sessionData.expert.rating}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Session Details */}
                       <div className="px-6 pb-4">
                         <div className="grid grid-cols-3 gap-4 text-sm">
