@@ -1421,9 +1421,11 @@ export default function ExpertProfile() {
             )}
 
             {/* Reviews List */}
-            {reviews.length > 0 ? (
+            {reviews.filter((review) => !currentUser || review.student.id !== currentUser.id).length > 0 ? (
               <div className="space-y-4">
-                {reviews.map((review) => (
+                {reviews
+                  .filter((review) => !currentUser || review.student.id !== currentUser.id)
+                  .map((review) => (
                   <Card key={review.id}>
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
@@ -1482,17 +1484,17 @@ export default function ExpertProfile() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  ))}
               </div>
             ) : (
               <Card>
                 <CardContent className="p-12 text-center">
                   <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No Reviews Yet
+                    No Other Reviews Yet
                   </h3>
                   <p className="text-gray-600">
-                    This expert hasn't received any reviews yet. Be the first to share your experience!
+                    No other students have reviewed this expert yet.
                   </p>
                 </CardContent>
               </Card>
