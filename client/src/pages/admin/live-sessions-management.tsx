@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Video, Users, Calendar, Clock, Play, Square, Copy, X } from "lucide-react";
-import type { LiveSession, Expert } from "@shared/schema";
+import type { LiveSession, Expert, WebinarAttendee } from "@shared/schema";
 
 export default function WebinarManagement() {
   const { toast } = useToast();
@@ -51,6 +51,12 @@ export default function WebinarManagement() {
 
   const { data: experts } = useQuery<Expert[]>({
     queryKey: ["/api/admin/experts"],
+  });
+
+  // Fetch attendees for the editing session
+  const { data: editingSessionAttendees } = useQuery<WebinarAttendee[]>({
+    queryKey: ["/api/admin/webinars", editingSession?.id, "attendees"],
+    enabled: !!editingSession?.id,
   });
 
   const createSessionMutation = useMutation({
@@ -1202,20 +1208,70 @@ export default function WebinarManagement() {
                       />
                     </div>
 
+                    {/* Booked Participants Section */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Pre-registered Participants (Email Addresses)
-                      </label>
-                      <Textarea
-                        value={formData.participantEmails}
-                        onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
-                        placeholder="participant1@example.com, participant2@example.com"
-                        rows={3}
-                      />
-                      <p className="text-sm text-gray-500 mt-1">
-                        Comma-separated email addresses of pre-registered participants
-                      </p>
+                      <div className="flex justify-between items-center mb-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Booked Participants
+                        </label>
+                        <Badge variant="secondary">
+                          {editingSessionAttendees?.length || 0} Registered
+                        </Badge>
+                      </div>
+                      <div className="border rounded-lg p-3 bg-gray-50 min-h-[120px] max-h-[200px] overflow-y-auto">
+                        {editingSessionAttendees && editingSessionAttendees.length > 0 ? (
+                          <div className="space-y-2">
+                            {editingSessionAttendees.map((attendee) => (
+                              <div key={attendee.id} className="flex items-center justify-between bg-white p-3 rounded border">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm font-medium">{attendee.participantName || 'Anonymous'}</span>
+                                    <Badge variant="outline" className="text-xs">
+                                      {attendee.status === 'registered' ? 'Registered' : attendee.status}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-gray-500">{attendee.participantEmail}</p>
+                                  {attendee.joinedAt && (
+                                    <p className="text-xs text-gray-400">
+                                      Joined: {new Date(attendee.joinedAt).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                                {attendee.role && attendee.role !== 'attendee' && (
+                                  <Badge variant="secondary" className="text-xs capitalize">
+                                    {attendee.role}
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center">
+                            <Users className="h-8 w-8 text-gray-400 mb-2" />
+                            <p className="text-gray-500 text-sm">No participants registered yet</p>
+                            <p className="text-gray-400 text-xs">Participants can register using the webinar link</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Pre-registered Participants (Only for Create) */}
+                    {!editingSession && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Pre-registered Participants (Email Addresses)
+                        </label>
+                        <Textarea
+                          value={formData.participantEmails}
+                          onChange={(e) => setFormData({ ...formData, participantEmails: e.target.value })}
+                          placeholder="participant1@example.com, participant2@example.com"
+                          rows={3}
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                          Comma-separated email addresses of pre-registered participants
+                        </p>
+                      </div>
+                    )}
                   </TabsContent>
                 </Tabs>
 

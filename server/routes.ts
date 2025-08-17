@@ -625,6 +625,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get webinar attendees for admin
+  app.get("/api/admin/webinars/:id/attendees", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const attendees = await storage.getWebinarAttendees(id);
+      res.json(attendees);
+    } catch (error) {
+      console.error("Error fetching webinar attendees:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Create webinar through Zoho API
   app.post("/api/admin/live-sessions", requireAdmin, async (req, res) => {
     try {

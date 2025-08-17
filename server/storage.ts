@@ -411,6 +411,22 @@ export class DatabaseStorage implements IStorage {
     return attendee || undefined;
   }
 
+  async getWebinarAttendees(webinarId: string): Promise<WebinarAttendee[]> {
+    const attendees = await db
+      .select()
+      .from(webinarAttendees)
+      .where(eq(webinarAttendees.webinarId, webinarId));
+    return attendees;
+  }
+
+  async getWebinarAttendees(webinarId: string): Promise<WebinarAttendee[]> {
+    const attendees = await db
+      .select()
+      .from(webinarAttendees)
+      .where(eq(webinarAttendees.webinarId, webinarId));
+    return attendees;
+  }
+
   async getStudentWebinars(userId: string): Promise<Webinar[]> {
     const result = await db
       .select({ webinar: webinars })
