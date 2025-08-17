@@ -155,7 +155,7 @@ export default function WebinarDetail() {
 
           {/* Cover Image */}
           {(session as any).thumbnail && (
-            <div className="relative w-full h-32 rounded-xl overflow-hidden mb-6 shadow-lg">
+            <div className="relative w-full h-96 rounded-xl overflow-hidden mb-6 shadow-lg">
               <img 
                 src={(session as any).thumbnail} 
                 alt={session.title}
