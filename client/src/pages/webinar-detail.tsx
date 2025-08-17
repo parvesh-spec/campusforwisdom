@@ -152,6 +152,38 @@ export default function WebinarDetail() {
               Back to Sessions
             </Button>
           </Link>
+
+          {/* Cover Image */}
+          {(session as any).thumbnail && (
+            <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6 shadow-lg">
+              <img 
+                src={(session as any).thumbnail} 
+                alt={session.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              
+              {/* Live indicator overlay */}
+              {isLive && (
+                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <span className="text-sm font-medium">LIVE NOW</span>
+                </div>
+              )}
+              
+              {/* Price overlay */}
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2">
+                {price > 0 ? (
+                  <div className="flex items-center space-x-1">
+                    <IndianRupee className="h-5 w-5 text-green-600" />
+                    <span className="text-xl font-bold text-gray-900">₹{price}</span>
+                  </div>
+                ) : (
+                  <span className="text-xl font-bold text-green-600">FREE</span>
+                )}
+              </div>
+            </div>
+          )}
           
           <div className="flex items-center justify-between">
             <div className="flex-1">
