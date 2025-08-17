@@ -10,12 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "wouter";
 import type { LiveSession, Expert } from "@shared/schema";
+import StudentLoginModal from "@/components/StudentLoginModal";
 
 export default function WebinarDetail() {
   const { sessionId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isBooking, setIsBooking] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Fetch session details
   const { data: session, isLoading, error } = useQuery<LiveSession>({
@@ -43,7 +45,7 @@ export default function WebinarDetail() {
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: data.message || "Session booked successfully! Check your email for meeting details.",
+        description: "Session booked successfully! Check your email for meeting details.",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${sessionId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
@@ -63,12 +65,7 @@ export default function WebinarDetail() {
 
   const handleBookSession = async () => {
     if (!studentUser) {
-      toast({
-        title: "Login Required",
-        description: "Please login to book a session.",
-        variant: "destructive",
-      });
-      window.location.href = '/auth/login';
+      setShowLoginModal(true);
       return;
     }
 
@@ -519,13 +516,7 @@ export default function WebinarDetail() {
                     </div>
                   )}
 
-                  {/* Contact */}
-                  {expert.email && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <h5 className="font-medium text-gray-900 mb-2">Contact</h5>
-                      <p className="text-sm text-gray-600">{expert.email}</p>
-                    </div>
-                  )}
+
                 </CardContent>
               </Card>
             )}
@@ -658,6 +649,14 @@ export default function WebinarDetail() {
           </div>
         </div>
       </div>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <StudentLoginModal 
+          isOpen={showLoginModal} 
+          onClose={() => setShowLoginModal(false)} 
+        />
+      )}
     </div>
   );
 }
