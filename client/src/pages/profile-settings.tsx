@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, HelpCircle, File } from "lucide-react";
+import { User, Lock, Phone, Mail, Calendar, MapPin, GraduationCap, Briefcase, CreditCard, File } from "lucide-react";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useStudentAuth } from "@/hooks/useAuth";
@@ -37,7 +37,6 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 const sidebarItems = [
   { id: 'profile', label: 'Personal Information', icon: User },
   { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
-  { id: 'help', label: 'Help & Support', icon: HelpCircle },
 ];
 
 export default function ProfileSettings() {
@@ -860,28 +859,12 @@ export default function ProfileSettings() {
     );
   };
 
-  const renderHelpSection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Help & Support</CardTitle>
-          <CardDescription>Get help with your account and learn more about our platform.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">Help and support features will be available soon.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   const renderContent = () => {
     switch (activeSection) {
       case 'profile':
         return renderProfileSection();
       case 'billing':
         return renderBillingSection();
-      case 'help':
-        return renderHelpSection();
       default:
         return renderProfileSection();
     }
