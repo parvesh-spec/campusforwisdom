@@ -117,13 +117,26 @@ function DirectReviewForm({ expertId, onSubmit, existingReview }: {
         />
       </div>
       
-      <Button 
-        onClick={handleSubmit} 
-        disabled={isSubmitting || rating === 0 || !feedback.trim()}
-        className="w-full"
-      >
-        {isSubmitting ? "Submitting..." : existingReview ? "Update Review" : "Submit Review"}
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleSubmit} 
+          disabled={isSubmitting || rating === 0 || !feedback.trim()}
+          className="flex-1"
+        >
+          {isSubmitting ? "Submitting..." : existingReview ? "Update Review" : "Submit Review"}
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            setRating(existingReview?.rating || 0);
+            setFeedback(existingReview?.feedback || "");
+            onSubmit(); // This will trigger the parent to close the form
+          }}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }
@@ -231,6 +244,7 @@ export default function ExpertProfile() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [editingReview, setEditingReview] = useState<any>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const { toast } = useToast();
 
   // Fetch expert data
@@ -1334,22 +1348,74 @@ export default function ExpertProfile() {
             {currentUser && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    {userReview ? "Edit Your Review" : "Write a Review"}
-                  </CardTitle>
-                  <CardDescription>
-                    Share your experience with {expert.name} to help other students
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">
+                        {userReview ? "Your Review" : "Write a Review"}
+                      </CardTitle>
+                      <CardDescription>
+                        Share your experience with {expert.name} to help other students
+                      </CardDescription>
+                    </div>
+                    {userReview && !showReviewForm && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowReviewForm(true)}
+                      >
+                        Edit Review
+                      </Button>
+                    )}
+                    {!userReview && !showReviewForm && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowReviewForm(true)}
+                      >
+                        Write Review
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <DirectReviewForm 
-                    expertId={expert.id} 
-                    existingReview={userReview}
-                    onSubmit={() => {
-                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/reviews`] });
-                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/my-review`] });
-                    }} 
-                  />
+                  {showReviewForm ? (
+                    <div className="space-y-4">
+                      <DirectReviewForm 
+                        expertId={expert.id} 
+                        existingReview={userReview}
+                        onSubmit={() => {
+                          queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/reviews`] });
+                          queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/my-review`] });
+                          setShowReviewForm(false); // Hide form after successful submission or cancel
+                        }} 
+                      />
+                    </div>
+                  ) : userReview ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Your Rating:</span>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < userReview.rating
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                          <span className="ml-2 text-sm text-gray-600">{userReview.rating}/5</span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium">Your Review:</span>
+                        <p className="text-gray-700 mt-1">{userReview.feedback}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">Click "Write Review" to share your experience with this expert.</p>
+                  )}
                 </CardContent>
               </Card>
             )}
