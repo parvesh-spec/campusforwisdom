@@ -73,7 +73,7 @@ export default function Home() {
   const featuredCourses = courses?.slice(0, 2) || [];
   const featuredSessions = liveSessions?.filter(s => s.status === "scheduled" || s.status === "live").slice(0, 2) || [];
   const featuredExperts = experts?.slice(0, 2) || [];
-  const featuredEbooks = ebooks?.slice(0, 2) || [];
+  const featuredEbooks = ebooks?.filter(e => e.isFeatured).slice(0, 2) || [];
 
   const features = [
     {

@@ -789,9 +789,27 @@ export default function EbooksManagement() {
                 <Switch
                   id="isFeatured"
                   checked={newEbook.isFeatured || false}
-                  onCheckedChange={(checked) => setNewEbook({ ...newEbook, isFeatured: checked })}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      const currentFeaturedCount = ebooks.filter(e => e.isFeatured && e.id !== editingEbook?.id).length;
+                      if (currentFeaturedCount >= 2) {
+                        toast({
+                          title: "Featured Limit Reached",
+                          description: "Maximum 2 ebooks can be featured at once. Please unfeatured another ebook first.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                    }
+                    setNewEbook({ ...newEbook, isFeatured: checked });
+                  }}
                 />
-                <Label htmlFor="isFeatured">Featured</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="isFeatured">Featured (Max 2)</Label>
+                  <p className="text-xs text-gray-500">
+                    Featured ebooks appear on home page ({ebooks.filter(e => e.isFeatured).length}/2 used)
+                  </p>
+                </div>
               </div>
             </div>
           </div>
