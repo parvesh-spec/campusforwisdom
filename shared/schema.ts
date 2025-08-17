@@ -205,6 +205,17 @@ export const experts = pgTable("experts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Direct reviews table (separate from consultation-based reviews)
+export const directReviews = pgTable("direct_reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  expertId: varchar("expert_id").references(() => experts.id).notNull(),
+  studentId: varchar("student_id").references(() => users.id).notNull(),
+  rating: integer("rating").notNull(), // 1-5 stars
+  feedback: text("feedback").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const consultations = pgTable("consultations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   studentId: varchar("student_id").references(() => users.id).notNull(),
@@ -332,6 +343,12 @@ export const insertUserEbookDownloadSchema = createInsertSchema(userEbookDownloa
   downloadedAt: true,
 });
 
+export const insertDirectReviewSchema = createInsertSchema(directReviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertWebinarAttendeeSchema = createInsertSchema(webinarAttendees).omit({
   id: true,
   joinedAt: true,
@@ -382,6 +399,11 @@ export type InsertEbook = z.infer<typeof insertEbookSchema>;
 
 export type UserEbookDownload = typeof userEbookDownloads.$inferSelect;
 export type InsertUserEbookDownload = z.infer<typeof insertUserEbookDownloadSchema>;
+
+export type DirectReview = typeof directReviews.$inferSelect & {
+  student?: User;
+};
+export type InsertDirectReview = z.infer<typeof insertDirectReviewSchema>;
 
 export type WebinarAttendee = typeof webinarAttendees.$inferSelect;
 export type InsertWebinarAttendee = z.infer<typeof insertWebinarAttendeeSchema>;

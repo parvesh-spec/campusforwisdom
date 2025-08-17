@@ -10,6 +10,7 @@ import {
   Ebook,
   UserEbookDownload,
   WebinarAttendee,
+  DirectReview,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -21,6 +22,7 @@ import {
   InsertEbook,
   InsertUserEbookDownload,
   InsertWebinarAttendee,
+  InsertDirectReview,
   courses,
   users,
   webinars,
@@ -30,7 +32,8 @@ import {
   consultations,
   ebooks,
   userEbookDownloads,
-  webinarAttendees
+  webinarAttendees,
+  directReviews
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -1460,6 +1463,115 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error checking if user downloaded ebook:`, error);
       return false;
+    }
+  }
+
+  // Direct Reviews methods
+  async createDirectReview(review: InsertDirectReview): Promise<DirectReview> {
+    try {
+      const reviewId = `review-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const query = `
+        INSERT INTO direct_reviews (id, expert_id, student_id, rating, feedback, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        RETURNING *
+      `;
+      const result = await pool.query(query, [
+        reviewId,
+        review.expertId,
+        review.studentId,
+        review.rating,
+        review.feedback
+      ]);
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        expertId: row.expert_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error creating direct review:", error);
+      throw error;
+    }
+  }
+
+  async getUserReviewForExpert(userId: string, expertId: string): Promise<DirectReview | null> {
+    try {
+      const query = `
+        SELECT * FROM direct_reviews 
+        WHERE student_id = $1 AND expert_id = $2
+      `;
+      const result = await pool.query(query, [userId, expertId]);
+      if (result.rows.length === 0) return null;
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        expertId: row.expert_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+    } catch (error) {
+      console.error("Error getting user review for expert:", error);
+      return null;
+    }
+  }
+
+  async updateDirectReview(reviewId: string, userId: string, updates: { rating: number; feedback: string }): Promise<boolean> {
+    try {
+      const query = `
+        UPDATE direct_reviews 
+        SET rating = $1, feedback = $2, updated_at = NOW()
+        WHERE id = $3 AND student_id = $4
+      `;
+      const result = await pool.query(query, [
+        updates.rating,
+        updates.feedback,
+        reviewId,
+        userId
+      ]);
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error updating direct review:", error);
+      return false;
+    }
+  }
+
+  async getDirectReviewsForExpert(expertId: string): Promise<DirectReview[]> {
+    try {
+      const query = `
+        SELECT dr.*, u.first_name, u.last_name, u.avatar
+        FROM direct_reviews dr
+        LEFT JOIN users u ON dr.student_id = u.id
+        WHERE dr.expert_id = $1
+        ORDER BY dr.created_at DESC
+      `;
+      const result = await pool.query(query, [expertId]);
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        expertId: row.expert_id,
+        studentId: row.student_id,
+        rating: row.rating,
+        feedback: row.feedback,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        student: {
+          id: row.student_id,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          avatar: row.avatar
+        }
+      }));
+    } catch (error) {
+      console.error("Error getting direct reviews for expert:", error);
+      return [];
     }
   }
 }

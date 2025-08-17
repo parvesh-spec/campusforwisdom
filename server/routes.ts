@@ -1115,7 +1115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get expert reviews
+  // Get expert reviews (both consultation-based and direct reviews)
   app.get("/api/experts/:id/reviews", async (req, res) => {
     try {
       const expertId = req.params.id;
@@ -1124,8 +1124,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Expert not found" });
       }
       
-      const reviews = await storage.getExpertReviews(expertId);
-      res.json(reviews);
+      // Get consultation-based reviews
+      const consultationReviews = await storage.getExpertReviews(expertId);
+      
+      // Get direct reviews
+      const directReviews = await storage.getDirectReviewsForExpert(expertId);
+      
+      // Combine both types of reviews and sort by creation date
+      const allReviews = [
+        ...consultationReviews,
+        ...directReviews
+      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      res.json(allReviews);
     } catch (error) {
       console.error("Error fetching expert reviews:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -1174,6 +1185,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Rating submitted successfully" });
     } catch (error) {
       console.error("Error submitting rating:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Submit direct review for expert
+  app.post("/api/experts/:id/reviews", async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const { rating, feedback } = req.body;
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      }
+
+      if (!feedback || !feedback.trim()) {
+        return res.status(400).json({ error: "Review feedback is required" });
+      }
+
+      // Check if expert exists
+      const expert = await storage.getExpert(expertId);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+
+      // Check if user already has a direct review for this expert
+      const existingReview = await storage.getUserReviewForExpert(userId, expertId);
+      if (existingReview) {
+        return res.status(400).json({ error: "You have already reviewed this expert" });
+      }
+
+      // Create new direct review
+      await storage.createDirectReview({
+        expertId,
+        studentId: userId,
+        rating: parseInt(rating),
+        feedback: feedback.trim()
+      });
+
+      res.json({ success: true, message: "Review submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update direct review for expert
+  app.put("/api/experts/:expertId/reviews/:reviewId", async (req, res) => {
+    try {
+      const { expertId, reviewId } = req.params;
+      const { rating, feedback } = req.body;
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      }
+
+      if (!feedback || !feedback.trim()) {
+        return res.status(400).json({ error: "Review feedback is required" });
+      }
+
+      // Update review
+      const success = await storage.updateDirectReview(reviewId, userId, {
+        rating: parseInt(rating),
+        feedback: feedback.trim()
+      });
+
+      if (!success) {
+        return res.status(404).json({ error: "Review not found or access denied" });
+      }
+
+      res.json({ success: true, message: "Review updated successfully" });
+    } catch (error) {
+      console.error("Error updating review:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1917,5 +2010,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Submit or update direct review for expert
+  app.post("/api/experts/:id/direct-reviews", requireAuth, async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const { rating, feedback } = req.body;
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+      }
+
+      if (!feedback || !feedback.trim()) {
+        return res.status(400).json({ error: "Feedback is required" });
+      }
+
+      // Check if expert exists
+      const expert = await storage.getExpert(expertId);
+      if (!expert || !expert.isActive) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+
+      // Check if user already has a review for this expert
+      const existingReview = await storage.getUserReviewForExpert(userId, expertId);
+      
+      if (existingReview) {
+        // Update existing review
+        const success = await storage.updateDirectReview(existingReview.id, userId, {
+          rating: parseInt(rating),
+          feedback: feedback.trim()
+        });
+        
+        if (success) {
+          res.json({ success: true, message: "Review updated successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to update review" });
+        }
+      } else {
+        // Create new review
+        const newReview = await storage.createDirectReview({
+          expertId,
+          studentId: userId,
+          rating: parseInt(rating),
+          feedback: feedback.trim()
+        });
+        
+        res.json({ success: true, review: newReview });
+      }
+    } catch (error) {
+      console.error("Error handling direct review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
+  // Get user's review for a specific expert
+  app.get("/api/experts/:id/my-review", requireAuth, async (req, res) => {
+    try {
+      const expertId = req.params.id;
+      const userId = (req.session as any)?.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Student authentication required" });
+      }
+
+      const review = await storage.getUserReviewForExpert(userId, expertId);
+      res.json(review);
+    } catch (error) {
+      console.error("Error fetching user review:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

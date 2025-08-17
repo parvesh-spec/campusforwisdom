@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import { Star, Clock, Users, Calendar, MapPin, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
@@ -17,6 +18,118 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Expert, User, Consultation, LiveSession, Ebook, Course } from "@shared/schema";
+
+// Direct Review Form Component
+function DirectReviewForm({ expertId, onSubmit, existingReview }: { 
+  expertId: string; 
+  onSubmit: () => void; 
+  existingReview?: any;
+}) {
+  const [rating, setRating] = useState(existingReview?.rating || 0);
+  const [feedback, setFeedback] = useState(existingReview?.feedback || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a rating before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!feedback.trim()) {
+      toast({
+        title: "Review Required",
+        description: "Please write a review before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiRequest(`/api/experts/${expertId}/direct-reviews`, {
+        method: "POST",
+        body: JSON.stringify({ rating, feedback: feedback.trim() }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast({
+        title: "Thank you!",
+        description: existingReview 
+          ? "Your review has been updated successfully."
+          : "Your review has been submitted successfully.",
+      });
+
+      // Refresh reviews and user's review
+      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/reviews`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/my-review`] });
+      
+      setRating(0);
+      setFeedback("");
+      onSubmit();
+    } catch (error: any) {
+      console.error("Review submission error:", error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Unable to submit review. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Rating:</label>
+        <div className="flex space-x-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              className="focus:outline-none"
+            >
+              <Star
+                className={`w-6 h-6 transition-colors ${
+                  star <= rating
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-300 hover:text-yellow-300"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Your Review:</label>
+        <Textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Share your experience with this expert..."
+          className="resize-none"
+          rows={4}
+        />
+      </div>
+      
+      <Button 
+        onClick={handleSubmit} 
+        disabled={isSubmitting || rating === 0 || !feedback.trim()}
+        className="w-full"
+      >
+        {isSubmitting ? "Submitting..." : existingReview ? "Update Review" : "Submit Review"}
+      </Button>
+    </div>
+  );
+}
 
 // Rating Form Component
 function RatingForm({ consultationId, onSubmit }: { consultationId: string; onSubmit: () => void }) {
@@ -120,6 +233,7 @@ export default function ExpertProfile() {
   });
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [editingReview, setEditingReview] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch expert data
@@ -129,7 +243,7 @@ export default function ExpertProfile() {
   });
 
   // Check if user is logged in as student
-  const { data: user } = useQuery<User>({
+  const { data: currentUser } = useQuery<User>({
     queryKey: ["/api/auth/student"],
   });
 
@@ -166,6 +280,12 @@ export default function ExpertProfile() {
   const { data: reviews = [] } = useQuery<any[]>({
     queryKey: [`/api/experts/${expertId}/reviews`],
     enabled: !!expertId,
+  });
+
+  // Fetch user's existing review for this expert
+  const { data: userReview } = useQuery({
+    queryKey: [`/api/experts/${expertId}/my-review`],
+    enabled: !!expertId && !!currentUser,
   });
 
   // Fetch expert's courses
@@ -393,9 +513,20 @@ export default function ExpertProfile() {
                 
                 <div className="flex flex-wrap items-center gap-6 mb-4">
                   <div className="flex items-center space-x-2">
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{expert.rating}</span>
-                    <span className="text-gray-600">rating</span>
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          parseFloat(expert.rating) > 0 && i < Math.floor(parseFloat(expert.rating))
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                    <span className="font-medium">
+                      {parseFloat(expert.rating) > 0 ? expert.rating : "No ratings yet"}
+                    </span>
+                    {parseFloat(expert.rating) > 0 && <span className="text-gray-600">rating</span>}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="h-5 w-5 text-gray-400" />
@@ -1189,6 +1320,31 @@ export default function ExpertProfile() {
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
+            {/* Add Review Section */}
+            {currentUser && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {userReview ? "Edit Your Review" : "Write a Review"}
+                  </CardTitle>
+                  <CardDescription>
+                    Share your experience with {expert.name} to help other students
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DirectReviewForm 
+                    expertId={expert.id} 
+                    existingReview={userReview}
+                    onSubmit={() => {
+                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/reviews`] });
+                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expertId}/my-review`] });
+                    }} 
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Reviews List */}
             {reviews.length > 0 ? (
               <div className="space-y-4">
                 {reviews.map((review) => (
@@ -1224,9 +1380,23 @@ export default function ExpertProfile() {
                                 </span>
                               </div>
                             </div>
-                            <span className="text-sm text-gray-500">
-                              {new Date(review.createdAt).toLocaleDateString('en-IN')}
-                            </span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-500">
+                                {new Date(review.createdAt).toLocaleDateString('en-IN')}
+                              </span>
+                              {/* Edit option for user's own review */}
+                              {currentUser && review.student && review.student.id === currentUser.id && (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingReview(review);
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           
                           <p className="text-gray-700 leading-relaxed">
@@ -1246,7 +1416,7 @@ export default function ExpertProfile() {
                     No Reviews Yet
                   </h3>
                   <p className="text-gray-600">
-                    This expert hasn't received any reviews yet. Be the first to book a consultation and share your experience!
+                    This expert hasn't received any reviews yet. Be the first to share your experience!
                   </p>
                 </CardContent>
               </Card>
