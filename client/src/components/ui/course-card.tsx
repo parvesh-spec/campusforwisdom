@@ -66,8 +66,18 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
 
           {/* Rating */}
           <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-semibold text-gray-900">{course.rating || '0.0'}</span>
+            {parseFloat(course.rating || '0') > 0 ? (
+              <>
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm font-semibold text-gray-900">{course.rating}</span>
+              </>
+            ) : (
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-3 w-3 text-gray-300" />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

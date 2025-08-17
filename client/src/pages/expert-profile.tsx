@@ -294,6 +294,16 @@ export default function ExpertProfile() {
 
   const expertConsultations = consultations.filter((c: any) => c.expertId === expertId);
 
+  // Calculate average rating from reviews
+  const calculateAverageRating = () => {
+    if (!reviews || reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+    return (totalRating / reviews.length).toFixed(1);
+  };
+
+  const averageRating = calculateAverageRating();
+  const totalReviews = reviews?.length || 0;
+
   const handleBookConsultation = () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
@@ -514,14 +524,17 @@ export default function ExpertProfile() {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          parseFloat(expert.rating) > 0 && i < Math.floor(parseFloat(expert.rating))
+                          parseFloat(averageRating) > 0 && i < Math.floor(parseFloat(averageRating))
                             ? "text-yellow-400 fill-yellow-400"
                             : "text-gray-300"
                         }`}
                       />
                     ))}
                     <span className="font-medium">
-                      {parseFloat(expert.rating) > 0 ? expert.rating : "No ratings yet"}
+                      {parseFloat(averageRating) > 0 
+                        ? `${averageRating} (${totalReviews} review${totalReviews !== 1 ? 's' : ''})`
+                        : "No ratings yet"
+                      }
                     </span>
                     {parseFloat(expert.rating) > 0 && <span className="text-gray-600">rating</span>}
                   </div>
