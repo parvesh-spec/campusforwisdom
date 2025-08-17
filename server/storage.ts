@@ -946,26 +946,13 @@ export class DatabaseStorage implements IStorage {
     // Calculate sessions count for this expert
     const sessions = await db.select().from(webinars).where(eq(webinars.expertId, expert.id));
     
-    // Calculate average rating from completed consultations
-    const ratings = await db
-      .select({ rating: consultations.rating })
-      .from(consultations)
-      .where(
-        and(
-          eq(consultations.expertId, expert.id),
-          eq(consultations.status, "completed"),
-          isNotNull(consultations.rating)
-        )
-      );
-    
-    const avgRating = ratings.length > 0 
-      ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length 
-      : 0;
+    // Calculate average rating from both consultation-based and direct reviews
+    const averageRating = await this.calculateExpertAverageRating(expert.id);
     
     return {
       ...expert,
       totalSessions: sessions.length,
-      rating: avgRating.toFixed(2)
+      rating: averageRating > 0 ? averageRating.toFixed(2) : "0.00"
     };
   }
 
