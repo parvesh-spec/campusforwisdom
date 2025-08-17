@@ -259,7 +259,7 @@ export default function WebinarManagement() {
                 Create Webinar
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingSession ? "Edit Webinar" : "Create New Webinar"}
@@ -396,7 +396,7 @@ export default function WebinarManagement() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="content" className="space-y-4 mt-6">
+                  <TabsContent value="content" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Detailed Agenda
@@ -483,7 +483,7 @@ export default function WebinarManagement() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="faq" className="space-y-4 mt-6">
+                  <TabsContent value="faq" className="space-y-4 mt-6 max-h-[60vh] overflow-y-auto pr-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-4">
                         Frequently Asked Questions
