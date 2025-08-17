@@ -46,6 +46,7 @@ export default function AIExpertsManagement() {
     methodology: "",
     consultationEnabled: true,
     availableSlots: [],
+    isFeatured: false,
   });
 
   const [selectedDay, setSelectedDay] = useState("");
@@ -150,6 +151,7 @@ export default function AIExpertsManagement() {
       methodology: "",
       consultationEnabled: true,
       availableSlots: [],
+      isFeatured: false,
     });
     setEditingExpert(null);
     setSelectedDay("");
@@ -164,6 +166,22 @@ export default function AIExpertsManagement() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check featured limit
+    if (formData.isFeatured) {
+      const currentFeaturedCount = experts?.filter(expert => 
+        expert.isFeatured && (!editingExpert || expert.id !== editingExpert.id)
+      ).length || 0;
+      
+      if (currentFeaturedCount >= 2) {
+        toast({
+          title: "Featured Limit Reached",
+          description: "Maximum 2 experts can be featured at once. Please unfeature another expert first.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     
     // If consultation is disabled, don't require hourly rate
     const isConsultationEnabled = formData.consultationEnabled !== false;
@@ -188,6 +206,7 @@ export default function AIExpertsManagement() {
       methodology: formData.methodology,
       consultationEnabled: isConsultationEnabled,
       availableSlots: formData.availableSlots || [],
+      isFeatured: formData.isFeatured || false,
     };
 
     if (editingExpert) {
@@ -226,6 +245,7 @@ export default function AIExpertsManagement() {
       methodology: expert.methodology || "",
       consultationEnabled: expert.consultationEnabled !== false,
       availableSlots: expert.availableSlots || [],
+      isFeatured: expert.isFeatured || false,
     });
     setShowCreateModal(true);
   };
@@ -476,9 +496,17 @@ export default function AIExpertsManagement() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <Badge variant={expert.isActive ? "default" : "secondary"}>
-                      {expert.isActive ? "Active" : "Inactive"}
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={expert.isActive ? "default" : "secondary"}>
+                        {expert.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      {expert.isFeatured && (
+                        <Badge variant="outline" className="border-yellow-400 text-yellow-600 bg-yellow-50">
+                          <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                          Featured
+                        </Badge>
+                      )}
+                    </div>
                     <span className="text-gray-500">
                       {expert.languages?.join(", ")}
                     </span>
@@ -889,6 +917,32 @@ export default function AIExpertsManagement() {
                   onChange={(e) => handleLanguagesChange(e.target.value)}
                   placeholder="Hindi, English, Spanish"
                 />
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Settings</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isFeatured"
+                    checked={formData.isFeatured || false}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: !!checked }))}
+                  />
+                  <Label htmlFor="isFeatured" className="text-sm font-medium">
+                    Mark as Featured Expert
+                  </Label>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Featured experts appear on the home page. Maximum 2 experts can be featured at once.
+                </p>
+                {experts && experts.filter(e => e.isFeatured && (!editingExpert || e.id !== editingExpert.id)).length >= 2 && formData.isFeatured && (
+                  <p className="text-xs text-red-600">
+                    ⚠️ Featured limit reached. Please unfeature another expert first.
+                  </p>
+                )}
               </div>
             </div>
 

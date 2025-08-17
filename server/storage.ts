@@ -872,6 +872,16 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount! > 0;
   }
 
+  async getFeaturedExperts(): Promise<Expert[]> {
+    const featuredExperts = await db
+      .select()
+      .from(experts)
+      .where(and(eq(experts.isFeatured, true), eq(experts.isActive, true)))
+      .limit(2)
+      .orderBy(desc(experts.createdAt));
+    return featuredExperts;
+  }
+
   // Consultation methods
   async getStudentConsultations(studentId: string): Promise<Consultation[]> {
     const consultationList = await db

@@ -51,7 +51,7 @@ export default function Home() {
   });
 
   const { data: experts, isLoading: expertsLoading } = useQuery<Expert[]>({
-    queryKey: ["/api/experts"],
+    queryKey: ["/api/featured/experts"],
   });
 
   const { data: ebooks, isLoading: ebooksLoading } = useQuery<Ebook[]>({
@@ -73,7 +73,7 @@ export default function Home() {
   // Get featured items (2 each)
   const featuredCourses = courses?.filter(c => (c as any).isFeatured).slice(0, 2) || [];
   const featuredWebinars = liveSessions?.filter(s => (s as any).isFeatured && (s.status === "scheduled" || s.status === "live")).slice(0, 2) || [];
-  const featuredExperts = experts?.slice(0, 2) || [];
+  const featuredExperts = experts || []; // experts query already filtered for featured
   const featuredEbooks = ebooks?.filter(e => e.isFeatured).slice(0, 2) || [];
 
   const features = [

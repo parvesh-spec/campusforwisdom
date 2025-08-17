@@ -205,6 +205,7 @@ export const experts = pgTable("experts", {
   consultationEnabled: boolean("consultation_enabled").default(true), // Enable/disable consultation booking
   availableSlots: text("available_slots").array().default(sql`'{}'::text[]`), // Available time slots for consultation
   isActive: boolean("is_active").default(true),
+  isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

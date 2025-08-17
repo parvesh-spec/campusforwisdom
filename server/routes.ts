@@ -1205,6 +1205,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get featured experts
+  app.get("/api/featured/experts", async (req, res) => {
+    try {
+      const featuredExperts = await storage.getFeaturedExperts();
+      res.json(featuredExperts);
+    } catch (error) {
+      console.error("Error fetching featured experts:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get expert by ID
   app.get("/api/experts/:id", async (req, res) => {
     try {
