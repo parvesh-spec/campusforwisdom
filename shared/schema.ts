@@ -428,3 +428,23 @@ export type InsertCourseReview = z.infer<typeof insertCourseReviewSchema>;
 
 export type WebinarAttendee = typeof webinarAttendees.$inferSelect;
 export type InsertWebinarAttendee = z.infer<typeof insertWebinarAttendeeSchema>;
+
+// Legal Pages Table
+export const legalPages = pgTable("legal_pages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(), // privacy-policy, terms-of-service, cookie-policy, refund-policy
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Legal Pages Insert Schema
+export const insertLegalPageSchema = createInsertSchema(legalPages).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
+export type LegalPage = typeof legalPages.$inferSelect;
+export type InsertLegalPage = z.infer<typeof insertLegalPageSchema>;

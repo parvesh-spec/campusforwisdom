@@ -13,7 +13,8 @@ import {
   LayoutDashboard,
   GraduationCap,
   LogOut,
-  BrainCircuit
+  BrainCircuit,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -49,6 +50,7 @@ export default function AdminSidebar() {
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { name: "Communications", href: "/admin/communications", icon: MessageSquare },
     { name: "Payments", href: "/admin/payments", icon: CreditCard },
+    { name: "Legal Pages", href: "/admin/legal-pages", icon: FileText },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

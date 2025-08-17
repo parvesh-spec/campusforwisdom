@@ -20,6 +20,7 @@ import EbookDetail from "@/pages/ebook-detail";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
+import LegalPage from "@/pages/legal-page";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/dashboard";
@@ -35,6 +36,7 @@ import Analytics from "./pages/admin/analytics";
 import Communications from "./pages/admin/communications";
 import Payments from "./pages/admin/payments";
 import Settings from "./pages/admin/settings";
+import AdminLegalPages from "./pages/admin/legal-pages";
 
 // Layouts
 import Header from "@/components/layout/header";
@@ -136,6 +138,11 @@ function Router() {
           <ProfileSettings />
         </PublicLayout>
       </Route>
+      <Route path="/legal/:slug">
+        <PublicLayout>
+          <LegalPage />
+        </PublicLayout>
+      </Route>
 
       {/* Admin routes */}
       <Route path="/admin">
@@ -201,6 +208,11 @@ function Router() {
       <Route path="/admin/settings">
         <AdminLayout>
           <Settings />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/legal-pages">
+        <AdminLayout>
+          <AdminLegalPages />
         </AdminLayout>
       </Route>
 

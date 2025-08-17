@@ -12,6 +12,7 @@ import {
   WebinarAttendee,
   DirectReview,
   CourseReview,
+  LegalPage,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -25,6 +26,7 @@ import {
   InsertWebinarAttendee,
   InsertDirectReview,
   InsertCourseReview,
+  InsertLegalPage,
   courses,
   users,
   webinars,
@@ -36,7 +38,8 @@ import {
   userEbookDownloads,
   webinarAttendees,
   directReviews,
-  courseReviews
+  courseReviews,
+  legalPages
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -199,6 +202,11 @@ export interface IStorage {
 
   // Transaction methods
   getUserTransactions(userId: string): Promise<Transaction[]>;
+
+  // Legal Pages methods
+  getLegalPages(): Promise<LegalPage[]>;
+  getLegalPageBySlug(slug: string): Promise<LegalPage | undefined>;
+  updateLegalPage(id: string, updates: Partial<LegalPage>): Promise<LegalPage | undefined>;
 }
 
 // Database storage implementation
@@ -1855,6 +1863,45 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching user transactions:", error);
       return [];
+    }
+  }
+
+  // Legal Pages methods
+  async getLegalPages(): Promise<LegalPage[]> {
+    try {
+      const pages = await db.select().from(legalPages).orderBy(legalPages.slug);
+      return pages;
+    } catch (error) {
+      console.error("Error fetching legal pages:", error);
+      return [];
+    }
+  }
+
+  async getLegalPageBySlug(slug: string): Promise<LegalPage | undefined> {
+    try {
+      const [page] = await db.select().from(legalPages).where(eq(legalPages.slug, slug));
+      return page;
+    } catch (error) {
+      console.error("Error fetching legal page by slug:", error);
+      return undefined;
+    }
+  }
+
+  async updateLegalPage(id: string, updates: Partial<LegalPage>): Promise<LegalPage | undefined> {
+    try {
+      const [updatedPage] = await db
+        .update(legalPages)
+        .set({
+          ...updates,
+          lastUpdated: new Date()
+        })
+        .where(eq(legalPages.id, id))
+        .returning();
+      
+      return updatedPage;
+    } catch (error) {
+      console.error("Error updating legal page:", error);
+      return undefined;
     }
   }
 }

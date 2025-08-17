@@ -4,6 +4,15 @@ CampusForWisdom is a comprehensive AI education platform that provides online co
 
 The application is built as a full-stack web platform with a React frontend, Express.js backend, and PostgreSQL database, designed to facilitate interactive AI education through both self-paced courses and live instructor-led sessions.
 
+## Recent Changes (August 17, 2025)
+- ✅ Implemented comprehensive legal pages management system with database schema and API endpoints
+- ✅ Created admin interface for managing legal documents (Privacy Policy, Terms of Service, Cookie Policy, Refund Policy)
+- ✅ Added public legal pages with slug-based routing for content display
+- ✅ Updated footer navigation to link to legal pages
+- ✅ Enhanced profile settings to show only Personal Information and Billing & Payment tabs with detailed transaction history
+- ✅ Removed "My Courses" from navbar dropdown menu as requested
+- ✅ Fixed authentication redirect loop issues on page refresh
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

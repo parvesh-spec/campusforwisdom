@@ -2228,5 +2228,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Legal Pages Routes
+  // Get all legal pages (for admin)
+  app.get("/api/admin/legal-pages", requireAdmin, async (req, res) => {
+    try {
+      const pages = await storage.getLegalPages();
+      res.json(pages);
+    } catch (error) {
+      console.error("Error fetching legal pages:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get specific legal page by slug (public)
+  app.get("/api/legal/:slug", async (req, res) => {
+    try {
+      const page = await storage.getLegalPageBySlug(req.params.slug);
+      if (!page) {
+        return res.status(404).json({ error: "Legal page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error fetching legal page:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update legal page content (admin only)
+  app.put("/api/admin/legal-pages/:id", requireAdmin, async (req, res) => {
+    try {
+      const { title, content } = req.body;
+      const page = await storage.updateLegalPage(req.params.id, { title, content });
+      if (!page) {
+        return res.status(404).json({ error: "Legal page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error updating legal page:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }
