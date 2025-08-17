@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, Video, Users, IndianRupee, Star, Play, UserPlus, ExternalLink, ArrowLeft, CheckCircle, Info, User, Target, BookOpen, Globe, Award } from "lucide-react";
+import { Calendar, Clock, Video, Users, IndianRupee, Star, Play, UserPlus, ExternalLink, ArrowLeft, CheckCircle, Info, User, Target, BookOpen, Globe, Award, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -464,13 +464,33 @@ export default function WebinarDetail() {
                   </div>
 
                   {isLive ? (
-                    <Button 
-                      className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
-                      size="lg"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Join Live Session
-                    </Button>
+                    // For live sessions, show different buttons based on user registration status
+                    (session as any).isBooked ? (
+                      // If user is already registered, allow them to join
+                      <Button 
+                        className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
+                        size="lg"
+                        onClick={() => {
+                          if ((session as any).registrationLink) {
+                            window.open((session as any).registrationLink, '_blank');
+                          }
+                        }}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Join Live Session
+                      </Button>
+                    ) : (
+                      // If user is not registered, registration is closed for live sessions
+                      <Button 
+                        variant="outline"
+                        disabled 
+                        className="w-full"
+                        size="lg"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Registration Closed
+                      </Button>
+                    )
                   ) : isScheduled ? (
                     (session as any).isBooked ? (
                       <div className="space-y-2">
