@@ -13,7 +13,7 @@ interface SessionCardProps {
   session: LiveSession & { 
     expert?: Expert;
     isBooked?: boolean;
-    registrationLink?: string;
+    registrationLink?: string | null;
   };
   onJoin?: (sessionId: string) => void;
   onBook?: (sessionId: string) => void;
@@ -50,7 +50,7 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: data.message || "Session booked successfully! Check your email for meeting details.",
+        description: "Session booked successfully! Check your email for meeting details.",
       });
       // Invalidate and refetch sessions
       queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
@@ -231,15 +231,18 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                 <div className="flex flex-col items-end space-y-2">
               {isLive ? (
                 <Button 
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg transform transition-all duration-200 hover:scale-105"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onJoin?.(session.id);
-                  }}
+                  disabled
+                  className="bg-gray-300 text-gray-600 cursor-not-allowed"
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  Join Live
+                  Registration Closed
+                </Button>
+              ) : isCompleted ? (
+                <Button 
+                  disabled
+                  className="bg-gray-300 text-gray-600 cursor-not-allowed"
+                >
+                  Session Ended
                 </Button>
               ) : isScheduled && showBooking ? (
                 session.isBooked ? (
@@ -259,7 +262,9 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.open(session.registrationLink, '_blank');
+                          if (session.registrationLink) {
+                            window.open(session.registrationLink, '_blank');
+                          }
                         }}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
