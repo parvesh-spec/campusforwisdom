@@ -660,6 +660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startLink: zohoResponse.session.startLink,
             webinarId: zohoResponse.session.meetingKey,
             presenterZuid: zohoResponse.session.presenter,
+            maxParticipants: sessionData.maxParticipants || 100, // Set default max participants
+            currentParticipants: 0, // Initialize current participants
           };
 
           const session = await storage.createLiveSession(webinarWithZohoData);
@@ -1085,15 +1087,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId,
         currentParticipants: session.currentParticipants,
         maxParticipants: session.maxParticipants,
-        available: session.maxParticipants - session.currentParticipants
+        available: (session.maxParticipants || 100) - (session.currentParticipants || 0)
       });
       
-      if (session.currentParticipants >= session.maxParticipants) {
+      // Handle null maxParticipants by setting default value
+      const maxParticipants = session.maxParticipants || 100;
+      const currentParticipants = session.currentParticipants || 0;
+      
+      if (currentParticipants >= maxParticipants) {
         return res.status(400).json({ 
           error: "Session is full",
           details: {
-            current: session.currentParticipants,
-            max: session.maxParticipants
+            current: currentParticipants,
+            max: maxParticipants
           }
         });
       }
@@ -1115,7 +1121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attendee = await storage.createWebinarAttendee(attendeeData);
 
       // Update participant count
-      await storage.updateWebinarParticipantCount(sessionId, session.currentParticipants + 1);
+      await storage.updateWebinarParticipantCount(sessionId, currentParticipants + 1);
 
       // Get expert details for Zoho webinar integration
       const expert = session.expertId ? await storage.getExpert(session.expertId) : null;
@@ -1169,7 +1175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         joinUrl,
         session: {
           ...session,
-          currentParticipants: session.currentParticipants + 1
+          currentParticipants: currentParticipants + 1
         }
       });
     } catch (error) {
