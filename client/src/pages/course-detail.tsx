@@ -489,7 +489,7 @@ function InstructorSection({ course, expert }: { course: Course; expert?: Expert
                     <Star
                       key={star}
                       className={`h-4 w-4 ${
-                        star <= Number(expert.rating) 
+                        star <= Math.round(Number(expert.rating || 0))
                           ? "fill-yellow-400 text-yellow-400" 
                           : "text-gray-300"
                       }`}
@@ -497,7 +497,7 @@ function InstructorSection({ course, expert }: { course: Course; expert?: Expert
                   ))}
                 </div>
                 <span className="text-sm text-gray-600">
-                  {expert.rating} rating
+                  {Number(expert.rating || 0).toFixed(2)} rating
                 </span>
               </div>
               
