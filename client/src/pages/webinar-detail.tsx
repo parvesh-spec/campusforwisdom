@@ -435,33 +435,95 @@ export default function WebinarDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="relative">
-                      <img
-                        src={expert.avatar || '/api/placeholder/60/60'}
-                        alt={expert.name}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                      />
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="flex-shrink-0">
+                      {expert.avatar ? (
+                        <img 
+                          src={expert.avatar} 
+                          alt={expert.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="text-lg font-semibold text-blue-600">
+                            {expert.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
                       {expert.isActive && (
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
                       )}
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{expert.name}</p>
-                      <p className="text-sm text-gray-500">{expert.specialization}</p>
+                    
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1">{expert.name}</h4>
+                      <p className="text-blue-600 font-medium mb-3">{expert.specialization}</p>
+                      
+                      {/* Rating */}
                       {expert.rating && (
-                        <div className="flex items-center mt-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="text-sm text-gray-600 ml-1">{expert.rating}</span>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${
+                                  star <= Math.round(Number(expert.rating) || 0)
+                                    ? "fill-yellow-400 text-yellow-400" 
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            {Number(expert.rating).toFixed(1)} rating
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
-                  
-                  {(session as any).speakerBio && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">About the Speaker</h4>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{(session as any).speakerBio}</p>
+
+                  {/* Bio */}
+                  {expert.bio && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-700 leading-relaxed">{expert.bio}</p>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {expert.experience && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Experience</h5>
+                      <p className="text-sm text-gray-700">{expert.experience} years</p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {expert.skills && expert.skills.length > 0 && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Skills</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {expert.skills.slice(0, 4).map((skill, index) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md border border-blue-200"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {expert.skills.length > 4 && (
+                          <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-md border border-gray-200">
+                            +{expert.skills.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contact */}
+                  {expert.email && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <h5 className="font-medium text-gray-900 mb-2">Contact</h5>
+                      <p className="text-sm text-gray-600">{expert.email}</p>
                     </div>
                   )}
                 </CardContent>
