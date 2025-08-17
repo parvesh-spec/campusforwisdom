@@ -210,24 +210,13 @@ export default function WebinarDetail() {
               <p className="text-lg text-gray-600">{session.description}</p>
             </div>
             
-            <div className="ml-8 text-right">
-              <div className="flex items-center justify-end space-x-2 mb-2">
-                {price > 0 ? (
-                  <>
-                    <IndianRupee className="h-6 w-6 text-green-600" />
-                    <span className="text-3xl font-bold text-gray-900">₹{price}</span>
-                  </>
-                ) : (
-                  <span className="text-3xl font-bold text-green-600">FREE</span>
-                )}
-              </div>
-              
-              {spotsLeft <= 10 && spotsLeft > 0 && (
+            {spotsLeft <= 10 && spotsLeft > 0 && (
+              <div className="ml-8 text-right">
                 <p className="text-sm text-orange-600 font-medium">
                   Only {spotsLeft} seats left!
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
