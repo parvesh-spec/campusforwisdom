@@ -84,6 +84,11 @@ function Router() {
           <CourseDetail />
         </PublicLayout>
       </Route>
+      <Route path="/courses/:courseId">
+        <PublicLayout>
+          <CourseDetail />
+        </PublicLayout>
+      </Route>
       <Route path="/live-sessions">
         <PublicLayout>
           <LiveSessions />
