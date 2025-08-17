@@ -53,8 +53,8 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen fixed left-0 top-0 z-30">
-      <div className="p-6 border-b border-gray-200">
+    <aside className="w-64 bg-white shadow-lg min-h-screen fixed left-0 top-0 z-30 flex flex-col">
+      <div className="p-6 border-b border-gray-200 flex-shrink-0">
         <Link href="/admin">
           <h2 className="text-xl font-bold gradient-text cursor-pointer">
             CampusForWisdom Admin
@@ -62,8 +62,8 @@ export default function AdminSidebar() {
         </Link>
       </div>
       
-      <nav className="mt-6">
-        <div className="px-4 space-y-2">
+      <nav className="mt-6 flex-1 overflow-y-auto">
+        <div className="px-4 space-y-2 pb-4">
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
@@ -84,31 +84,29 @@ export default function AdminSidebar() {
         </div>
       </nav>
 
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="pt-4 border-t border-gray-200">
-          {adminUser && (
-            <div className="space-y-3">
-              <div className="text-sm text-gray-600">
-                <div className="font-medium">
-                  {adminUser.firstName && adminUser.lastName 
-                    ? `${adminUser.firstName} ${adminUser.lastName}`
-                    : adminUser.username}
-                </div>
-                <div className="text-xs text-gray-500">Administrator</div>
+      <div className="p-4 border-t border-gray-200 flex-shrink-0">
+        {adminUser && (
+          <div className="space-y-3">
+            <div className="text-sm text-gray-600">
+              <div className="font-medium">
+                {adminUser.firstName && adminUser.lastName 
+                  ? `${adminUser.firstName} ${adminUser.lastName}`
+                  : adminUser.username}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
-              </Button>
+              <div className="text-xs text-gray-500">Administrator</div>
             </div>
-          )}
-        </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+            </Button>
+          </div>
+        )}
       </div>
     </aside>
   );
