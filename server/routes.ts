@@ -357,25 +357,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Public API routes
   
-  // Get all active courses
+  // Get all active courses with calculated ratings
   app.get("/api/courses", async (req, res) => {
     try {
       const courses = await storage.getCourses();
-      res.json(courses.filter(course => course.isActive));
+      const activeCourses = courses.filter(course => course.isActive);
+      
+      // Calculate dynamic ratings for each course
+      const coursesWithRatings = await Promise.all(
+        activeCourses.map(async (course) => {
+          const averageRating = await storage.calculateCourseAverageRating(course.id);
+          return {
+            ...course,
+            rating: averageRating.toFixed(2)
+          };
+        })
+      );
+      
+      res.json(coursesWithRatings);
     } catch (error) {
       console.error("Error fetching courses:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // Get course by ID
+  // Get course by ID with calculated rating
   app.get("/api/courses/:id", async (req, res) => {
     try {
       const course = await storage.getCourse(req.params.id);
       if (!course || !course.isActive) {
         return res.status(404).json({ error: "Course not found" });
       }
-      res.json(course);
+      
+      // Calculate dynamic rating for this course
+      const averageRating = await storage.calculateCourseAverageRating(course.id);
+      const courseWithRating = {
+        ...course,
+        rating: averageRating.toFixed(2)
+      };
+      
+      res.json(courseWithRating);
     } catch (error) {
       console.error("Error fetching course:", error);
       res.status(500).json({ error: "Internal server error" });
