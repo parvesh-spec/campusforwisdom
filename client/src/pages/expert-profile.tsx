@@ -247,12 +247,12 @@ export default function ExpertProfile() {
     queryKey: ["/api/auth/student"],
   });
 
-  const isLoggedIn = !!user;
+  const isLoggedIn = !!currentUser;
 
   // Fetch user's consultations with this expert if logged in
   const { data: consultations = [] } = useQuery<Consultation[]>({
     queryKey: ["/api/student/consultations"],
-    enabled: !!user && !!expertId,
+    enabled: !!currentUser && !!expertId,
     refetchInterval: 3000, // Auto-refresh every 3 seconds
     refetchIntervalInBackground: true, // Keep refreshing even when tab is not active
   });
