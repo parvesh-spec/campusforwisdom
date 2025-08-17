@@ -823,14 +823,7 @@ export default function ProfileSettings() {
             <CardDescription>Overview of your spending and activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <GraduationCap className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-900">
-                  {transactions?.filter((t: any) => t.type === 'course_enrollment').length || 0}
-                </p>
-                <p className="text-sm text-blue-700">Courses Enrolled</p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <User className="h-8 w-8 text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-900">
