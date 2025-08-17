@@ -53,10 +53,10 @@ export default function WebinarManagement() {
     queryKey: ["/api/admin/experts"],
   });
 
-  // Fetch attendees for the editing session
-  const { data: editingSessionAttendees } = useQuery<WebinarAttendee[]>({
-    queryKey: ["/api/admin/webinars", editingSession?.id, "attendees"],
-    enabled: !!editingSession?.id,
+  // Fetch attendees for the managing participants session
+  const { data: managingParticipantsAttendees } = useQuery<WebinarAttendee[]>({
+    queryKey: ["/api/admin/webinars", managingParticipants?.id, "attendees"],
+    enabled: !!managingParticipants?.id,
   });
 
   const createSessionMutation = useMutation({
@@ -1208,52 +1208,7 @@ export default function WebinarManagement() {
                       />
                     </div>
 
-                    {/* Booked Participants Section */}
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Booked Participants
-                        </label>
-                        <Badge variant="secondary">
-                          {editingSessionAttendees?.length || 0} Registered
-                        </Badge>
-                      </div>
-                      <div className="border rounded-lg p-3 bg-gray-50 min-h-[120px] max-h-[200px] overflow-y-auto">
-                        {editingSessionAttendees && editingSessionAttendees.length > 0 ? (
-                          <div className="space-y-2">
-                            {editingSessionAttendees.map((attendee) => (
-                              <div key={attendee.id} className="flex items-center justify-between bg-white p-3 rounded border">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-sm font-medium">{attendee.participantName || 'Anonymous'}</span>
-                                    <Badge variant="outline" className="text-xs">
-                                      {attendee.status === 'registered' ? 'Registered' : attendee.status}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-xs text-gray-500">{attendee.participantEmail}</p>
-                                  {attendee.joinedAt && (
-                                    <p className="text-xs text-gray-400">
-                                      Joined: {new Date(attendee.joinedAt).toLocaleDateString()}
-                                    </p>
-                                  )}
-                                </div>
-                                {attendee.role && attendee.role !== 'attendee' && (
-                                  <Badge variant="secondary" className="text-xs capitalize">
-                                    {attendee.role}
-                                  </Badge>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-center">
-                            <Users className="h-8 w-8 text-gray-400 mb-2" />
-                            <p className="text-gray-500 text-sm">No participants registered yet</p>
-                            <p className="text-gray-400 text-xs">Participants can register using the webinar link</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+
 
                     {/* Pre-registered Participants (Only for Create) */}
                     {!editingSession && (
@@ -1338,12 +1293,30 @@ export default function WebinarManagement() {
                 {/* Current Participants */}
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Current Participants</h3>
-                  <div className="border rounded-lg p-3 bg-gray-50 min-h-[100px]">
-                    {managingParticipants.participants && managingParticipants.participants.length > 0 ? (
+                  <div className="border rounded-lg p-3 bg-gray-50 min-h-[100px] max-h-[300px] overflow-y-auto">
+                    {managingParticipantsAttendees && managingParticipantsAttendees.length > 0 ? (
                       <div className="space-y-2">
-                        {managingParticipants.participants.map((email, index) => (
-                          <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
-                            <span className="text-sm">{email}</span>
+                        {managingParticipantsAttendees.map((attendee) => (
+                          <div key={attendee.id} className="flex items-center justify-between bg-white p-3 rounded border">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-medium">{attendee.participantName || 'Anonymous'}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {attendee.status === 'registered' ? 'Registered' : attendee.status}
+                                </Badge>
+                                {attendee.role && attendee.role !== 'attendee' && (
+                                  <Badge variant="secondary" className="text-xs capitalize">
+                                    {attendee.role}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500">{attendee.participantEmail}</p>
+                              {attendee.joinedAt && (
+                                <p className="text-xs text-gray-400">
+                                  Joined: {new Date(attendee.joinedAt).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -1351,7 +1324,7 @@ export default function WebinarManagement() {
                                 // TODO: Add remove participant functionality
                                 toast({ title: "Remove participant feature coming soon!" });
                               }}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-600 hover:text-red-800 ml-2"
                             >
                               Remove
                             </Button>
@@ -1359,7 +1332,7 @@ export default function WebinarManagement() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center">No participants registered yet</p>
+                      <p className="text-gray-500 text-center py-8">No participants registered yet</p>
                     )}
                   </div>
                 </div>
@@ -1397,7 +1370,7 @@ export default function WebinarManagement() {
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <p className="text-2xl font-bold text-blue-600">
-                        {managingParticipants.currentParticipants || 0}
+                        {managingParticipantsAttendees?.length || 0}
                       </p>
                       <p className="text-sm text-gray-600">Registered</p>
                     </div>
