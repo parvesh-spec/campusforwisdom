@@ -708,7 +708,9 @@ export default function Home() {
 
                         {/* Price Badge */}
                         <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1">
-                          <span className="text-lg font-bold text-gray-900">{ebook.price}</span>
+                          <span className="text-lg font-bold text-gray-900">
+                            {ebook.price === "0" ? "FREE" : `₹${ebook.price}`}
+                          </span>
                         </div>
 
                         {/* Rating */}
