@@ -78,6 +78,65 @@ export default function CourseManagement() {
     queryKey: ["/api/experts"],
   });
 
+  // Image upload function
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ 
+        title: "Invalid file type", 
+        description: "Please select an image file", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ 
+        title: "File too large", 
+        description: "Please select an image smaller than 5MB", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/cloudinary/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        thumbnail: data.secure_url 
+      }));
+      
+      toast({ 
+        title: "Image uploaded successfully!", 
+        description: "Cover image has been uploaded" 
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({ 
+        title: "Upload failed", 
+        description: "Failed to upload image. Please try again.", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   const createCourseMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/admin/courses", data),
     onSuccess: () => {
@@ -500,28 +559,64 @@ export default function CourseManagement() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Assign AI Expert (Instructor)
-                      </label>
-                      <Select
-                        value={formData.expertId}
-                        onValueChange={(value) => setFormData({ ...formData, expertId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an AI expert for this course" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {expertsData?.map((expert) => (
-                            <SelectItem key={expert.id} value={expert.id}>
-                              {expert.name} - {expert.specialty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-sm text-gray-500 mt-1">
-                        This expert will be the instructor for this course and handle student queries.
-                      </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Assign AI Expert (Instructor)
+                        </label>
+                        <Select
+                          value={formData.expertId}
+                          onValueChange={(value) => setFormData({ ...formData, expertId: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an AI expert for this course" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {expertsData?.map((expert) => (
+                              <SelectItem key={expert.id} value={expert.id}>
+                                {expert.name} - {expert.specialty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-gray-500 mt-1">
+                          This expert will be the instructor for this course.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Cover Image
+                        </label>
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {formData.thumbnail && (
+                            <div className="mt-2">
+                              <img 
+                                src={formData.thumbnail} 
+                                alt="Course cover preview" 
+                                className="w-32 h-20 object-cover rounded-md border"
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setFormData({ ...formData, thumbnail: "" })}
+                                className="mt-1"
+                              >
+                                Remove Image
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Upload course cover image (recommended: 1200x630px)
+                        </p>
+                      </div>
                     </div>
                   </TabsContent>
 
