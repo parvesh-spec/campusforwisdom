@@ -318,45 +318,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLiveSessions(): Promise<LiveSession[]> {
-    const sessions = await db
-      .select({
-        id: webinars.id,
-        title: webinars.title,
-        description: webinars.description,
-        scheduledAt: webinars.scheduledAt,
-        duration: webinars.duration,
-        price: webinars.price,
-        maxParticipants: webinars.maxParticipants,
-        currentParticipants: webinars.currentParticipants,
-        status: webinars.status,
-        thumbnail: webinars.thumbnail,
-        meetingUrl: webinars.meetingUrl,
-        instructorId: webinars.instructorId,
-        courseId: webinars.courseId,
-        expertId: webinars.expertId,
-        registrationLink: webinars.registrationLink,
-        startLink: webinars.startLink,
-        webinarId: webinars.webinarId,
-        isFeatured: webinars.isFeatured,
-        createdAt: webinars.createdAt,
-        updatedAt: webinars.updatedAt,
-        expert: {
-          id: experts.id,
-          name: experts.name,
-          avatar: experts.avatar,
-          specialization: experts.specialization,
-          rating: experts.rating,
-          isActive: experts.isActive,
+    // First get basic sessions
+    const sessions = await db.select().from(webinars).orderBy(desc(webinars.scheduledAt));
+    
+    // Then fetch expert data for each session if expertId exists
+    const sessionsWithExperts = await Promise.all(
+      sessions.map(async (session) => {
+        let expert = undefined;
+        if (session.expertId) {
+          const [expertData] = await db.select().from(experts).where(eq(experts.id, session.expertId));
+          if (expertData) {
+            expert = {
+              id: expertData.id,
+              name: expertData.name,
+              avatar: expertData.avatar,
+              specialization: expertData.specialization,
+              rating: expertData.rating,
+              isActive: expertData.isActive,
+            };
+          }
         }
+        return {
+          ...session,
+          expert
+        };
       })
-      .from(webinars)
-      .leftJoin(experts, eq(webinars.expertId, experts.id))
-      .orderBy(desc(webinars.scheduledAt));
-
-    return sessions.map(session => ({
-      ...session,
-      expert: session.expert.id ? session.expert : undefined
-    }));
+    );
+    
+    return sessionsWithExperts;
   }
 
   async getLiveSessionById(id: string): Promise<LiveSession | undefined> {
