@@ -1,8 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Users, Award, TrendingUp, BookOpen, Lightbulb, Play, FileText, Video, UserCheck, Globe, Shield, Clock, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Expert, LiveSession, Ebook } from "@shared/schema";
 
 export default function About() {
+  // Fetch real platform data
+  const { data: stats } = useQuery<{
+    totalStudents: number;
+    totalCourses: number;
+    averageRating: number;
+  }>({
+    queryKey: ["/api/stats"],
+  });
+
+  const { data: liveSessions } = useQuery<LiveSession[]>({
+    queryKey: ["/api/live-sessions"],
+  });
+
+  const { data: experts } = useQuery<Expert[]>({
+    queryKey: ["/api/featured/experts"],
+  });
+
+  const { data: ebooks } = useQuery<Ebook[]>({
+    queryKey: ["/api/ebooks"],
+  });
+
   const platformFeatures = [
     {
       icon: BookOpen,
@@ -49,30 +72,33 @@ export default function About() {
     }
   ];
 
+  // Calculate real platform statistics
+  const totalResources = (stats?.totalCourses || 0) + (ebooks?.length || 0);
+  
   const keyStats = [
     {
       icon: Users,
-      number: "5,000+",
+      number: `${stats?.totalStudents || 0}+`,
       label: "Active Students",
-      description: "Learners from 50+ countries"
+      description: "Learners actively enrolled"
     },
     {
       icon: BookOpen,
-      number: "150+",
+      number: `${totalResources}+`,
       label: "Courses & Resources",
-      description: "Comprehensive AI curriculum"
+      description: "Complete learning materials"
     },
     {
       icon: Video,
-      number: "500+",
+      number: `${liveSessions?.length || 0}+`,
       label: "Live Sessions",
       description: "Interactive learning experiences"
     },
     {
       icon: Star,
-      number: "4.9/5",
+      number: `${stats?.averageRating || 4.8}/5`,
       label: "Student Rating",
-      description: "Consistently high satisfaction"
+      description: "Platform satisfaction score"
     }
   ];
 
