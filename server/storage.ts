@@ -15,6 +15,7 @@ import {
   LegalPage,
   InstructorApplication,
   ContactSubmission,
+  Payment,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -31,6 +32,7 @@ import {
   InsertLegalPage,
   InsertInstructorApplication,
   InsertContactSubmission,
+  InsertPayment,
   courses,
   users,
   webinars,
@@ -45,7 +47,8 @@ import {
   courseReviews,
   legalPages,
   instructorApplications,
-  contactSubmissions
+  contactSubmissions,
+  payments
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -63,14 +66,12 @@ export type ConsultationWithDetails = Consultation & {
   student?: User | null;
 };
 
-export type PaymentWithDetails = {
-  id: string;
-  amount: number;
-  status: string;
-  userId: string;
-  courseId?: string;
+export type PaymentWithDetails = Payment & {
   user: User;
-  course?: Course;
+  course?: Course | null;
+  webinar?: Webinar | null;
+  consultation?: Consultation | null;
+  ebook?: Ebook | null;
 };
 
 export type Activity = {
@@ -2082,6 +2083,201 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating contact submission status:", error);
       return undefined;
+    }
+  }
+
+  // Payment methods
+  async createPayment(paymentData: InsertPayment): Promise<Payment> {
+    try {
+      const [payment] = await db
+        .insert(payments)
+        .values(paymentData)
+        .returning();
+      
+      return payment;
+    } catch (error) {
+      console.error("Error creating payment:", error);
+      throw error;
+    }
+  }
+
+  async getPayment(id: string): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.id, id));
+      
+      return payment;
+    } catch (error) {
+      console.error("Error getting payment:", error);
+      return undefined;
+    }
+  }
+
+  async getPaymentByOrderId(orderId: string): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.orderId, orderId));
+      
+      return payment;
+    } catch (error) {
+      console.error("Error getting payment by order ID:", error);
+      return undefined;
+    }
+  }
+
+  async updatePaymentStatus(orderId: string, status: string, transactionId?: string, gatewayResponse?: any): Promise<Payment | undefined> {
+    try {
+      const updateData: any = { 
+        status,
+        ...(transactionId && { transactionId }),
+        ...(gatewayResponse && { gatewayResponse }),
+        ...(status === 'completed' && { paidAt: new Date() })
+      };
+
+      const [payment] = await db
+        .update(payments)
+        .set(updateData)
+        .where(eq(payments.orderId, orderId))
+        .returning();
+      
+      return payment;
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      return undefined;
+    }
+  }
+
+  async getPaymentsWithDetails(): Promise<PaymentWithDetails[]> {
+    try {
+      const paymentResults = await db
+        .select({
+          payment: payments,
+          user: users,
+          course: courses,
+          webinar: webinars,
+          consultation: consultations,
+          ebook: ebooks,
+        })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .leftJoin(courses, eq(payments.courseId, courses.id))
+        .leftJoin(webinars, eq(payments.webinarId, webinars.id))
+        .leftJoin(consultations, eq(payments.consultationId, consultations.id))
+        .leftJoin(ebooks, eq(payments.ebookId, ebooks.id))
+        .orderBy(desc(payments.createdAt));
+
+      return paymentResults.map(result => ({
+        ...result.payment,
+        user: result.user!,
+        course: result.course,
+        webinar: result.webinar,
+        consultation: result.consultation,
+        ebook: result.ebook,
+      }));
+    } catch (error) {
+      console.error("Error getting payments with details:", error);
+      return [];
+    }
+  }
+
+  async getPaymentStats(timeRange: string): Promise<{
+    totalRevenue: number;
+    totalTransactions: number;
+    pendingPayments: number;
+    successRate: number;
+    monthlyRevenue: number;
+    monthlyGrowth: number;
+    refundedAmount: number;
+    averageOrderValue: number;
+  }> {
+    try {
+      const allPayments = await db.select().from(payments);
+      const completedPayments = allPayments.filter(p => p.status === 'completed');
+      const totalRevenue = completedPayments.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+      const refundedAmount = allPayments
+        .filter(p => p.status === 'refunded')
+        .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+
+      return {
+        totalRevenue,
+        totalTransactions: allPayments.length,
+        pendingPayments: allPayments.filter(p => p.status === 'pending').length,
+        successRate: allPayments.length > 0 ? (completedPayments.length / allPayments.length) * 100 : 0,
+        monthlyRevenue: totalRevenue,
+        monthlyGrowth: 15, // placeholder
+        refundedAmount,
+        averageOrderValue: completedPayments.length > 0 ? totalRevenue / completedPayments.length : 0,
+      };
+    } catch (error) {
+      console.error("Error getting payment stats:", error);
+      return {
+        totalRevenue: 0,
+        totalTransactions: 0,
+        pendingPayments: 0,
+        successRate: 0,
+        monthlyRevenue: 0,
+        monthlyGrowth: 0,
+        refundedAmount: 0,
+        averageOrderValue: 0,
+      };
+    }
+  }
+
+  async processRefund(id: string): Promise<Payment | null> {
+    try {
+      const [payment] = await db
+        .update(payments)
+        .set({ status: "refunded" })
+        .where(eq(payments.id, id))
+        .returning();
+      
+      return payment || null;
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      return null;
+    }
+  }
+
+  // Method to enroll student in course
+  async enrollStudentInCourse(studentId: string, courseId: string): Promise<void> {
+    try {
+      const enrollmentData = {
+        id: `enrollment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        studentId,
+        courseId,
+        enrolledAt: new Date(),
+        progress: 0,
+        completed: false,
+      };
+
+      await db.insert(enrollments).values(enrollmentData);
+    } catch (error) {
+      console.error("Error enrolling student in course:", error);
+      throw error;
+    }
+  }
+
+  // Method to add webinar attendee
+  async addWebinarAttendee(attendeeData: { webinarId: string; participantId: string; name: string; email: string }): Promise<void> {
+    try {
+      const webinarAttendeeData = {
+        id: `attendee-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        webinarId: attendeeData.webinarId,
+        participantId: attendeeData.participantId,
+        name: attendeeData.name,
+        email: attendeeData.email,
+        joinedAt: new Date(),
+        status: 'registered'
+      };
+
+      await db.insert(webinarAttendees).values(webinarAttendeeData);
+    } catch (error) {
+      console.error("Error adding webinar attendee:", error);
+      throw error;
     }
   }
 }

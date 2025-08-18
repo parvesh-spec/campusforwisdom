@@ -22,6 +22,7 @@ import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
 import LegalPage from "@/pages/legal-page";
 import BecomeInstructor from "@/pages/become-instructor";
+import TestPayment from "@/pages/TestPayment";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/dashboard";
@@ -147,6 +148,11 @@ function Router() {
       <Route path="/legal/:slug">
         <PublicLayout>
           <LegalPage />
+        </PublicLayout>
+      </Route>
+      <Route path="/test-payment">
+        <PublicLayout>
+          <TestPayment />
         </PublicLayout>
       </Route>
 

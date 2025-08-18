@@ -171,11 +171,21 @@ export const payments = pgTable("payments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
   courseId: varchar("course_id").references(() => courses.id),
+  webinarId: varchar("webinar_id").references(() => webinars.id),
+  consultationId: varchar("consultation_id").references(() => consultations.id),
+  ebookId: varchar("ebook_id").references(() => ebooks.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("INR"),
   status: text("status").notNull(), // pending, completed, failed, refunded
   paymentMethod: text("payment_method"),
   transactionId: text("transaction_id"),
+  // Cashfree specific fields
+  orderId: text("order_id").unique(),
+  paymentSessionId: text("payment_session_id"),
+  paymentGateway: text("payment_gateway").default("cashfree"),
+  gatewayResponse: jsonb("gateway_response"),
   createdAt: timestamp("created_at").defaultNow(),
+  paidAt: timestamp("paid_at"),
 });
 
 export const experts = pgTable("experts", {

@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
@@ -9,6 +10,7 @@ import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insert
 import { zohoAPI } from "./zoho-api";
 import multer from "multer";
 import cloudinary from "./cloudinary";
+import { CashfreeService } from "./cashfree";
 
 // PostgreSQL session store configuration
 const PgSession = connectPgSimple(session);
@@ -2158,6 +2160,253 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // ===== PAYMENT ROUTES =====
+
+  // Create payment session for courses
+  app.post("/api/payments/create-session", requireAuth, async (req, res) => {
+    try {
+      const { amount, courseId, webinarId, consultationId, ebookId } = req.body;
+      const user = (req.session as any)?.user;
+
+      if (!user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: "Invalid amount" });
+      }
+
+      // Generate unique order ID
+      const orderId = `CFW_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Prepare payment session request
+      const sessionRequest = {
+        orderId,
+        amount: parseFloat(amount),
+        currency: "INR",
+        customerDetails: {
+          customerId: user.id,
+          customerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
+          customerEmail: user.email,
+          customerPhone: user.phone || "9999999999"
+        }
+      };
+
+      // Create payment session with Cashfree
+      const session = await CashfreeService.createPaymentSession(sessionRequest);
+
+      // Create payment record in database
+      const paymentData = {
+        id: `payment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        userId: user.id,
+        amount: amount.toString(),
+        currency: "INR",
+        status: "pending",
+        orderId,
+        paymentSessionId: session.paymentSessionId,
+        paymentGateway: "cashfree",
+        ...(courseId && { courseId }),
+        ...(webinarId && { webinarId }),
+        ...(consultationId && { consultationId }),
+        ...(ebookId && { ebookId })
+      };
+
+      await storage.createPayment(paymentData);
+
+      res.json({
+        orderId,
+        paymentSessionId: session.paymentSessionId,
+        amount,
+        currency: "INR"
+      });
+
+    } catch (error) {
+      console.error("Error creating payment session:", error);
+      res.status(500).json({ error: "Failed to create payment session" });
+    }
+  });
+
+  // Verify payment status
+  app.get("/api/payments/verify/:orderId", requireAuth, async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const user = (req.session as any)?.user;
+
+      if (!user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Get payment from database
+      const payment = await storage.getPaymentByOrderId(orderId);
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+
+      if (payment.userId !== user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Verify with Cashfree
+      const paymentDetails = await CashfreeService.verifyPayment(orderId);
+
+      if (paymentDetails && paymentDetails.length > 0) {
+        const latestPayment = paymentDetails[0];
+        
+        // Update payment status in database
+        await storage.updatePaymentStatus(
+          orderId,
+          latestPayment.payment_status.toLowerCase(),
+          latestPayment.cf_payment_id,
+          latestPayment
+        );
+
+        // If payment successful, handle enrollment/access
+        if (latestPayment.payment_status === 'SUCCESS') {
+          try {
+            if (payment.courseId) {
+              // Enroll user in course
+              await storage.enrollStudentInCourse(user.id, payment.courseId);
+            } else if (payment.webinarId) {
+              // Add user to webinar
+              await storage.addWebinarAttendee({
+                webinarId: payment.webinarId,
+                participantId: user.id,
+                name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
+                email: user.email
+              });
+            } else if (payment.consultationId) {
+              // Update consultation status to confirmed
+              await storage.updateConsultation(payment.consultationId, { status: 'confirmed' });
+            }
+          } catch (enrollmentError) {
+            console.error("Error handling post-payment enrollment:", enrollmentError);
+          }
+        }
+      }
+
+      res.json({ 
+        status: payment.status,
+        orderId,
+        paymentDetails
+      });
+
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      res.status(500).json({ error: "Failed to verify payment" });
+    }
+  });
+
+  // Cashfree webhook for payment notifications
+  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const signature = req.headers['x-webhook-signature'] as string;
+      const rawBody = req.body.toString();
+
+      // Verify webhook signature
+      if (!CashfreeService.verifyWebhookSignature(rawBody, signature)) {
+        return res.status(400).json({ error: "Invalid webhook signature" });
+      }
+
+      const webhookData = JSON.parse(rawBody);
+      
+      if (webhookData.type === 'PAYMENT_SUCCESS_WEBHOOK') {
+        const { orderId, paymentStatus, cfPaymentId } = webhookData.data;
+
+        // Update payment status
+        await storage.updatePaymentStatus(orderId, paymentStatus.toLowerCase(), cfPaymentId, webhookData.data);
+
+        // Handle post-payment actions
+        const payment = await storage.getPaymentByOrderId(orderId);
+        if (payment && paymentStatus === 'SUCCESS') {
+          try {
+            if (payment.courseId) {
+              await storage.enrollStudentInCourse(payment.userId, payment.courseId);
+            } else if (payment.webinarId) {
+              const user = await storage.getUser(payment.userId);
+              if (user) {
+                await storage.addWebinarAttendee({
+                  webinarId: payment.webinarId,
+                  participantId: payment.userId,
+                  name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
+                  email: user.email
+                });
+              }
+            } else if (payment.consultationId) {
+              await storage.updateConsultation(payment.consultationId, { status: 'confirmed' });
+            }
+          } catch (enrollmentError) {
+            console.error("Error handling webhook post-payment actions:", enrollmentError);
+          }
+        }
+      }
+
+      res.status(200).json({ message: "Webhook processed" });
+
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // Get payment history for user
+  app.get("/api/payments/history", requireAuth, async (req, res) => {
+    try {
+      const user = (req.session as any)?.user;
+
+      if (!user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const payments = await storage.getPaymentsWithDetails();
+      const userPayments = payments.filter(p => p.userId === user.id);
+
+      res.json(userPayments);
+
+    } catch (error) {
+      console.error("Error fetching payment history:", error);
+      res.status(500).json({ error: "Failed to fetch payment history" });
+    }
+  });
+
+  // Admin payment routes
+  app.get("/api/admin/payments", requireAdmin, async (req, res) => {
+    try {
+      const payments = await storage.getPaymentsWithDetails();
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ error: "Failed to fetch payments" });
+    }
+  });
+
+  app.get("/api/admin/payment-stats", requireAdmin, async (req, res) => {
+    try {
+      const { timeRange = '30d' } = req.query;
+      const stats = await storage.getPaymentStats(timeRange as string);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment stats:", error);
+      res.status(500).json({ error: "Failed to fetch payment stats" });
+    }
+  });
+
+  app.post("/api/admin/payments/:id/refund", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const payment = await storage.processRefund(id);
+      
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+      
+      res.json({ message: "Refund processed successfully", payment });
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      res.status(500).json({ error: "Failed to process refund" });
+    }
+  });
+
   // Submit or update direct review for expert
   app.post("/api/experts/:id/direct-reviews", requireAuth, async (req, res) => {
     try {
