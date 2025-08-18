@@ -207,238 +207,44 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Live Learning Sessions Section */}
-      <section className="py-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Live Learning Sessions
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300">
-                Join interactive sessions with AI experts and learn in real-time
-              </p>
-            </div>
-            <Link href="/live-sessions">
-              <Button variant="outline" className="hidden md:flex items-center">
-                View All Sessions
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredWebinars.map((session) => {
-              const isLive = session.status === "live";
-              const isScheduled = session.status === "scheduled";
-              const sessionData = session as any;
-              
-              const formatDate = (date: Date | string) => {
-                return new Intl.DateTimeFormat("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                }).format(new Date(date));
-              };
-
-              const formatTime = (date: Date | string) => {
-                return new Intl.DateTimeFormat("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }).format(new Date(date));
-              };
-
-              const price = session.price ? parseFloat(session.price) : 0;
-              const spotsLeft = (session.maxParticipants || 100) - (session.currentParticipants || 0);
-
-              return (
-                <Link key={session.id} href={`/webinar/${session.id}`}>
-                  <Card className="group bg-white shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer">
-                    {/* Live indicator */}
-                    {isLive && (
-                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-2">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                          <span className="text-sm font-medium">LIVE NOW</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <CardContent className={`p-0 ${isLive ? '' : ''}`}>
-                      {/* Cover Image */}
-                      {sessionData.thumbnail ? (
-                        <div className="relative w-full h-72 overflow-hidden">
-                          <img 
-                            src={sessionData.thumbnail} 
-                            alt={session.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                        </div>
-                      ) : (
-                        <div className="relative w-full h-72 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
-                          <div className="text-6xl text-white/80">🎥</div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                        </div>
-                      )}
-
-                      {/* Header Section */}
-                      <div className="p-6 pb-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge className={`${
-                            isLive ? 'bg-red-100 text-red-800 border-red-200' : 
-                            'bg-blue-100 text-blue-800 border-blue-200'
-                          } border`}>
-                            {isLive ? (
-                              <>
-                                <Play className="w-3 h-3 mr-1" /> Live Now
-                              </>
-                            ) : (
-                              "Upcoming"
-                            )}
-                          </Badge>
-                          
-                          {spotsLeft <= 10 && spotsLeft > 0 && (
-                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
-                              Only {spotsLeft} seats left!
-                            </span>
-                          )}
-                        </div>
-                        
-                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
-                          {session.title}
-                        </h3>
-                        
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-                          {session.description}
-                        </p>
-                      </div>
-
-                      {/* Expert/Instructor Section */}
-                      {sessionData.expert && (
-                        <div className="px-6 pb-4">
-                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                            <div className="relative">
-                              <img
-                                src={sessionData.expert.avatar || '/api/placeholder/40/40'}
-                                alt={sessionData.expert.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                              />
-                              {sessionData.expert.isActive && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">{sessionData.expert.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{sessionData.expert.specialization}</p>
-                              {sessionData.expert.rating && (
-                                <div className="flex items-center mt-1">
-                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                  <span className="text-xs text-gray-600 ml-1">{sessionData.expert.rating}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Date, Time and Price Section */}
-                      <div className="px-6 pb-4">
-                        <div className="grid grid-cols-3 gap-4 text-center bg-gray-50 rounded-lg p-3">
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 flex items-center justify-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(session.scheduledAt)}
-                            </div>
-                            <div className="text-xs text-gray-500">Date</div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 flex items-center justify-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatTime(session.scheduledAt)}
-                            </div>
-                            <div className="text-xs text-gray-500">Time</div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-green-600">
-                              {price > 0 ? `₹${session.price}` : 'Free'}
-                            </div>
-                            <div className="text-xs text-gray-500">Price</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* CTA Section */}
-                      <div className="px-6 pb-6">
-                        <Button className={`w-full ${
-                          isLive 
-                            ? 'bg-red-600 hover:bg-red-700' 
-                            : 'bg-blue-600 hover:bg-blue-700'
-                        } text-white font-semibold transition-all group-hover:shadow-lg`}>
-                          {isLive ? (
-                            <>
-                              <Play className="mr-2 h-4 w-4" />
-                              Join Live Now
-                            </>
-                          ) : (
-                            <>
-                              <Users className="mr-2 h-4 w-4" />
-                              Register Now
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-            })}
-          </div>
-
-          <div className="text-center mt-8 md:hidden">
-            <Link href="/live-sessions">
-              <Button variant="outline">
-                View All Sessions
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Ebooks Section */}
+      {/* Featured Courses Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                AI Ebooks
+                AI Courses
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Download comprehensive guides and resources to accelerate your learning
+                Master AI skills with our comprehensive course library
               </p>
             </div>
-            <Link href="/ebooks">
+            <Link href="/courses">
               <Button variant="outline" className="hidden md:flex items-center">
-                View All Ebooks
+                View All Courses
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {featuredEbooks.map((ebook) => {
-              const ebookData = ebook as any;
+            {featuredCourses.map((course) => {
+              const courseData = course as any;
+              const levelColors = {
+                beginner: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                intermediate: "bg-amber-100 text-amber-800 border-amber-200", 
+                advanced: "bg-rose-100 text-rose-800 border-rose-200",
+              };
               
               return (
-                <Link key={ebook.id} href={`/ebooks/${ebook.id}`}>
-                  <Card className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-white overflow-hidden cursor-pointer">
-                    <CardContent className="p-0">
-                      {/* Ebook Cover */}
-                        {ebookData.coverImage ? (
-                          <img 
-                            src={ebookData.coverImage} 
-                            alt={ebook.title}
+                <Link key={course.id} href={`/courses/${course.id}`}>
+                  <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+                    {/* Course Image/Thumbnail */}
+                    <div className="relative w-full h-72 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                      {courseData.thumbnail ? (
+                        <img 
+                          src={courseData.thumbnail} 
+                          alt={course.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
