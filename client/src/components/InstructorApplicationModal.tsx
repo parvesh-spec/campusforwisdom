@@ -62,7 +62,7 @@ export default function InstructorApplicationModal({
 
   const submitMutation = useMutation({
     mutationFn: async (data: InsertInstructorApplication) => {
-      return apiRequest("/api/instructor-applications", "POST", data);
+      return apiRequest("POST", "/api/instructor-applications", data);
     },
     onSuccess: () => {
       toast({
