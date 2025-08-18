@@ -289,12 +289,17 @@ export default function AIExperts() {
 
         {/* CTA Section */}
         <div className="mt-20 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Personalized AI Guidance?</h2>
+          <h2 className="text-3xl font-bold mb-4">Join Live Learning Sessions</h2>
           <p className="text-lg mb-6 opacity-90">
-            Book a 1-to-1 consultation with our expert AI professionals and accelerate your learning journey.
+            Participate in interactive live sessions with our expert instructors and learn alongside other students.
           </p>
-          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
-            Find Your Expert
+          <Button 
+            size="lg" 
+            variant="secondary" 
+            className="bg-white text-primary hover:bg-gray-100"
+            onClick={() => window.location.href = '/live-sessions'}
+          >
+            View Live Sessions
           </Button>
         </div>
 
