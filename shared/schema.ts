@@ -483,3 +483,31 @@ export const insertInstructorApplicationSchema = createInsertSchema(instructorAp
 
 export type InstructorApplication = typeof instructorApplications.$inferSelect;
 export type InsertInstructorApplication = z.infer<typeof insertInstructorApplicationSchema>;
+
+// Contact Submissions Table
+export const contactSubmissions = pgTable("contact_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  inquiryType: text("inquiry_type").notNull(), // course-info, live-sessions, expert-consultation, etc.
+  status: text("status").notNull().default("pending"), // pending, replied, resolved
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  repliedAt: timestamp("replied_at"),
+  repliedBy: varchar("replied_by"), // Admin user ID who replied
+  notes: text("notes"), // Internal notes
+});
+
+// Contact Submissions Insert Schema
+export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  repliedAt: true,
+  repliedBy: true,
+  status: true,
+});
+
+export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;

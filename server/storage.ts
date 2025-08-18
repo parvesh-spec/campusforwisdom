@@ -14,6 +14,7 @@ import {
   CourseReview,
   LegalPage,
   InstructorApplication,
+  ContactSubmission,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -29,6 +30,7 @@ import {
   InsertCourseReview,
   InsertLegalPage,
   InsertInstructorApplication,
+  InsertContactSubmission,
   courses,
   users,
   webinars,
@@ -42,7 +44,8 @@ import {
   directReviews,
   courseReviews,
   legalPages,
-  instructorApplications
+  instructorApplications,
+  contactSubmissions
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -2023,6 +2026,61 @@ export class DatabaseStorage implements IStorage {
       return updatedApplication;
     } catch (error) {
       console.error("Error updating instructor application status:", error);
+      return undefined;
+    }
+  }
+
+  // Contact Submission methods
+  async getContactSubmissions(): Promise<ContactSubmission[]> {
+    try {
+      const submissions = await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.submittedAt));
+      return submissions;
+    } catch (error) {
+      console.error("Error fetching contact submissions:", error);
+      return [];
+    }
+  }
+
+  async getContactSubmission(id: string): Promise<ContactSubmission | undefined> {
+    try {
+      const [submission] = await db.select().from(contactSubmissions).where(eq(contactSubmissions.id, id));
+      return submission;
+    } catch (error) {
+      console.error("Error fetching contact submission:", error);
+      return undefined;
+    }
+  }
+
+  async createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission> {
+    try {
+      const [newSubmission] = await db
+        .insert(contactSubmissions)
+        .values(submission)
+        .returning();
+      
+      return newSubmission;
+    } catch (error) {
+      console.error("Error creating contact submission:", error);
+      throw error;
+    }
+  }
+
+  async updateContactSubmissionStatus(id: string, status: string, repliedBy?: string, notes?: string): Promise<ContactSubmission | undefined> {
+    try {
+      const [updatedSubmission] = await db
+        .update(contactSubmissions)
+        .set({
+          status,
+          repliedBy,
+          notes,
+          repliedAt: status === 'replied' ? new Date() : undefined
+        })
+        .where(eq(contactSubmissions.id, id))
+        .returning();
+      
+      return updatedSubmission;
+    } catch (error) {
+      console.error("Error updating contact submission status:", error);
       return undefined;
     }
   }

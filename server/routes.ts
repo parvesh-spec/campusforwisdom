@@ -651,16 +651,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contact form (simplified - just return success for now)
+  // Contact form submission
   app.post("/api/contact", async (req, res) => {
     try {
-      const { name, email, message } = req.body;
-      if (!name || !email || !message) {
-        return res.status(400).json({ error: "All fields are required" });
+      const { name, email, phone, subject, message, inquiryType } = req.body;
+      
+      if (!name || !email || !subject || !message || !inquiryType) {
+        return res.status(400).json({ error: "Name, email, subject, message, and inquiry type are required" });
       }
-      // In a real app, you would save this to database or send email
-      console.log("Contact form submission:", { name, email, message });
-      res.json({ message: "Contact form submitted successfully" });
+
+      // Save to database
+      const contactSubmission = await storage.createContactSubmission({
+        name,
+        email,
+        phone,
+        subject,
+        message,
+        inquiryType
+      });
+
+      console.log("Contact form submission saved:", contactSubmission);
+      res.json({ message: "Contact form submitted successfully", id: contactSubmission.id });
     } catch (error) {
       console.error("Error submitting contact form:", error);
       res.status(500).json({ error: "Internal server error" });
