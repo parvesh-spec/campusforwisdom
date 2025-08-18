@@ -4,9 +4,7 @@ if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
   throw new Error('Missing required Cashfree credentials: CASHFREE_APP_ID and CASHFREE_SECRET_KEY');
 }
 
-const CASHFREE_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.cashfree.com' 
-  : 'https://sandbox.cashfree.com';
+const CASHFREE_BASE_URL = 'https://api.cashfree.com';
 
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID;
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
@@ -38,6 +36,13 @@ export interface PaymentSessionResponse {
 export class CashfreeService {
   static async createPaymentSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
     try {
+      console.log('Creating Cashfree payment session with:', {
+        orderId: request.orderId,
+        amount: request.amount,
+        appId: CASHFREE_APP_ID?.substring(0, 10) + '...',
+        baseUrl: CASHFREE_BASE_URL
+      });
+
       const createOrderRequest = {
         order_id: request.orderId,
         order_amount: request.amount,
@@ -49,12 +54,14 @@ export class CashfreeService {
           customer_phone: request.customerDetails.customerPhone,
         },
         order_meta: {
-          return_url: request.orderMeta?.returnUrl || `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/success`,
-          notify_url: request.orderMeta?.notifyUrl || `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/payments/webhook`,
+          return_url: request.orderMeta?.returnUrl || `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/payment/success`,
+          notify_url: request.orderMeta?.notifyUrl || `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/api/payments/webhook`,
           payment_methods: request.orderMeta?.paymentMethods || "",
         },
         order_note: "Payment for CampusForWisdom services",
       };
+
+      console.log('Sending request to:', `${CASHFREE_BASE_URL}/pg/orders`);
 
       const response = await fetch(`${CASHFREE_BASE_URL}/pg/orders`, {
         method: 'POST',
@@ -67,12 +74,22 @@ export class CashfreeService {
         body: JSON.stringify(createOrderRequest)
       });
 
+      const responseText = await response.text();
+      console.log('Cashfree API response status:', response.status);
+      console.log('Cashfree API response:', responseText.substring(0, 500));
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Cashfree API error: ${error.message || 'Unknown error'}`);
+        let errorMessage = 'Unknown error';
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.error || 'API Error';
+        } catch (e) {
+          errorMessage = `HTTP ${response.status}: ${responseText}`;
+        }
+        throw new Error(`Cashfree API error: ${errorMessage}`);
       }
 
-      const data = await response.json();
+      const data = JSON.parse(responseText);
       
       return {
         cfOrderId: data.cf_order_id,

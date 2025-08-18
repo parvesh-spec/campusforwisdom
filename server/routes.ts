@@ -2193,33 +2193,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
-      // Create payment session with Cashfree
-      const session = await CashfreeService.createPaymentSession(sessionRequest);
+      try {
+        // Create payment session with Cashfree
+        const session = await CashfreeService.createPaymentSession(sessionRequest);
 
-      // Create payment record in database
-      const paymentData = {
-        id: `payment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        userId: user.id,
-        amount: amount.toString(),
-        currency: "INR",
-        status: "pending",
-        orderId,
-        paymentSessionId: session.paymentSessionId,
-        paymentGateway: "cashfree",
-        ...(courseId && { courseId }),
-        ...(webinarId && { webinarId }),
-        ...(consultationId && { consultationId }),
-        ...(ebookId && { ebookId })
-      };
+        // Create payment record in database
+        const paymentData = {
+          id: `payment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          userId: user.id,
+          amount: amount.toString(),
+          currency: "INR",
+          status: "pending",
+          orderId,
+          paymentSessionId: session.paymentSessionId,
+          paymentGateway: "cashfree",
+          ...(courseId && { courseId }),
+          ...(webinarId && { webinarId }),
+          ...(consultationId && { consultationId }),
+          ...(ebookId && { ebookId })
+        };
 
-      await storage.createPayment(paymentData);
+        await storage.createPayment(paymentData);
 
-      res.json({
-        orderId,
-        paymentSessionId: session.paymentSessionId,
-        amount,
-        currency: "INR"
-      });
+        res.json({
+          orderId,
+          paymentSessionId: session.paymentSessionId,
+          amount,
+          currency: "INR"
+        });
+      } catch (cashfreeError: any) {
+        console.error("Cashfree API error:", cashfreeError);
+        throw cashfreeError;
+      }
 
     } catch (error) {
       console.error("Error creating payment session:", error);

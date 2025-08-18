@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CreditCard } from "lucide-react";
-import { payForCourse, payForWebinar, payForConsultation, payForEbook } from "@/lib/payment";
+import { payForCourse, payForWebinar, payForConsultation, payForEbook } from "@/lib/payment-improved";
 
 interface PaymentButtonProps {
   type: 'course' | 'webinar' | 'consultation' | 'ebook';
