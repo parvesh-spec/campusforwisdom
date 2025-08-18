@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SessionCard from "@/components/ui/session-card";
 import StudentLoginModal from "@/components/StudentLoginModal";
+import InstructorApplicationModal from "@/components/InstructorApplicationModal";
 import { Calendar, Clock, Users, Video, LogIn } from "lucide-react";
 import type { LiveSession, User } from "@shared/schema";
 
 export default function LiveSessions() {
   const [viewMode, setViewMode] = useState<"all" | "my">("all");
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showInstructorModal, setShowInstructorModal] = useState(false);
 
   const { data: sessions, isLoading } = useQuery<LiveSession[]>({
     queryKey: ["/api/live-sessions"],
@@ -206,7 +208,12 @@ export default function LiveSessions() {
           <p className="text-lg mb-6 opacity-90">
             Are you an AI expert? Share your knowledge with our community and help others learn.
           </p>
-          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
+          <Button 
+            size="lg" 
+            variant="secondary" 
+            className="bg-white text-primary hover:bg-gray-100"
+            onClick={() => setShowInstructorModal(true)}
+          >
             Become an Instructor
           </Button>
         </div>
@@ -216,6 +223,13 @@ export default function LiveSessions() {
           isOpen={showLoginModal} 
           onOpenChange={setShowLoginModal}
           onClose={() => setShowLoginModal(false)}
+        />
+
+        {/* Instructor Application Modal */}
+        <InstructorApplicationModal
+          isOpen={showInstructorModal}
+          onOpenChange={setShowInstructorModal}
+          onClose={() => setShowInstructorModal(false)}
         />
       </div>
     </div>

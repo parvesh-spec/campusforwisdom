@@ -68,6 +68,11 @@ export default function Footer() {
                   <a className="hover:text-white transition-colors">About</a>
                 </Link>
               </li>
+              <li>
+                <Link href="/become-instructor">
+                  <a className="hover:text-white transition-colors">Become an Instructor</a>
+                </Link>
+              </li>
             </ul>
           </div>
 

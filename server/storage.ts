@@ -13,6 +13,7 @@ import {
   DirectReview,
   CourseReview,
   LegalPage,
+  InstructorApplication,
   InsertCourse, 
   InsertUser, 
   InsertLiveSession,
@@ -27,6 +28,7 @@ import {
   InsertDirectReview,
   InsertCourseReview,
   InsertLegalPage,
+  InsertInstructorApplication,
   courses,
   users,
   webinars,
@@ -39,7 +41,8 @@ import {
   webinarAttendees,
   directReviews,
   courseReviews,
-  legalPages
+  legalPages,
+  instructorApplications
 } from "@shared/schema";
 
 // Type definitions for joined data
@@ -207,6 +210,12 @@ export interface IStorage {
   getLegalPages(): Promise<LegalPage[]>;
   getLegalPageBySlug(slug: string): Promise<LegalPage | undefined>;
   updateLegalPage(id: string, updates: Partial<LegalPage>): Promise<LegalPage | undefined>;
+
+  // Instructor Application methods
+  getInstructorApplications(): Promise<InstructorApplication[]>;
+  getInstructorApplication(id: string): Promise<InstructorApplication | undefined>;
+  createInstructorApplication(application: InsertInstructorApplication): Promise<InstructorApplication>;
+  updateInstructorApplicationStatus(id: string, status: string, reviewerId?: string, notes?: string): Promise<InstructorApplication | undefined>;
 }
 
 // Database storage implementation
@@ -1959,6 +1968,61 @@ export class DatabaseStorage implements IStorage {
       return updatedPage;
     } catch (error) {
       console.error("Error updating legal page:", error);
+      return undefined;
+    }
+  }
+
+  // Instructor Application methods
+  async getInstructorApplications(): Promise<InstructorApplication[]> {
+    try {
+      const applications = await db.select().from(instructorApplications).orderBy(desc(instructorApplications.submittedAt));
+      return applications;
+    } catch (error) {
+      console.error("Error fetching instructor applications:", error);
+      return [];
+    }
+  }
+
+  async getInstructorApplication(id: string): Promise<InstructorApplication | undefined> {
+    try {
+      const [application] = await db.select().from(instructorApplications).where(eq(instructorApplications.id, id));
+      return application;
+    } catch (error) {
+      console.error("Error fetching instructor application:", error);
+      return undefined;
+    }
+  }
+
+  async createInstructorApplication(application: InsertInstructorApplication): Promise<InstructorApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(instructorApplications)
+        .values(application)
+        .returning();
+      
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating instructor application:", error);
+      throw error;
+    }
+  }
+
+  async updateInstructorApplicationStatus(id: string, status: string, reviewerId?: string, notes?: string): Promise<InstructorApplication | undefined> {
+    try {
+      const [updatedApplication] = await db
+        .update(instructorApplications)
+        .set({
+          status,
+          reviewedBy: reviewerId,
+          notes,
+          reviewedAt: new Date()
+        })
+        .where(eq(instructorApplications.id, id))
+        .returning();
+      
+      return updatedApplication;
+    } catch (error) {
+      console.error("Error updating instructor application status:", error);
       return undefined;
     }
   }

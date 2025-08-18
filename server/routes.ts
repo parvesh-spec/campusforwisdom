@@ -5,7 +5,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { z } from "zod";
-import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema, insertEbookSchema, insertWebinarAttendeeSchema } from "@shared/schema";
+import { insertCourseSchema, insertWebinarSchema, insertEnrollmentSchema, insertTestimonialSchema, insertPaymentSchema, insertExpertSchema, insertConsultationSchema, insertEbookSchema, insertWebinarAttendeeSchema, insertInstructorApplicationSchema } from "@shared/schema";
 import { zohoAPI } from "./zoho-api";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -2276,6 +2276,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(page);
     } catch (error) {
       console.error("Error updating legal page:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ===== INSTRUCTOR APPLICATION ROUTES =====
+
+  // Submit instructor application (public)
+  app.post("/api/instructor-applications", async (req, res) => {
+    try {
+      const applicationData = insertInstructorApplicationSchema.parse(req.body);
+      const application = await storage.createInstructorApplication(applicationData);
+      res.json(application);
+    } catch (error) {
+      console.error("Error creating instructor application:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid application data", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get all instructor applications (admin only)
+  app.get("/api/admin/instructor-applications", requireAdmin, async (req, res) => {
+    try {
+      const applications = await storage.getInstructorApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching instructor applications:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get specific instructor application (admin only)
+  app.get("/api/admin/instructor-applications/:id", requireAdmin, async (req, res) => {
+    try {
+      const application = await storage.getInstructorApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching instructor application:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update instructor application status (admin only)
+  app.put("/api/admin/instructor-applications/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const { status, notes } = req.body;
+      const adminUser = (req.session as any)?.adminUser;
+      
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      
+      const application = await storage.updateInstructorApplicationStatus(
+        req.params.id, 
+        status, 
+        adminUser?.id,
+        notes
+      );
+      
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating instructor application status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

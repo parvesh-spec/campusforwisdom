@@ -452,3 +452,34 @@ export const insertLegalPageSchema = createInsertSchema(legalPages).omit({
 
 export type LegalPage = typeof legalPages.$inferSelect;
 export type InsertLegalPage = z.infer<typeof insertLegalPageSchema>;
+
+// Instructor Applications Table
+export const instructorApplications = pgTable("instructor_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  experience: text("experience").notNull(), // Years of experience
+  expertise: text("expertise").notNull(), // Areas of expertise
+  background: text("background").notNull(), // Professional background
+  motivation: text("motivation").notNull(), // Why they want to teach
+  linkedin: text("linkedin"), // LinkedIn profile
+  portfolio: text("portfolio"), // Portfolio/website URL
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by"), // Admin user ID
+  notes: text("notes"), // Internal review notes
+});
+
+// Instructor Applications Insert Schema
+export const insertInstructorApplicationSchema = createInsertSchema(instructorApplications).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+});
+
+export type InstructorApplication = typeof instructorApplications.$inferSelect;
+export type InsertInstructorApplication = z.infer<typeof insertInstructorApplicationSchema>;

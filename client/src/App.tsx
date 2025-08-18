@@ -21,6 +21,7 @@ import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
 import LegalPage from "@/pages/legal-page";
+import BecomeInstructor from "@/pages/become-instructor";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/dashboard";
@@ -129,6 +130,11 @@ function Router() {
       <Route path="/contact">
         <PublicLayout>
           <Contact />
+        </PublicLayout>
+      </Route>
+      <Route path="/become-instructor">
+        <PublicLayout>
+          <BecomeInstructor />
         </PublicLayout>
       </Route>
       <Route path="/login" component={Login} />
