@@ -83,31 +83,31 @@ export default function Home() {
       description: "Learn cutting-edge AI tools for software development, video creation, and presentation design"
     },
     {
-      icon: <Video className="h-8 w-8 text-purple-600" />,
+      icon: <Video className="h-8 w-8 text-blue-500" />,
       title: "Live Expert Sessions",
       description: "Interactive sessions with industry experts and hands-on learning experiences"
     },
     {
-      icon: <Target className="h-8 w-8 text-green-600" />,
+      icon: <Target className="h-8 w-8 text-indigo-600" />,
       title: "Practical Projects",
       description: "Build real-world projects and portfolios that showcase your AI skills"
     },
     {
-      icon: <Award className="h-8 w-8 text-orange-600" />,
+      icon: <Award className="h-8 w-8 text-cyan-600" />,
       title: "Expert Mentorship",
       description: "Get personalized guidance from AI professionals through 1:1 consultations"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950">
       {/* Hero Section with Animation */}
       <section className="relative overflow-hidden py-20 lg:py-32">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8">
             {/* Animated Badge */}
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 border border-blue-200 dark:border-blue-800 rounded-full px-6 py-2 animate-pulse">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-full px-6 py-2 animate-pulse">
               <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">AI Education Platform</span>
             </div>
@@ -117,7 +117,7 @@ export default function Home() {
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
                 <span className="text-gray-900 dark:text-white">Master the Future with</span>
                 <br />
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 bg-clip-text text-transparent">
                   AI Learning
                 </span>
               </h1>
@@ -130,14 +130,14 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/courses">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   <Play className="mr-2 h-5 w-5" />
                   Start Learning Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/live-sessions">
-                <Button size="lg" variant="outline" className="border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300">
+                <Button size="lg" variant="outline" className="border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 text-blue-600 dark:text-blue-400">
                   <Calendar className="mr-2 h-5 w-5" />
                   Join Live Sessions
                 </Button>
@@ -153,19 +153,19 @@ export default function Home() {
                 <div className="text-gray-600 dark:text-gray-400 font-medium">Students</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-purple-600 dark:text-purple-400">
+                <div className="text-3xl lg:text-4xl font-bold text-indigo-600 dark:text-indigo-400">
                   {stats?.totalCourses || 0}+
                 </div>
                 <div className="text-gray-600 dark:text-gray-400 font-medium">AI Courses</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-3xl lg:text-4xl font-bold text-cyan-600 dark:text-cyan-400">
                   {experts?.length || 0}+
                 </div>
                 <div className="text-gray-600 dark:text-gray-400 font-medium">AI Experts</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-orange-600 dark:text-orange-400">
+                <div className="text-3xl lg:text-4xl font-bold text-blue-500 dark:text-blue-300">
                   {stats?.averageRating || 4.8}★
                 </div>
                 <div className="text-gray-600 dark:text-gray-400 font-medium">Rating</div>
@@ -191,7 +191,7 @@ export default function Home() {
             {features.map((feature, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mb-4">
                     {feature.icon}
                   </div>
                   <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
@@ -366,7 +366,7 @@ export default function Home() {
                             </Badge>
                           )}
                           {courseData.certificateOfCompletion && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                            <Badge variant="outline" className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200">
                               Certificate
                             </Badge>
                           )}
@@ -374,7 +374,7 @@ export default function Home() {
                       )}
 
                       {/* Action Button */}
-                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center justify-center gap-2 group-hover:shadow-lg transition-all">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 group-hover:shadow-lg transition-all">
                         <CheckCircle className="h-4 w-4" />
                         Enroll Now
                       </Button>
@@ -560,7 +560,7 @@ export default function Home() {
                                 <span className="text-sm text-gray-500">per person</span>
                               </>
                             ) : (
-                              <span className="text-2xl font-bold text-green-600">FREE</span>
+                              <span className="text-2xl font-bold text-blue-600">FREE</span>
                             )}
                           </div>
                           
@@ -803,7 +803,7 @@ export default function Home() {
                         
                         {/* Category Badge */}
                         <div className="absolute top-3 left-3">
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 font-medium">
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-medium">
                             {ebook.category}
                           </Badge>
                         </div>
@@ -877,7 +877,7 @@ export default function Home() {
                         )}
 
                         {/* Action Button */}
-                        <Button className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold group-hover:shadow-lg transition-all">
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold group-hover:shadow-lg transition-all">
                           <Download className="mr-2 h-4 w-4" />
                           Download Now
                         </Button>
@@ -903,7 +903,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 text-white overflow-hidden">
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-600 text-white overflow-hidden">
             <CardContent className="p-12 relative">
               <div className="absolute inset-0 bg-grid-white/[0.1] bg-[size:30px_30px]" />
               <div className="relative">
@@ -925,7 +925,7 @@ export default function Home() {
                     </Button>
                   </Link>
                   <Link href="/live-sessions">
-                    <Button size="lg" className="bg-white/10 border-white text-white hover:bg-white hover:text-blue-600 backdrop-blur-sm">
+                    <Button size="lg" className="bg-white/10 border-white text-white hover:bg-white hover:text-indigo-600 backdrop-blur-sm">
                       <Video className="mr-2 h-5 w-5" />
                       Join Live Sessions
                     </Button>
