@@ -256,9 +256,9 @@ export default function Courses() {
 
         {/* CTA Section */}
         <div className="mt-20 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Your AI Journey?</h2>
+          <h2 className="text-3xl font-bold mb-4">Want to Learn More About AI?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Join thousands of students who are already transforming their careers with AI skills.
+            Download our free eBooks and get expert insights on AI tools, techniques, and industry trends.
           </p>
           <Link href="/ebooks">
             <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
