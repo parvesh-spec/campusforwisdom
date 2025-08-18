@@ -22,7 +22,7 @@ import Contact from "@/pages/contact";
 import ProfileSettings from "@/pages/profile-settings";
 import LegalPage from "@/pages/legal-page";
 import BecomeInstructor from "@/pages/become-instructor";
-import TestPayment from "@/pages/TestPayment";
+
 import PaymentSuccess from "@/pages/PaymentSuccess";
 
 // Admin pages
@@ -151,11 +151,7 @@ function Router() {
           <LegalPage />
         </PublicLayout>
       </Route>
-      <Route path="/test-payment">
-        <PublicLayout>
-          <TestPayment />
-        </PublicLayout>
-      </Route>
+
       <Route path="/payment/success">
         <PublicLayout>
           <PaymentSuccess />

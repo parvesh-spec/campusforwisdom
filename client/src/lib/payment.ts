@@ -10,7 +10,7 @@ export const initializeCashfree = async () => {
     }
     
     cashfree = await load({
-      mode: import.meta.env.MODE === 'production' ? 'production' : 'sandbox'
+      mode: 'production' // Always use production mode with our production credentials
     });
   }
   return cashfree;
