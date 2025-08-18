@@ -95,8 +95,13 @@ export default function BecomeInstructor() {
                 Apply Now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 text-blue-600 dark:text-blue-400">
-                Learn More
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-2 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 text-blue-600 dark:text-blue-400"
+                onClick={() => window.location.href = '/ai-experts'}
+              >
+                View All Instructors
               </Button>
             </div>
           </div>
