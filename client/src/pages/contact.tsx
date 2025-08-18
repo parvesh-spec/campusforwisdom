@@ -60,10 +60,10 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Have questions about our courses or need guidance on your AI learning journey? 
-            We're here to help you succeed.
+            Have questions about our AI courses, live sessions, eBooks, or expert consultations? 
+            We're here to support your learning journey every step of the way.
           </p>
         </div>
 
@@ -82,21 +82,21 @@ export default function Contact() {
                   <Mail className="h-5 w-5 text-gray-400" />
                   <div>
                     <div className="font-medium text-gray-900">Email</div>
-                    <div className="text-sm text-gray-600">hello@campusforwisdom.com</div>
+                    <div className="text-sm text-gray-600">support@campusforwisdom.com</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="h-5 w-5 text-gray-400" />
                   <div>
                     <div className="font-medium text-gray-900">Phone</div>
-                    <div className="text-sm text-gray-600">+91 98765 43210</div>
+                    <div className="text-sm text-gray-600">+91 9910690525</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <MapPin className="h-5 w-5 text-gray-400" />
                   <div>
                     <div className="font-medium text-gray-900">Address</div>
-                    <div className="text-sm text-gray-600">Bengaluru, Karnataka, India</div>
+                    <div className="text-sm text-gray-600">Gurgaon, Haryana, India</div>
                   </div>
                 </div>
               </CardContent>
@@ -125,16 +125,16 @@ export default function Contact() {
               </CardContent>
             </Card>
 
-            <Card className="gradient-primary text-white">
+            <Card className="bg-gradient-to-r from-primary to-secondary text-white">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-2">Need Immediate Help?</h3>
+                <h3 className="text-lg font-semibold mb-2">Response Time</h3>
                 <p className="text-sm opacity-90 mb-4">
-                  Join our community Discord server for instant support from instructors and fellow students.
+                  We typically respond to all inquiries within 24 hours during business days.
                 </p>
-                <Button variant="secondary" className="bg-white text-primary hover:bg-gray-100 w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Join Discord
-                </Button>
+                <div className="bg-white/20 rounded-lg p-3">
+                  <div className="text-sm font-medium">Priority Support</div>
+                  <div className="text-xs opacity-80">For enrolled students and enterprise clients</div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -198,10 +198,13 @@ export default function Contact() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="course-info">Course Information</SelectItem>
+                          <SelectItem value="live-sessions">Live Sessions</SelectItem>
+                          <SelectItem value="expert-consultation">Expert Consultation</SelectItem>
+                          <SelectItem value="ebooks">eBooks & Resources</SelectItem>
                           <SelectItem value="enrollment">Enrollment Help</SelectItem>
+                          <SelectItem value="instructor-application">Become an Instructor</SelectItem>
                           <SelectItem value="technical">Technical Support</SelectItem>
                           <SelectItem value="partnership">Partnership</SelectItem>
-                          <SelectItem value="career">Career Guidance</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -252,47 +255,87 @@ export default function Contact() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-600">
-              Quick answers to common questions about our courses and platform.
+              Everything you need to know about Campus for Wisdom's AI education platform.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">How do I enroll in a course?</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">What courses and resources do you offer?</h3>
                 <p className="text-gray-600">
-                  Simply browse our course catalog, select the course you're interested in, 
-                  and click "Enroll Now". You'll be guided through the payment process.
+                  We offer comprehensive AI courses covering software development, video creation, and presentation design. 
+                  Plus live learning sessions, eBooks, and one-on-one expert consultations.
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Are there any prerequisites?</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">How do live sessions work?</h3>
                 <p className="text-gray-600">
-                  Most of our beginner courses require no prior experience. 
-                  Advanced courses may have prerequisites listed in the course description.
+                  Our live sessions are interactive online classes where you can learn directly from AI experts, 
+                  ask questions in real-time, and collaborate with other students. Sessions are scheduled regularly.
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Do you offer certificates?</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Can I consult with AI experts individually?</h3>
                 <p className="text-gray-600">
-                  Yes, upon successful completion of a course, you'll receive a 
-                  certificate that you can add to your LinkedIn profile or resume.
+                  Yes! Our AI Experts page features experienced professionals available for one-on-one consultations. 
+                  You can book sessions based on your specific learning needs and schedule.
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">What if I need help during the course?</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Are your eBooks included with course enrollment?</h3>
                 <p className="text-gray-600">
-                  We provide multiple support channels including live sessions, 
-                  community forums, and direct instructor support.
+                  Our eBooks are available as standalone resources and may also be bundled with specific courses. 
+                  Check individual course descriptions for included materials.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Do you provide certificates upon completion?</h3>
+                <p className="text-gray-600">
+                  Yes, you'll receive a completion certificate for courses and can showcase your achievements. 
+                  Our certificates are recognized in the industry and can be added to your professional profiles.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-2">What makes Campus for Wisdom different?</h3>
+                <p className="text-gray-600">
+                  We combine self-paced learning with live interaction, expert mentorship, and practical AI applications. 
+                  Our platform is designed specifically for AI education with real-world project focus.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-2">How do I get started?</h3>
+                <p className="text-gray-600">
+                  Create your student account, browse our courses and live sessions, then enroll in what interests you most. 
+                  You can also start with a free eBook or book a consultation with an expert.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Can I become an instructor on your platform?</h3>
+                <p className="text-gray-600">
+                  Absolutely! We welcome qualified AI professionals to join as instructors. 
+                  Visit our "Become an Instructor" page to learn about requirements and apply to teach with us.
                 </p>
               </CardContent>
             </Card>
