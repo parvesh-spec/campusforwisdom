@@ -161,7 +161,7 @@ export default function Courses() {
         {/* Filters - Only show when showing courses */}
         {(viewMode === "all" || (viewMode === "my" && isLoggedIn)) && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -195,10 +195,6 @@ export default function Courses() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Filter className="h-4 w-4" />
-              <span>More Filters</span>
-            </Button>
           </div>
         </div>
         )}
