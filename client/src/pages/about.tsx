@@ -102,36 +102,7 @@ export default function About() {
     }
   ];
 
-  const team = [
-    {
-      name: "Dr. Rajesh Kumar",
-      role: "Founder & Chief AI Officer",
-      description: "15+ years in AI research at IIT Delhi. Former AI lead at Microsoft India with expertise in machine learning and neural networks.",
-      avatar: "RK",
-      specialization: "AI Research & Strategy"
-    },
-    {
-      name: "Priya Sharma",
-      role: "Head of Curriculum Development",
-      description: "Ex-Google AI researcher with PhD in Machine Learning from Stanford. Designed curriculum for 10,000+ students.",
-      avatar: "PS",
-      specialization: "Educational Technology"
-    },
-    {
-      name: "Arjun Patel",
-      role: "Director of Technology",
-      description: "Serial entrepreneur who built AI products used by millions. Expert in scalable educational platforms.",
-      avatar: "AP",
-      specialization: "Platform Engineering"
-    },
-    {
-      name: "Dr. Anita Desai",
-      role: "Director of Student Success",
-      description: "Former academic director at leading universities. Specializes in online learning effectiveness and student engagement.",
-      avatar: "AD",
-      specialization: "Student Experience"
-    }
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-20">
@@ -278,32 +249,7 @@ export default function About() {
           </div>
         </div>
 
-        {/* Team Section */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Leadership Team</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Experienced professionals dedicated to revolutionizing AI education through innovative platform design and expert instruction.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member, index) => (
-              <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 border hover:border-primary/20">
-                <CardContent className="p-6">
-                  <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
-                    {member.avatar}
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{member.name}</h3>
-                  <p className="text-primary font-medium text-sm mb-2">{member.role}</p>
-                  <div className="text-xs text-gray-500 bg-gray-50 rounded-full px-3 py-1 mb-3">
-                    {member.specialization}
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{member.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+
 
         {/* Mission & Technology Section */}
         <div className="bg-white rounded-2xl p-8 mb-20">
