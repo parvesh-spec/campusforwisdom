@@ -8,6 +8,7 @@ import StudentLoginModal from "@/components/StudentLoginModal";
 import { Search, Filter, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import type { Course, User } from "@shared/schema";
 
 export default function Courses() {
@@ -259,9 +260,11 @@ export default function Courses() {
           <p className="text-lg mb-6 opacity-90">
             Join thousands of students who are already transforming their careers with AI skills.
           </p>
-          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
-            Get Started Today
-          </Button>
+          <Link href="/ebooks">
+            <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100">
+              Explore Free eBooks
+            </Button>
+          </Link>
         </div>
 
         {/* Login Modal */}
