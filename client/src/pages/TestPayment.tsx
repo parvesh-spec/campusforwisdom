@@ -15,12 +15,14 @@ export default function TestPayment() {
       const response = await fetch('/api/payments/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 100, courseId: 'test-course-123' })
+        body: JSON.stringify({ amount: 100 })
       });
       
       if (response.ok) {
         const data = await response.json();
-        addTestResult(`✅ Payment session created: ${data.orderId}`);
+        addTestResult(`✅ Payment session created successfully`);
+        addTestResult(`Order ID: ${data.orderId}`);
+        addTestResult(`Amount: ₹${data.amount}`);
       } else {
         const error = await response.json();
         addTestResult(`❌ Payment session failed: ${error.error}`);
@@ -76,26 +78,9 @@ export default function TestPayment() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-medium mb-2">Course Payment Button:</h4>
-                <CoursePaymentButton
-                  courseId="test-course-123"
-                  amount={199}
-                  title="Test Course"
-                  onSuccess={() => addTestResult("✅ Course payment successful!")}
-                />
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-2">General Payment Button:</h4>
-                <PaymentButton
-                  type="ebook"
-                  itemId="test-ebook-123"
-                  amount={99}
-                  title="Test Ebook"
-                  onSuccess={() => addTestResult("✅ Ebook payment successful!")}
-                >
-                  Buy Test Ebook - ₹99
-                </PaymentButton>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Note: Payment buttons require valid course/item IDs. Use test session above to test basic payment flow.
+                </p>
               </div>
             </CardContent>
           </Card>

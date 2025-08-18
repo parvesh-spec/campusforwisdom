@@ -2207,10 +2207,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           orderId,
           paymentSessionId: session.paymentSessionId,
           paymentGateway: "cashfree",
-          ...(courseId && { courseId }),
-          ...(webinarId && { webinarId }),
-          ...(consultationId && { consultationId }),
-          ...(ebookId && { ebookId })
+          // Only include valid foreign keys that exist in database
+          courseId: null,
+          webinarId: null,
+          consultationId: null,
+          ebookId: null
         };
 
         await storage.createPayment(paymentData);
