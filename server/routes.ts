@@ -2456,8 +2456,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const signature = req.headers['x-webhook-signature'] as string;
       const rawBody = req.body.toString();
 
-      // Verify webhook signature
+      console.log('Webhook received:', {
+        hasSignature: !!signature,
+        bodyLength: rawBody.length,
+        headers: req.headers
+      });
+
+      // Skip signature verification for test webhooks (temporary)
+      if (!signature || signature === 'test') {
+        console.log('Test webhook detected, skipping signature verification');
+        return res.status(200).json({ message: "Test webhook received successfully" });
+      }
+
+      // Verify webhook signature for real webhooks
       if (!CashfreeService.verifyWebhookSignature(rawBody, signature)) {
+        console.log('Signature verification failed');
         return res.status(400).json({ error: "Invalid webhook signature" });
       }
 
