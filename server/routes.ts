@@ -2540,14 +2540,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await storage.enrollStudentInCourse(payment.userId, payment.courseId);
               console.log('Course enrollment completed');
             } else if (payment.webinarId) {
-              const user = await storage.getUserById(payment.userId);
+              const user = await storage.getUser(payment.userId);
               if (user) {
                 console.log('Adding user to webinar:', payment.webinarId);
+                console.log('User data for enrollment:', { 
+                  firstName: user.firstName, 
+                  lastName: user.lastName, 
+                  username: user.username, 
+                  email: user.email 
+                });
+                
+                const participantName = user.username || `User-${payment.userId.substring(0, 8)}`;
+                const participantEmail = user.email || `user-${payment.userId.substring(0, 8)}@campusforwisdom.com`;
+                
                 await storage.addWebinarAttendee({
                   webinarId: payment.webinarId,
                   participantId: payment.userId,
-                  name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
-                  email: user.email
+                  name: participantName,
+                  email: participantEmail
                 });
                 console.log('Webinar enrollment completed');
               }

@@ -2283,10 +2283,11 @@ export class DatabaseStorage implements IStorage {
         id: `attendee-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         webinarId: attendeeData.webinarId,
         participantId: attendeeData.participantId,
-        name: attendeeData.name,
-        email: attendeeData.email,
-        joinedAt: new Date(),
-        status: 'registered'
+        participantName: attendeeData.name,
+        participantEmail: attendeeData.email,
+        role: 'attendee',
+        status: 'registered',
+        joinedAt: new Date()
       };
 
       await db.insert(webinarAttendees).values(webinarAttendeeData);
