@@ -2523,7 +2523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Payment user dropped webhook:', { orderId });
         
         // Update payment status to cancelled
-        await storage.updatePaymentStatus(orderId, 'cancelled', null, webhookData.data);
+        await storage.updatePaymentStatus(orderId, 'cancelled', undefined, webhookData.data);
       } else {
         console.log('Unhandled webhook type:', webhookData.type);
       }

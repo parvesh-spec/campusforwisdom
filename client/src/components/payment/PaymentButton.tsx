@@ -64,11 +64,14 @@ export function PaymentButton({
         // Redirect to success page
         window.location.href = `/payment/success?order_id=${result.orderId}`;
       } else {
-        toast({
-          title: "Payment Failed",
-          description: result.error || "Payment could not be processed. Please try again.",
-          variant: "destructive",
-        });
+        // Only show error if it's not a user cancellation
+        if (!result.error?.includes("User closed") && !result.error?.includes("popup was closed")) {
+          toast({
+            title: "Payment Failed",
+            description: result.error || "Payment could not be processed. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Payment error:", error);
@@ -81,6 +84,9 @@ export function PaymentButton({
           description: "Please complete payment to access this content.",
           variant: "destructive",
         });
+      } else if (errorMessage.includes("User closed") || errorMessage.includes("popup was closed")) {
+        // Don't show error for user closing payment popup
+        console.log("User cancelled payment");
       } else {
         toast({
           title: "Payment Error",
