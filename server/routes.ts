@@ -2451,18 +2451,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cashfree webhook for payment notifications
-  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+  app.post("/api/payments/webhook", express.json(), async (req, res) => {
     try {
       const signature = req.headers['x-webhook-signature'] as string;
       const timestamp = req.headers['x-webhook-timestamp'] as string;
-      const rawBody = req.body.toString();
+      const webhookData = req.body;
 
       console.log('Webhook received:', {
         hasSignature: !!signature,
         hasTimestamp: !!timestamp,
-        bodyLength: rawBody.length,
         sourceType: req.headers['source-type'],
-        body: rawBody
+        webhookType: webhookData?.type,
+        data: webhookData
       });
 
       // Handle test webhooks from Cashfree dashboard
@@ -2481,13 +2481,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing webhook signature" });
       }
 
-      if (!CashfreeService.verifyWebhookSignature(rawBody, signature)) {
+      if (!CashfreeService.verifyWebhookSignature(JSON.stringify(webhookData), signature)) {
         console.log('Signature verification failed');
         return res.status(400).json({ error: "Invalid webhook signature" });
       }
       */
 
-      const webhookData = JSON.parse(rawBody);
       console.log('Webhook type:', webhookData.type);
       
       if (webhookData.type === 'PAYMENT_SUCCESS_WEBHOOK') {
