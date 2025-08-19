@@ -2458,38 +2458,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Webhook received:', {
         hasSignature: !!signature,
-        signature: signature,
         bodyLength: rawBody.length,
-        body: rawBody,
-        allHeaders: req.headers,
-        method: req.method,
-        url: req.url
+        sourceType: req.headers['source-type']
       });
 
-      // For debugging - temporarily accept all webhooks
-      console.log('Accepting webhook for testing purposes');
-      return res.status(200).json({ 
-        message: "Webhook received successfully",
-        received: {
-          hasSignature: !!signature,
-          bodyLength: rawBody.length
-        }
-      });
-
-      // Original signature verification code (commented for debugging)
-      /*
-      // Skip signature verification for test webhooks (temporary)
-      if (!signature || signature === 'test') {
-        console.log('Test webhook detected, skipping signature verification');
+      // Handle test webhooks from Cashfree dashboard
+      if (req.headers['source-type'] === 'MERCHANT_DASHBOARD') {
+        console.log('Test webhook from Cashfree dashboard - accepting');
         return res.status(200).json({ message: "Test webhook received successfully" });
       }
 
       // Verify webhook signature for real webhooks
+      if (!signature) {
+        console.log('No signature provided');
+        return res.status(400).json({ error: "Missing webhook signature" });
+      }
+
       if (!CashfreeService.verifyWebhookSignature(rawBody, signature)) {
         console.log('Signature verification failed');
         return res.status(400).json({ error: "Invalid webhook signature" });
       }
-      */
 
       const webhookData = JSON.parse(rawBody);
       
