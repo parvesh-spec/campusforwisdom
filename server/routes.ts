@@ -2490,15 +2490,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Webhook type:', webhookData.type);
       
       if (webhookData.type === 'PAYMENT_SUCCESS_WEBHOOK') {
-        const { orderId, paymentStatus, cfPaymentId } = webhookData.data;
-        console.log('Payment success webhook:', { orderId, paymentStatus });
+        const orderId = webhookData.data?.order?.order_id;
+        const paymentStatus = webhookData.data?.payment?.payment_status;
+        const cfPaymentId = webhookData.data?.payment?.cf_payment_id;
+        
+        console.log('Payment success webhook:', { orderId, paymentStatus, cfPaymentId });
+
+        if (!orderId || !paymentStatus) {
+          console.error('Missing required webhook data:', { orderId, paymentStatus });
+          return res.status(400).json({ error: "Invalid webhook data" });
+        }
 
         // Update payment status
         await storage.updatePaymentStatus(orderId, paymentStatus.toLowerCase(), cfPaymentId, webhookData.data);
 
         // Handle post-payment actions
         const payment = await storage.getPaymentByOrderId(orderId);
-        if (payment && paymentStatus === 'SUCCESS') {
+        if (payment && paymentStatus.toUpperCase() === 'SUCCESS') {
           try {
             if (payment.courseId) {
               await storage.enrollStudentInCourse(payment.userId, payment.courseId);
@@ -2520,17 +2528,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       } else if (webhookData.type === 'PAYMENT_FAILED_WEBHOOK') {
-        const { orderId, paymentStatus, cfPaymentId } = webhookData.data;
-        console.log('Payment failed webhook:', { orderId, paymentStatus });
+        const orderId = webhookData.data?.order?.order_id;
+        const paymentStatus = webhookData.data?.payment?.payment_status;
+        const cfPaymentId = webhookData.data?.payment?.cf_payment_id;
         
-        // Update payment status to failed
-        await storage.updatePaymentStatus(orderId, 'failed', cfPaymentId, webhookData.data);
+        console.log('Payment failed webhook:', { orderId, paymentStatus, cfPaymentId });
+        
+        if (orderId) {
+          await storage.updatePaymentStatus(orderId, 'failed', cfPaymentId, webhookData.data);
+        }
       } else if (webhookData.type === 'PAYMENT_USER_DROPPED_WEBHOOK') {
-        const { orderId } = webhookData.data;
+        const orderId = webhookData.data?.order?.order_id;
         console.log('Payment user dropped webhook:', { orderId });
         
-        // Update payment status to cancelled
-        await storage.updatePaymentStatus(orderId, 'cancelled', undefined, webhookData.data);
+        if (orderId) {
+          await storage.updatePaymentStatus(orderId, 'cancelled', undefined, webhookData.data);
+        }
       } else {
         console.log('Unhandled webhook type:', webhookData.type);
       }
