@@ -1726,7 +1726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify payment exists and is completed
         const payment = await storage.getPayment(paymentId);
-        if (!payment || payment.status !== 'completed' || payment.webinarId) {
+        if (!payment || payment.status !== 'completed' || payment.webinarId !== sessionId) {
           return res.status(400).json({ 
             error: "Invalid or already used payment",
             message: "Please complete a valid payment for this session."

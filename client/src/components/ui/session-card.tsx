@@ -286,11 +286,11 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                     )}
                   </div>
                 ) : (
-                  price > 0 && studentUser ? (
+                  parseFloat(price.toString()) > 0 && studentUser ? (
                     <PaymentButton
                       type="webinar"
                       itemId={session.id}
-                      amount={price}
+                      amount={parseFloat(price.toString())}
                       title={session.title}
                       disabled={spotsLeft <= 0}
                       className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
