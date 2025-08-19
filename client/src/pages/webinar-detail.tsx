@@ -11,6 +11,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import type { LiveSession, Expert } from "@shared/schema";
 import StudentLoginModal from "@/components/StudentLoginModal";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 export default function WebinarDetail() {
   const { sessionId } = useParams();
@@ -588,31 +589,55 @@ export default function WebinarDetail() {
                         )}
                       </div>
                     ) : (
-                      <Button 
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
-                        onClick={handleBookSession}
-                        disabled={spotsLeft <= 0 || isBooking}
-                        size="lg"
-                      >
-                        {isBooking ? (
-                          <>
-                            <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                            Booking...
-                          </>
-                        ) : spotsLeft <= 0 ? (
-                          "Fully Booked"
-                        ) : !studentUser ? (
-                          <>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Login to Book
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Book Your Seat
-                          </>
-                        )}
-                      </Button>
+                      // Check if session requires payment
+                      session.price && session.price > 0 && studentUser ? (
+                        <PaymentButton
+                          type="webinar"
+                          itemId={session.id}
+                          amount={session.price}
+                          title={session.title}
+                          disabled={spotsLeft <= 0}
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                          onSuccess={() => {
+                            queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${sessionId}`] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+                          }}
+                        >
+                          {spotsLeft <= 0 ? "Fully Booked" : (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Pay ₹{session.price} & Book
+                            </>
+                          )}
+                        </PaymentButton>
+                      ) : (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                          onClick={handleBookSession}
+                          disabled={spotsLeft <= 0 || isBooking}
+                          size="lg"
+                        >
+                          {isBooking ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                              Booking...
+                            </>
+                          ) : spotsLeft <= 0 ? (
+                            "Fully Booked"
+                          ) : !studentUser ? (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Login to Book
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Book Your Seat
+                            </>
+                          )}
+                        </Button>
+                      )
                     )
                   ) : (
                     <Button variant="outline" disabled className="w-full" size="lg">
