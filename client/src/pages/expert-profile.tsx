@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StudentLoginModal from "@/components/StudentLoginModal";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 import { Star, Clock, Users, Calendar, MapPin, ArrowLeft, Video, BookOpen, Award, Download, FileText, Eye } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -403,7 +404,7 @@ export default function ExpertProfile() {
     return allSlots.filter(slot => !bookedSlots.includes(slot));
   };
 
-  const handleBookingSubmit = async () => {
+  const handleBookingSubmit = async (paymentId?: string) => {
     if (!bookingForm.title || !bookingForm.selectedSlot || !selectedDate) {
       toast({
         title: "Error",
@@ -435,8 +436,9 @@ export default function ExpertProfile() {
       description: bookingForm.description,
       scheduledAt,
       duration: bookingForm.duration,
-      amount: (expert!.hourlyRate * (bookingForm.duration / 60)).toFixed(2),
+      amount: (expert!.consultationPrice ? expert!.consultationPrice * (bookingForm.duration / 60) : 0).toFixed(2),
       status: 'pending' as const,
+      ...(paymentId && { paymentId })
     };
 
     try {
@@ -1619,12 +1621,35 @@ export default function ExpertProfile() {
               <Button variant="outline" onClick={() => setShowBookingModal(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleBookingSubmit}
-                disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
-              >
-                Submit Request (₹{expert?.hourlyRate ? (expert.hourlyRate * (bookingForm.duration / 60)).toFixed(0) : '0'})
-              </Button>
+              {expert?.consultationPrice && expert.consultationPrice > 0 ? (
+                <PaymentButton
+                  type="consultation"
+                  itemId={expert.id}
+                  amount={expert.consultationPrice * (bookingForm.duration / 60)}
+                  title={`Consultation with ${expert.name}`}
+                  disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
+                  onSuccess={async () => {
+                    // Submit consultation booking after successful payment
+                    try {
+                      // PaymentButton will pass paymentId via onSuccess callback
+                      setShowBookingModal(false);
+                      queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
+                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expert.id}/reviews`] });
+                    } catch (error) {
+                      console.error('Consultation booking error:', error);
+                    }
+                  }}
+                >
+                  Pay ₹{expert.consultationPrice ? (expert.consultationPrice * (bookingForm.duration / 60)).toFixed(0) : '0'} & Book
+                </PaymentButton>
+              ) : (
+                <Button 
+                  onClick={handleBookingSubmit}
+                  disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
+                >
+                  Submit Request (₹{expert?.consultationPrice ? (expert.consultationPrice * (bookingForm.duration / 60)).toFixed(0) : '0'})
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
