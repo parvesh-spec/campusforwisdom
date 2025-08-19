@@ -434,7 +434,7 @@ export default function ExpertProfile() {
       description: bookingForm.description,
       scheduledAt,
       duration: 60, // Fixed 1 hour duration
-      amount: (expert!.consultationPrice || 0).toFixed(2),
+      amount: parseFloat(expert!.hourlyRate).toFixed(2),
       status: 'pending' as const,
       ...(paymentId && { paymentId })
     };
@@ -1507,7 +1507,7 @@ export default function ExpertProfile() {
             <DialogHeader>
               <DialogTitle>Book Consultation with {expert.name}</DialogTitle>
               <DialogDescription>
-                Schedule a 1-on-1 consultation session. Rate: ₹{expert.consultationPrice || 0}/session
+                Schedule a 1-on-1 consultation session. Rate: ₹{expert.hourlyRate}/hour
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -1602,11 +1602,11 @@ export default function ExpertProfile() {
               <Button variant="outline" onClick={() => setShowBookingModal(false)}>
                 Cancel
               </Button>
-              {expert?.consultationPrice && expert.consultationPrice > 0 ? (
+              {expert?.hourlyRate && parseFloat(expert.hourlyRate) > 0 ? (
                 <PaymentButton
                   type="consultation"
                   itemId={expert.id}
-                  amount={expert.consultationPrice || 0}
+                  amount={parseFloat(expert.hourlyRate)}
                   title={`Consultation with ${expert.name}`}
                   disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
                   onSuccess={async () => {
@@ -1621,14 +1621,14 @@ export default function ExpertProfile() {
                     }
                   }}
                 >
-                  Pay ₹{expert.consultationPrice || 0} & Book
+                  Pay ₹{expert.hourlyRate} & Book
                 </PaymentButton>
               ) : (
                 <Button 
                   onClick={handleBookingSubmit}
                   disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
                 >
-                  Submit Request (₹{expert?.consultationPrice || 0})
+                  Submit Request (₹{expert?.hourlyRate || 0})
                 </Button>
               )}
             </DialogFooter>
