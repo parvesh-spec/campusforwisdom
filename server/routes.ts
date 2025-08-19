@@ -2354,11 +2354,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           orderId,
           paymentSessionId: session.paymentSessionId,
           paymentGateway: "cashfree",
-          // Only include valid foreign keys that exist in database
-          courseId: null,
-          webinarId: null,
-          consultationId: null,
-          ebookId: null
+          // Include foreign keys based on request parameters
+          courseId: courseId || null,
+          webinarId: webinarId || null,
+          consultationId: consultationId || null,
+          ebookId: ebookId || null
         };
 
         await storage.createPayment(paymentData);
