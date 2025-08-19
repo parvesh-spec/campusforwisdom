@@ -2453,6 +2453,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         status: actualStatus,
         orderId,
+        amount: payment.amount,
+        courseId: payment.courseId,
+        webinarId: payment.webinarId,
+        consultationId: payment.consultationId,
+        ebookId: payment.ebookId,
         paymentDetails: paymentDetails && paymentDetails.length > 0 ? {
           payment_status: paymentDetails[0].payment_status,
           cf_payment_id: paymentDetails[0].cf_payment_id
@@ -2523,20 +2528,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const payment = await storage.getPaymentByOrderId(orderId);
         if (payment && paymentStatus.toUpperCase() === 'SUCCESS') {
           try {
+            console.log('Processing post-payment actions for:', {
+              courseId: payment.courseId,
+              webinarId: payment.webinarId,
+              consultationId: payment.consultationId,
+              userId: payment.userId
+            });
+
             if (payment.courseId) {
+              console.log('Enrolling user in course:', payment.courseId);
               await storage.enrollStudentInCourse(payment.userId, payment.courseId);
+              console.log('Course enrollment completed');
             } else if (payment.webinarId) {
-              const user = await storage.getUser(payment.userId);
+              const user = await storage.getUserById(payment.userId);
               if (user) {
+                console.log('Adding user to webinar:', payment.webinarId);
                 await storage.addWebinarAttendee({
                   webinarId: payment.webinarId,
                   participantId: payment.userId,
                   name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
                   email: user.email
                 });
+                console.log('Webinar enrollment completed');
               }
             } else if (payment.consultationId) {
+              console.log('Confirming consultation:', payment.consultationId);
               await storage.updateConsultation(payment.consultationId, { status: 'confirmed' });
+              console.log('Consultation confirmation completed');
             }
           } catch (enrollmentError) {
             console.error("Error handling webhook post-payment actions:", enrollmentError);

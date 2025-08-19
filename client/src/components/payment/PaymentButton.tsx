@@ -54,15 +54,29 @@ export function PaymentButton({
       if (result.success) {
         toast({
           title: "Payment Successful",
-          description: `Successfully paid for ${title}`,
+          description: `Successfully paid for ${title}. Booking confirmed!`,
         });
         
         if (onSuccess) {
           onSuccess();
         }
         
-        // Redirect to success page
-        window.location.href = `/payment/success?order_id=${result.orderId}`;
+        // Invalidate related queries first to refresh data
+        const queryClient = (window as any).queryClient;
+        if (queryClient) {
+          // Invalidate specific queries to refresh booking status
+          queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${itemId}`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+          queryClient.invalidateQueries({ queryKey: [`/api/courses/${itemId}`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+        }
+        
+        // Refresh page to show updated status after small delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         // Only show error if it's not a user cancellation
         if (!result.error?.includes("User closed") && !result.error?.includes("popup was closed")) {
