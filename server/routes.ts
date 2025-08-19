@@ -2462,8 +2462,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sourceType: req.headers['source-type']
       });
 
-      // Handle test webhooks from Cashfree dashboard
-      if (req.headers['source-type'] === 'MERCHANT_DASHBOARD') {
+      // Handle test webhooks from Cashfree dashboard (for development testing)
+      if (req.headers['source-type'] === 'MERCHANT_DASHBOARD' && process.env.NODE_ENV === 'development') {
         console.log('Test webhook from Cashfree dashboard - accepting');
         return res.status(200).json({ message: "Test webhook received successfully" });
       }
