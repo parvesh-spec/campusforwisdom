@@ -75,12 +75,27 @@ export const processPayment = async (paymentSession: PaymentSession): Promise<Pa
 
     // Verify payment with backend
     const verifyResponse = await fetch(`/api/payments/verify/${paymentSession.orderId}`);
+    
+    if (!verifyResponse.ok) {
+      return {
+        success: false,
+        orderId: paymentSession.orderId,
+        error: 'Payment verification failed'
+      };
+    }
+    
     const verifyData = await verifyResponse.json();
+    console.log('Payment verification response:', verifyData);
+
+    // Check for successful payment status
+    const isSuccess = verifyData.status === 'completed' || 
+                      verifyData.status === 'success' || 
+                      (verifyData.paymentDetails && verifyData.paymentDetails.payment_status === 'SUCCESS');
 
     return {
-      success: verifyData.status === 'completed',
+      success: isSuccess,
       orderId: paymentSession.orderId,
-      error: verifyData.status !== 'completed' ? 'Payment verification failed' : undefined
+      error: isSuccess ? undefined : 'Payment verification failed'
     };
 
   } catch (error) {

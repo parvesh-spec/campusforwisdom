@@ -1,0 +1,173 @@
+Search
+Time
+Deployment
+Source
+Log
+2025-08-19 10:11:38.57
+c003b065
+User
+},
+2025-08-19 10:12:14.32
+c003b065
+User
+payment_offers: null
+2025-08-19 10:12:14.32
+c003b065
+User
+},
+2025-08-19 10:12:14.32
+c003b065
+User
+event_time: '2025-08-19T10:12:14+05:30',
+2025-08-19 10:12:14.32
+c003b065
+User
+type: 'PAYMENT_SUCCESS_WEBHOOK'
+2025-08-19 10:12:14.32
+c003b065
+User
+}
+2025-08-19 10:12:14.32
+c003b065
+User
+}
+2025-08-19 10:12:14.32
+c003b065
+User
+Accepting production webhook for debugging
+2025-08-19 10:12:14.32
+c003b065
+User
+Webhook type: PAYMENT_SUCCESS_WEBHOOK
+2025-08-19 10:12:14.32
+c003b065
+User
+Payment success webhook: {
+2025-08-19 10:12:14.32
+c003b065
+User
+orderId: 'CFW_1755578486350_5rushkqpa',
+2025-08-19 10:12:14.32
+c003b065
+User
+paymentStatus: 'SUCCESS',
+2025-08-19 10:12:14.32
+c003b065
+User
+cfPaymentId: '4261174797'
+2025-08-19 10:12:14.32
+c003b065
+User
+}
+2025-08-19 10:12:14.34
+c003b065
+User
+Webhook received: {
+2025-08-19 10:12:14.34
+c003b065
+User
+hasSignature: true,
+2025-08-19 10:12:14.34
+c003b065
+User
+hasTimestamp: true,
+2025-08-19 10:12:14.34
+c003b065
+User
+sourceType: undefined,
+2025-08-19 10:12:14.34
+c003b065
+User
+webhookType: 'PAYMENT_SUCCESS_WEBHOOK',
+2025-08-19 10:12:14.34
+c003b065
+User
+data: {
+2025-08-19 10:12:14.34
+c003b065
+User
+data: {
+2025-08-19 10:12:14.34
+c003b065
+User
+order: [Object],
+2025-08-19 10:12:14.34
+c003b065
+User
+payment: [Object],
+2025-08-19 10:12:14.34
+c003b065
+User
+customer_details: [Object],
+2025-08-19 10:12:14.34
+c003b065
+User
+payment_gateway_details: [Object],
+2025-08-19 10:12:14.34
+c003b065
+User
+payment_offers: null
+2025-08-19 10:12:14.34
+c003b065
+User
+},
+2025-08-19 10:12:14.34
+c003b065
+User
+event_time: '2025-08-19T10:12:14+05:30',
+2025-08-19 10:12:14.34
+c003b065
+User
+type: 'PAYMENT_SUCCESS_WEBHOOK'
+2025-08-19 10:12:14.34
+c003b065
+User
+}
+2025-08-19 10:12:14.34
+c003b065
+User
+}
+2025-08-19 10:12:14.34
+c003b065
+User
+Accepting production webhook for debugging
+2025-08-19 10:12:14.34
+c003b065
+User
+Webhook type: PAYMENT_SUCCESS_WEBHOOK
+2025-08-19 10:12:14.34
+c003b065
+User
+Payment success webhook: {
+2025-08-19 10:12:14.34
+c003b065
+User
+orderId: 'CFW_1755578486350_5rushkqpa',
+2025-08-19 10:12:14.34
+c003b065
+User
+paymentStatus: 'SUCCESS',
+2025-08-19 10:12:14.34
+c003b065
+User
+cfPaymentId: 4261174797
+2025-08-19 10:12:14.34
+c003b065
+User
+}
+2025-08-19 10:12:14.36
+c003b065
+User
+4:42:14 AM [express] POST /api/payments/webhook 200 in 47ms :: {"message":"Webhook processed"}
+2025-08-19 10:12:14.47
+c003b065
+User
+4:42:14 AM [express] POST /api/payments/webhook 200 in 154ms :: {"message":"Webhook processed"}
+2025-08-19 10:12:14.50
+c003b065
+User
+4:42:14 AM [express] POST /api/payments/webhook 200 in 163ms :: {"message":"Webhook processed"}
+2025-08-19 10:12:17.01
+c003b065
+User
+4:42:17 AM [express] GET /api/payments/verify/CFW_1755578486350_5rushkqpa 200 in 967ms :: {"status":…

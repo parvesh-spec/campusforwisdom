@@ -2438,10 +2438,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Determine the actual status based on latest payment details
+      let actualStatus = payment.status;
+      
+      if (paymentDetails && paymentDetails.length > 0) {
+        const latestPayment = paymentDetails[0];
+        if (latestPayment.payment_status === 'SUCCESS') {
+          actualStatus = 'completed';
+        } else if (latestPayment.payment_status === 'FAILED') {
+          actualStatus = 'failed';
+        }
+      }
+
       res.json({ 
-        status: payment.status,
+        status: actualStatus,
         orderId,
-        paymentDetails
+        paymentDetails: paymentDetails && paymentDetails.length > 0 ? {
+          payment_status: paymentDetails[0].payment_status,
+          cf_payment_id: paymentDetails[0].cf_payment_id
+        } : null
       });
 
     } catch (error) {
