@@ -2480,9 +2480,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const webhookData = JSON.parse(rawBody);
+      console.log('Webhook type:', webhookData.type);
       
       if (webhookData.type === 'PAYMENT_SUCCESS_WEBHOOK') {
         const { orderId, paymentStatus, cfPaymentId } = webhookData.data;
+        console.log('Payment success webhook:', { orderId, paymentStatus });
 
         // Update payment status
         await storage.updatePaymentStatus(orderId, paymentStatus.toLowerCase(), cfPaymentId, webhookData.data);
@@ -2510,6 +2512,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Error handling webhook post-payment actions:", enrollmentError);
           }
         }
+      } else if (webhookData.type === 'PAYMENT_FAILED_WEBHOOK') {
+        const { orderId, paymentStatus, cfPaymentId } = webhookData.data;
+        console.log('Payment failed webhook:', { orderId, paymentStatus });
+        
+        // Update payment status to failed
+        await storage.updatePaymentStatus(orderId, 'failed', cfPaymentId, webhookData.data);
+      } else if (webhookData.type === 'PAYMENT_USER_DROPPED_WEBHOOK') {
+        const { orderId } = webhookData.data;
+        console.log('Payment user dropped webhook:', { orderId });
+        
+        // Update payment status to cancelled
+        await storage.updatePaymentStatus(orderId, 'cancelled', null, webhookData.data);
+      } else {
+        console.log('Unhandled webhook type:', webhookData.type);
       }
 
       res.status(200).json({ message: "Webhook processed" });
