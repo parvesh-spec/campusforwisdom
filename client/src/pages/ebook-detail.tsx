@@ -9,6 +9,7 @@ import { BookOpen, Download, Star, Calendar, FileText, User, ArrowLeft, Eye, Log
 import { Link } from "wouter";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import type { Ebook, User as UserType } from "@shared/schema";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 export default function EbookDetail() {
   const { id } = useParams<{ id: string }>();
@@ -51,13 +52,6 @@ export default function EbookDetail() {
   const handleDownload = async () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
-      return;
-    }
-    
-    // For paid ebooks that haven't been purchased yet
-    if (isPaid && !hasDownloaded) {
-      // TODO: Implement payment gateway
-      alert("Payment gateway will be integrated soon. For now, this is a demo.");
       return;
     }
     
@@ -169,29 +163,41 @@ export default function EbookDetail() {
                 </div>
 
                 {/* Download Button */}
-                <Button 
-                  onClick={handleDownload}
-                  className="w-full mt-6"
-                  size="lg"
-                  variant={isLoggedIn ? "default" : "outline"}
-                >
-                  {!isLoggedIn ? (
-                    <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Login to Download
-                    </>
-                  ) : isFree || hasDownloaded ? (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download eBook
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Pay & Download - ₹{ebook?.price}
-                    </>
-                  )}
-                </Button>
+                {!isLoggedIn ? (
+                  <Button 
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full mt-6"
+                    size="lg"
+                    variant="outline"
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Login to Download
+                  </Button>
+                ) : isPaid && !hasDownloaded ? (
+                  <PaymentButton
+                    type="ebook"
+                    itemId={ebook.id}
+                    amount={parseFloat(ebook.price || "0")}
+                    title={ebook.title}
+                    className="w-full mt-6"
+                    onSuccess={() => {
+                      // Refresh user ebooks after successful payment
+                      window.location.reload();
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Pay & Download - ₹{ebook?.price}
+                  </PaymentButton>
+                ) : (
+                  <Button 
+                    onClick={handleDownload}
+                    className="w-full mt-6"
+                    size="lg"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download eBook
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>

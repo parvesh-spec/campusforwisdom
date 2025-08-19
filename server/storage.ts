@@ -2115,6 +2115,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async updatePayment(id: string, data: Partial<Payment>): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db
+        .update(payments)
+        .set(data)
+        .where(eq(payments.id, id))
+        .returning();
+      
+      return payment;
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      return undefined;
+    }
+  }
+
   async getPaymentByOrderId(orderId: string): Promise<Payment | undefined> {
     try {
       const [payment] = await db

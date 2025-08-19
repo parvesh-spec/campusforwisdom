@@ -61,24 +61,33 @@ export function PaymentButton({
           onSuccess();
         }
         
-        // Redirect or refresh page based on type
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        // Redirect to success page
+        window.location.href = `/payment/success?order_id=${result.orderId}`;
       } else {
         toast({
           title: "Payment Failed",
-          description: result.error || "Payment could not be processed",
+          description: result.error || "Payment could not be processed. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Payment error:", error);
-      toast({
-        title: "Payment Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+      
+      // Show specific error messages for payment requirements
+      if (errorMessage.includes("Payment required") || errorMessage.includes("Payment gateway not integrated")) {
+        toast({
+          title: "Payment Required",
+          description: "Please complete payment to access this content.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Payment Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

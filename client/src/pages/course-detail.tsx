@@ -29,6 +29,7 @@ import type { Course, User, CourseReview, Expert } from "@shared/schema";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import CourseReviewsSection from "@/components/CourseReviewsSection";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -96,11 +97,22 @@ export default function CourseDetail() {
       queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Enrollment Failed",
-        description: error.message || "Failed to enroll in course. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error.message || "Failed to enroll in course. Please try again.";
+      
+      // Check if payment is required
+      if (errorMessage.includes("Payment required")) {
+        toast({
+          title: "Payment Required",
+          description: "This is a paid course. Please complete payment to enroll.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Enrollment Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -386,14 +398,27 @@ export default function CourseDetail() {
                 </div>
 
                 {/* Enroll Button */}
-                <Button 
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold mb-4"
-                  size="lg"
-                  onClick={handleEnroll}
-                  disabled={isEnrolled}
-                >
-                  {isEnrolled ? "Already Enrolled" : "Enroll Now"}
-                </Button>
+                {course.price && parseFloat(course.price.toString()) > 0 && !isEnrolled && isLoggedIn ? (
+                  <PaymentButton
+                    type="course"
+                    itemId={courseId!}
+                    amount={parseFloat(course.price.toString())}
+                    title={course.title}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold mb-4"
+                    onSuccess={() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+                    }}
+                  />
+                ) : (
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold mb-4"
+                    size="lg"
+                    onClick={handleEnroll}
+                    disabled={isEnrolled}
+                  >
+                    {isEnrolled ? "Already Enrolled" : course.price && parseFloat(course.price.toString()) > 0 ? "Login to Purchase" : "Enroll Now"}
+                  </Button>
+                )}
 
                 {!isLoggedIn && (
                   <p className="text-xs text-gray-500 text-center mb-4">

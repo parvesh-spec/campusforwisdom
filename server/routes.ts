@@ -405,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Course enrollment endpoint
+  // Course enrollment endpoint (requires payment for paid courses)
   app.post("/api/enroll", async (req, res) => {
     try {
       const studentUser = (req.session as any)?.studentUser;
@@ -413,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Student login required' });
       }
 
-      const { courseId } = req.body;
+      const { courseId, paymentId } = req.body;
       if (!courseId) {
         return res.status(400).json({ error: "Course ID is required" });
       }
@@ -428,6 +428,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingEnrollment = await storage.getEnrollmentByStudentAndCourse(studentUser.id, courseId);
       if (existingEnrollment) {
         return res.status(400).json({ error: "You are already enrolled in this course" });
+      }
+
+      // Check if course requires payment
+      if (course.price && course.price > 0) {
+        // Verify payment for paid courses
+        if (!paymentId) {
+          return res.status(400).json({ 
+            error: "Payment required for this course",
+            message: `This course costs ₹${course.price}. Please complete payment first.`,
+            requiresPayment: true,
+            amount: course.price
+          });
+        }
+
+        // Verify payment exists and is completed
+        const payment = await storage.getPayment(paymentId);
+        if (!payment || payment.status !== 'completed' || payment.courseId) {
+          return res.status(400).json({ 
+            error: "Invalid or already used payment",
+            message: "Please complete a valid payment for this course."
+          });
+        }
+
+        // Verify payment amount matches course price
+        if (parseFloat(payment.amount) !== course.price) {
+          return res.status(400).json({ 
+            error: "Payment amount mismatch",
+            message: `Payment amount (₹${payment.amount}) does not match course price (₹${course.price})`
+          });
+        }
+
+        // Update payment record to link with course
+        await storage.updatePayment(paymentId, { courseId: courseId });
       }
 
       // Create enrollment
@@ -1567,12 +1600,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Book consultation
+  // Book consultation (requires payment)
   app.post("/api/student/consultations", async (req, res) => {
     try {
       const studentUser = (req.session as any)?.studentUser;
       if (!studentUser || studentUser.role !== 'student') {
         return res.status(401).json({ error: 'Student access required' });
+      }
+
+      const { expertId, scheduledAt, duration = 60, paymentId } = req.body;
+
+      // Get expert details to check pricing
+      const expert = await storage.getExpert(expertId);
+      if (!expert) {
+        return res.status(404).json({ error: "Expert not found" });
+      }
+
+      // Check if expert offers paid consultations
+      if (expert.consultationPrice && expert.consultationPrice > 0) {
+        // Verify payment for paid consultations
+        if (!paymentId) {
+          return res.status(400).json({ 
+            error: "Payment required for consultation",
+            message: `This consultation costs ₹${expert.consultationPrice}. Please complete payment first.`,
+            requiresPayment: true,
+            amount: expert.consultationPrice
+          });
+        }
+
+        // Verify payment exists and is completed
+        const payment = await storage.getPayment(paymentId);
+        if (!payment || payment.status !== 'completed' || payment.consultationId) {
+          return res.status(400).json({ 
+            error: "Invalid or already used payment",
+            message: "Please complete a valid payment for this consultation."
+          });
+        }
+
+        // Verify payment amount matches consultation price
+        if (parseFloat(payment.amount) !== expert.consultationPrice) {
+          return res.status(400).json({ 
+            error: "Payment amount mismatch",
+            message: `Payment amount (₹${payment.amount}) does not match consultation price (₹${expert.consultationPrice})`
+          });
+        }
       }
 
       const consultationData = insertConsultationSchema.parse({
@@ -1581,6 +1652,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const consultation = await storage.createConsultation(consultationData);
+
+      // Update payment record to link with consultation
+      if (paymentId) {
+        await storage.updatePayment(paymentId, { consultationId: consultation.id });
+      }
+
       res.json(consultation);
     } catch (error) {
       console.error("Error booking consultation:", error);
@@ -1613,7 +1690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Book live session seat
+  // Book live session seat (requires payment for paid sessions)
   app.post("/api/student/live-sessions/:sessionId/book", async (req, res) => {
     try {
       const studentUser = (req.session as any)?.studentUser;
@@ -1622,6 +1699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { sessionId } = req.params;
+      const { paymentId } = req.body;
       
       // Get session details
       const session = await storage.getLiveSession(sessionId);
@@ -1632,6 +1710,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if session is bookable
       if (session.status !== 'scheduled') {
         return res.status(400).json({ error: "Session is not available for booking" });
+      }
+
+      // Check if session requires payment
+      if (session.price && session.price > 0) {
+        // Verify payment for paid sessions
+        if (!paymentId) {
+          return res.status(400).json({ 
+            error: "Payment required for this session",
+            message: `This session costs ₹${session.price}. Please complete payment first.`,
+            requiresPayment: true,
+            amount: session.price
+          });
+        }
+
+        // Verify payment exists and is completed
+        const payment = await storage.getPayment(paymentId);
+        if (!payment || payment.status !== 'completed' || payment.webinarId) {
+          return res.status(400).json({ 
+            error: "Invalid or already used payment",
+            message: "Please complete a valid payment for this session."
+          });
+        }
+
+        // Verify payment amount matches session price
+        if (parseFloat(payment.amount) !== session.price) {
+          return res.status(400).json({ 
+            error: "Payment amount mismatch",
+            message: `Payment amount (₹${payment.amount}) does not match session price (₹${session.price})`
+          });
+        }
       }
 
       // Check if seats are available - add debug logging
@@ -1674,6 +1782,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update participant count
       await storage.updateWebinarParticipantCount(sessionId, currentParticipants + 1);
+
+      // Update payment record to link with session
+      if (paymentId) {
+        await storage.updatePayment(paymentId, { webinarId: sessionId });
+      }
 
       // Get expert details for Zoho webinar integration
       const expert = session.expertId ? await storage.getExpert(session.expertId) : null;
@@ -1755,7 +1868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Record ebook download
+  // Record ebook download (requires payment for paid ebooks)
   app.post("/api/student/ebooks/:ebookId/download", async (req, res) => {
     try {
       const studentUser = (req.session as any)?.studentUser;
@@ -1764,11 +1877,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { ebookId } = req.params;
+      const { paymentId } = req.body;
       
       // Verify ebook exists
       const ebook = await storage.getEbook(ebookId);
       if (!ebook || !ebook.isActive) {
         return res.status(404).json({ error: "Ebook not found" });
+      }
+
+      // Check if ebook requires payment
+      if (ebook.price && ebook.price > 0) {
+        // Verify payment for paid ebooks
+        if (!paymentId) {
+          return res.status(400).json({ 
+            error: "Payment required for this ebook",
+            message: `This ebook costs ₹${ebook.price}. Please complete payment first.`,
+            requiresPayment: true,
+            amount: ebook.price
+          });
+        }
+
+        // Verify payment exists and is completed
+        const payment = await storage.getPayment(paymentId);
+        if (!payment || payment.status !== 'completed' || payment.ebookId) {
+          return res.status(400).json({ 
+            error: "Invalid or already used payment",
+            message: "Please complete a valid payment for this ebook."
+          });
+        }
+
+        // Verify payment amount matches ebook price
+        if (parseFloat(payment.amount) !== ebook.price) {
+          return res.status(400).json({ 
+            error: "Payment amount mismatch",
+            message: `Payment amount (₹${payment.amount}) does not match ebook price (₹${ebook.price})`
+          });
+        }
+
+        // Update payment record to link with ebook
+        await storage.updatePayment(paymentId, { ebookId: ebookId });
       }
 
       // Record the download

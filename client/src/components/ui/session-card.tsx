@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "wouter";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 interface SessionCardProps {
   session: LiveSession & { 
@@ -285,34 +286,51 @@ export default function SessionCard({ session, onJoin, onBook, onLoginRequired, 
                     )}
                   </div>
                 ) : (
-                  <Button 
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleBookSession();
-                    }}
-                    disabled={spotsLeft <= 0 || isBooking}
-                  >
-                    {isBooking ? (
-                      <>
-                        <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                        Booking...
-                      </>
-                    ) : spotsLeft <= 0 ? (
-                      "Fully Booked"
-                    ) : !studentUser ? (
-                      <>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Login to Book
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Book Seat
-                      </>
-                    )}
-                  </Button>
+                  price > 0 && studentUser ? (
+                    <PaymentButton
+                      type="webinar"
+                      itemId={session.id}
+                      amount={price}
+                      title={session.title}
+                      disabled={spotsLeft <= 0}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+                        queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+                      }}
+                    >
+                      {spotsLeft <= 0 ? "Fully Booked" : `Pay ₹${price} & Book`}
+                    </PaymentButton>
+                  ) : (
+                    <Button 
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg transform transition-all duration-200 hover:scale-105"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleBookSession();
+                      }}
+                      disabled={spotsLeft <= 0 || isBooking}
+                    >
+                      {isBooking ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                          Booking...
+                        </>
+                      ) : spotsLeft <= 0 ? (
+                        "Fully Booked"
+                      ) : !studentUser ? (
+                        <>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Login to Book
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Book Seat
+                        </>
+                      )}
+                    </Button>
+                  )
                 )
               ) : (
                 <Button variant="outline" disabled className="cursor-not-allowed">
