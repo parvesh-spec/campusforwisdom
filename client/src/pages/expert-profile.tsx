@@ -239,8 +239,7 @@ export default function ExpertProfile() {
   const [bookingForm, setBookingForm] = useState({
     title: "",
     description: "",
-    selectedSlot: "",
-    duration: 60
+    selectedSlot: ""
   });
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -327,8 +326,7 @@ export default function ExpertProfile() {
       setBookingForm({
         title: "",
         description: "",
-        selectedSlot: "",
-        duration: 60
+        selectedSlot: ""
       });
       setSelectedDate("");
       setBookedSlots([]);
@@ -435,8 +433,8 @@ export default function ExpertProfile() {
       title: bookingForm.title,
       description: bookingForm.description,
       scheduledAt,
-      duration: bookingForm.duration,
-      amount: (expert!.consultationPrice ? expert!.consultationPrice * (bookingForm.duration / 60) : 0).toFixed(2),
+      duration: 60, // Fixed 1 hour duration
+      amount: (expert!.consultationPrice || 0).toFixed(2),
       status: 'pending' as const,
       ...(paymentId && { paymentId })
     };
@@ -453,8 +451,7 @@ export default function ExpertProfile() {
       setBookingForm({
         title: "",
         description: "",
-        selectedSlot: "",
-        duration: 60
+        selectedSlot: ""
       });
       setSelectedDate("");
       
@@ -1510,7 +1507,7 @@ export default function ExpertProfile() {
             <DialogHeader>
               <DialogTitle>Book Consultation with {expert.name}</DialogTitle>
               <DialogDescription>
-                Schedule a 1-on-1 consultation session. Rate: ₹{expert.hourlyRate}/hour
+                Schedule a 1-on-1 consultation session. Rate: ₹{expert.consultationPrice || 0}/session
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -1599,23 +1596,7 @@ export default function ExpertProfile() {
                   </div>
                 )}
               </div>
-              <div>
-                <Label htmlFor="duration">Duration</Label>
-                <Select 
-                  value={bookingForm.duration.toString()} 
-                  onValueChange={(value) => setBookingForm({...bookingForm, duration: parseInt(value)})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="90">1.5 hours</SelectItem>
-                    <SelectItem value="120">2 hours</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowBookingModal(false)}>
@@ -1625,7 +1606,7 @@ export default function ExpertProfile() {
                 <PaymentButton
                   type="consultation"
                   itemId={expert.id}
-                  amount={expert.consultationPrice * (bookingForm.duration / 60)}
+                  amount={expert.consultationPrice || 0}
                   title={`Consultation with ${expert.name}`}
                   disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
                   onSuccess={async () => {
@@ -1640,14 +1621,14 @@ export default function ExpertProfile() {
                     }
                   }}
                 >
-                  Pay ₹{expert.consultationPrice ? (expert.consultationPrice * (bookingForm.duration / 60)).toFixed(0) : '0'} & Book
+                  Pay ₹{expert.consultationPrice || 0} & Book
                 </PaymentButton>
               ) : (
                 <Button 
                   onClick={handleBookingSubmit}
                   disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
                 >
-                  Submit Request (₹{expert?.consultationPrice ? (expert.consultationPrice * (bookingForm.duration / 60)).toFixed(0) : '0'})
+                  Submit Request (₹{expert?.consultationPrice || 0})
                 </Button>
               )}
             </DialogFooter>
