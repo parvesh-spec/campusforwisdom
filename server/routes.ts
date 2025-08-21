@@ -1904,10 +1904,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify payment exists and is completed
         const payment = await storage.getPayment(paymentId);
-        if (!payment || payment.status !== 'completed' || payment.ebookId !== ebookId) {
+        if (!payment || payment.status !== 'completed') {
           return res.status(400).json({ 
-            error: "Invalid or already used payment",
+            error: "Invalid payment",
             message: "Please complete a valid payment for this ebook."
+          });
+        }
+
+        // Check if payment is for this ebook or if ebookId is not set yet
+        if (payment.ebookId && payment.ebookId !== ebookId) {
+          return res.status(400).json({ 
+            error: "Payment already used for another ebook",
+            message: "This payment was already used for a different ebook."
           });
         }
 
@@ -2438,6 +2446,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else if (payment.consultationId) {
               // Update consultation status to confirmed
               await storage.updateConsultation(payment.consultationId, { status: 'confirmed' });
+            } else if (payment.ebookId) {
+              // For ebook payments, just record the download automatically
+              await storage.recordEbookDownload(user.id, payment.ebookId);
+              console.log('Ebook download recorded for user:', user.id, 'ebook:', payment.ebookId);
             }
           } catch (enrollmentError) {
             console.error("Error handling post-payment enrollment:", enrollmentError);
@@ -2574,6 +2586,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Create consultation booking after successful payment
               // This will be handled by frontend booking form submission
               console.log('Expert consultation payment completed - ready for booking');
+            } else if (payment.ebookId) {
+              console.log('Processing ebook payment for ebook:', payment.ebookId);
+              // Record ebook download after successful payment
+              await storage.recordEbookDownload(payment.userId, payment.ebookId);
+              console.log('Ebook download recorded for user:', payment.userId, 'ebook:', payment.ebookId);
             }
           } catch (enrollmentError) {
             console.error("Error handling webhook post-payment actions:", enrollmentError);

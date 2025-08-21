@@ -184,64 +184,39 @@ export default function EbookDetail() {
                     className="w-full mt-6"
                     onSuccess={async () => {
                       try {
-                        console.log('Ebook payment successful, creating download record for:', ebook.id);
-
-                        // Get the payment record by ebook ID to find payment ID
-                        const paymentResponse = await fetch(`/api/payments/by-ebook/${ebook.id}`, {
-                          credentials: 'include'
-                        });
+                        console.log('Ebook payment successful for:', ebook.id);
                         
-                        let paymentId = null;
-                        if (paymentResponse.ok) {
-                          const payments = await paymentResponse.json();
-                          const completedPayment = payments.find((p: any) => 
-                            p.status === 'completed' && p.ebookId === ebook.id && p.userId === currentUser?.id
-                          );
-                          paymentId = completedPayment?.id;
-                          console.log('Found payment ID for ebook:', paymentId);
-                        }
-
-                        // Create download record after successful payment
-                        const downloadResponse = await fetch(`/api/student/ebooks/${ebook.id}/download`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          credentials: 'include',
-                          body: JSON.stringify({ paymentId })
+                        // Show success message
+                        toast({
+                          title: "Payment Successful",
+                          description: "Processing your ebook download...",
                         });
 
-                        if (downloadResponse.ok) {
-                          const result = await downloadResponse.json();
-                          console.log('Ebook download record created:', result);
+                        // Wait a moment for webhook to process
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+
+                        // Trigger actual download
+                        if (ebook.fileUrl) {
+                          const link = document.createElement('a');
+                          link.href = ebook.fileUrl;
+                          link.download = `${ebook.title}.pdf`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
                           
                           toast({
-                            title: "Success",
-                            description: "Ebook purchased successfully! Starting download...",
+                            title: "Download Started",
+                            description: "Your ebook download has started!",
                           });
-
-                          // Trigger actual download
-                          if (ebook.fileUrl) {
-                            const link = document.createElement('a');
-                            link.href = ebook.fileUrl;
-                            link.download = `${ebook.title}.pdf`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }
-
-                          // Refresh page to show updated status
-                          window.location.reload();
-                        } else {
-                          const error = await downloadResponse.json();
-                          console.error('Download record creation failed:', error);
-                          throw new Error(error.message || 'Failed to create download record');
                         }
+
+                        // Refresh page to show updated status
+                        window.location.reload();
                       } catch (error) {
                         console.error('Ebook download error after payment:', error);
                         toast({
                           title: "Download Error",
-                          description: error instanceof Error ? error.message : "Failed to complete download after payment. Please contact support.",
+                          description: "Payment successful, but download failed. Please contact support.",
                           variant: "destructive",
                         });
                       }
