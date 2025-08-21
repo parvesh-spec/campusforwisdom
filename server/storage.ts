@@ -2279,17 +2279,20 @@ export class DatabaseStorage implements IStorage {
   // Method to add webinar attendee
   async addWebinarAttendee(attendeeData: { webinarId: string; participantId: string; name: string; email: string }): Promise<void> {
     try {
+      console.log('Adding webinar attendee with data:', attendeeData);
+      
       const webinarAttendeeData = {
         id: `attendee-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         webinarId: attendeeData.webinarId,
         participantId: attendeeData.participantId,
         participantName: attendeeData.name,
         participantEmail: attendeeData.email,
-        role: 'attendee',
-        status: 'registered',
+        role: 'attendee' as const,
+        status: 'registered' as const,
         joinedAt: new Date()
       };
 
+      console.log('Prepared webinar attendee data:', webinarAttendeeData);
       await db.insert(webinarAttendees).values(webinarAttendeeData);
     } catch (error) {
       console.error("Error adding webinar attendee:", error);
