@@ -426,7 +426,15 @@ export default function WebinarDetail() {
 
               {/* Enrollment Button */}
               {!isUserEnrolled ? (
-                price > 0 ? (
+                !isLoggedIn ? (
+                  <Button
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Login to Register
+                  </Button>
+                ) : price > 0 ? (
                   <PaymentButton
                     type="webinar"
                     itemId={sessionId!}
