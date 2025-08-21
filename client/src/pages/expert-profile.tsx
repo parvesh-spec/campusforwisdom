@@ -508,19 +508,19 @@ export default function ExpertProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 sm:py-20">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Back Button */}
         <Link href="/ai-experts">
-          <Button variant="ghost" className="mb-8">
+          <Button variant="ghost" className="mb-6 sm:mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Experts
           </Button>
         </Link>
 
         {/* Expert Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
+        <Card className="mb-6 sm:mb-8">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
             <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
               <Avatar className="w-32 h-32">
                 <AvatarImage src={expert.avatar || ""} alt={expert.name} />
@@ -528,8 +528,8 @@ export default function ExpertProfile() {
               </Avatar>
               
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{expert.name}</h1>
-                <p className="text-xl text-primary font-semibold mb-4">{expert.specialization}</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">{expert.name}</h1>
+                <p className="text-lg sm:text-xl text-primary font-semibold mb-4 break-words">{expert.specialization}</p>
                 
                 <div className="flex flex-wrap items-center gap-6 mb-4">
                   <div className="flex items-center space-x-2">
@@ -569,7 +569,7 @@ export default function ExpertProfile() {
                   )}
                 </div>
 
-                <p className="text-gray-700 mb-6">{expert.bio}</p>
+                <p className="text-gray-700 mb-6 break-words">{expert.bio}</p>
 
                 {expert.consultationEnabled ? (
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -599,14 +599,16 @@ export default function ExpertProfile() {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-            <TabsTrigger value="ebooks">eBooks</TabsTrigger>
-            <TabsTrigger value="consultations">Consultations</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="inline-flex w-max gap-1 p-1">
+              <TabsTrigger value="overview" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="sessions" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Sessions</TabsTrigger>
+              <TabsTrigger value="ebooks" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">eBooks</TabsTrigger>
+              <TabsTrigger value="consultations" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Consultations</TabsTrigger>
+              <TabsTrigger value="courses" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Courses</TabsTrigger>
+              <TabsTrigger value="reviews" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Reviews</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
