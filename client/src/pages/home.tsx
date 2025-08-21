@@ -457,7 +457,7 @@ export default function Home() {
                     <CardContent className={`p-0 ${isLive ? '' : ''}`}>
                       {/* Cover Image */}
                       {sessionData.thumbnail ? (
-                        <div className="relative w-full h-72 overflow-hidden">
+                        <div className="relative w-full aspect-video overflow-hidden">
                           <img 
                             src={sessionData.thumbnail} 
                             alt={session.title}
@@ -466,7 +466,7 @@ export default function Home() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         </div>
                       ) : (
-                        <div className="relative w-full h-72 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
+                        <div className="relative w-full aspect-video bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
                           <div className="text-6xl text-white/80">🎥</div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         </div>
