@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Calendar, Clock, Users, Video, CheckCircle, 
-  Play, Star, IndianRupee, Globe, BookOpen, Award, Info
+  Play, Star, IndianRupee, Globe
 } from "lucide-react";
 import type { LiveSession, Expert, WebinarEnrollment } from "@shared/schema";
 import { PaymentButton } from "@/components/payment/PaymentButton";
@@ -133,7 +133,7 @@ export default function WebinarDetail() {
     cancelled: "bg-gray-100 text-gray-800 border-gray-200",
   };
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-IN", {
       weekday: "long",
       day: "numeric",
@@ -142,7 +142,7 @@ export default function WebinarDetail() {
     }).format(new Date(date));
   };
 
-  const formatTime = (date: Date | string) => {
+  const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -225,7 +225,7 @@ export default function WebinarDetail() {
                     <span className="font-medium">Date:</span>
                   </div>
                   <p className="text-gray-900 font-medium ml-7">
-                    {formatDate(session.scheduledAt)}
+                    {formatDate(new Date(session.scheduledAt))}
                   </p>
                 </div>
 
@@ -235,7 +235,7 @@ export default function WebinarDetail() {
                     <span className="font-medium">Time:</span>
                   </div>
                   <p className="text-gray-900 font-medium ml-7">
-                    {formatTime(session.scheduledAt)}
+                    {formatTime(new Date(session.scheduledAt))}
                   </p>
                 </div>
 
