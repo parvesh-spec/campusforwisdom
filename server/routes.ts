@@ -1635,7 +1635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify payment exists and is completed
         const payment = await storage.getPayment(paymentId);
-        if (!payment || payment.status !== 'completed' || payment.consultationId) {
+        if (!payment || payment.status !== 'completed' || payment.expertId !== expertId) {
           return res.status(400).json({ 
             error: "Invalid or already used payment",
             message: "Please complete a valid payment for this consultation."
@@ -1658,9 +1658,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const consultation = await storage.createConsultation(consultationData);
 
-      // Update payment record to link with consultation
+      // Payment is already linked with expertId, just mark as used for consultation
       if (paymentId) {
-        await storage.updatePayment(paymentId, { consultationId: consultation.id });
+        await storage.updatePayment(paymentId, { status: 'completed' });
       }
 
       res.json(consultation);
