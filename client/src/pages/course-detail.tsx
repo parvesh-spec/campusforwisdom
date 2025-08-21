@@ -49,9 +49,11 @@ export default function CourseDetail() {
   });
 
   // Fetch user's enrolled courses if logged in
-  const { data: userEnrolledCourses } = useQuery<Course[]>({
+  const { data: userEnrolledCourses, isLoading: enrollmentsLoading, error: enrollmentsError } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: !!user,
+    staleTime: 0, // Always refetch to get latest enrollment status
+    cacheTime: 0, // Don't cache to prevent stale data
   });
 
   // Fetch expert details if course has expertId
@@ -74,8 +76,15 @@ export default function CourseDetail() {
     courseId,
     isLoggedIn,
     isEnrolled,
+    enrollmentsLoading,
+    enrollmentsError: enrollmentsError?.message,
     userEnrolledCourses: userEnrolledCourses?.map(c => ({ id: c.id, title: c.title })),
-    user: user?.id
+    user: user?.id,
+    enrollmentCheck: userEnrolledCourses?.map(enrolledCourse => ({
+      enrolledId: enrolledCourse.id,
+      currentId: courseId,
+      match: enrolledCourse.id === courseId
+    }))
   });
 
   // Enrollment mutation

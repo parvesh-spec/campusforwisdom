@@ -490,6 +490,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const enrollments = await storage.getStudentEnrollments(studentUser.id);
+      console.log('Student enrollments debug:', {
+        studentId: studentUser.id,
+        enrollmentsCount: enrollments.length,
+        enrollments: enrollments.map(e => ({ id: e.id, title: e.title }))
+      });
       res.json(enrollments);
     } catch (error) {
       console.error("Error fetching student enrollments:", error);

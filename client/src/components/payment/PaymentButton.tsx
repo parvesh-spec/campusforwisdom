@@ -64,6 +64,7 @@ export function PaymentButton({
         // Invalidate related queries first to refresh data
         const queryClient = (window as any).queryClient;
         if (queryClient) {
+          console.log('PaymentButton: Invalidating queries after successful payment for', type, itemId);
           // Invalidate specific queries to refresh booking status
           queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${itemId}`] });
           queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
@@ -71,6 +72,7 @@ export function PaymentButton({
           queryClient.invalidateQueries({ queryKey: [`/api/courses/${itemId}`] });
           queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
           queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+          console.log('PaymentButton: Query invalidation completed');
         }
         
         // For course payments, wait longer for webhook processing
