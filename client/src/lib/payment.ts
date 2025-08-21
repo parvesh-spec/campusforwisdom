@@ -153,10 +153,10 @@ export const payForWebinar = async (webinarId: string, amount: number): Promise<
 
 export const payForConsultation = async (expertId: string, amount: number): Promise<PaymentResult> => {
   try {
-    // For consultations, we pass expertId as consultationId for linking
+    // For consultations, we pass expertId for linking
     const session = await createPaymentSession({ 
       amount,
-      consultationId: expertId // Expert ID becomes consultation ID
+      expertId // Expert ID for consultation payments
     });
     
     return await processPayment(session);

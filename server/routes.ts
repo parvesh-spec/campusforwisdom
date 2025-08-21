@@ -2318,7 +2318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create payment session for courses
   app.post("/api/payments/create-session", requireAuth, async (req, res) => {
     try {
-      const { amount, courseId, webinarId, consultationId, ebookId } = req.body;
+      const { amount, courseId, webinarId, consultationId, ebookId, expertId } = req.body;
       const user = (req.session as any)?.user;
 
       if (!user?.id) {
@@ -2349,9 +2349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create payment session with Cashfree
         const session = await CashfreeService.createPaymentSession(sessionRequest);
 
-        // For consultation payments, don't link consultation_id during payment creation
-        // It will be linked later when consultation is actually booked
-        const actualConsultationId = consultationId ? null : null;
+        // For consultation payments, use expertId instead of consultationId
 
         // Create payment record in database
         const paymentData = {
@@ -2366,7 +2364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Include foreign keys based on request parameters
           courseId: courseId || null,
           webinarId: webinarId || null,
-          consultationId: actualConsultationId,
+          expertId: expertId || null, // Expert ID for consultation payments
           ebookId: ebookId || null
         };
 
@@ -2541,7 +2539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('Processing post-payment actions for:', {
               courseId: payment.courseId,
               webinarId: payment.webinarId,
-              consultationId: payment.consultationId,
+              expertId: payment.expertId, // Expert ID for consultations
               userId: payment.userId
             });
 
@@ -2571,10 +2569,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
                 console.log('Webinar enrollment completed');
               }
-            } else if (payment.consultationId) {
-              console.log('Confirming consultation:', payment.consultationId);
-              await storage.updateConsultation(payment.consultationId, { status: 'confirmed' });
-              console.log('Consultation confirmation completed');
+            } else if (payment.expertId) {
+              console.log('Processing consultation payment for expert:', payment.expertId);
+              // Create consultation booking after successful payment
+              // This will be handled by frontend booking form submission
+              console.log('Expert consultation payment completed - ready for booking');
             }
           } catch (enrollmentError) {
             console.error("Error handling webhook post-payment actions:", enrollmentError);

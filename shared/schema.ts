@@ -172,7 +172,7 @@ export const payments = pgTable("payments", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   courseId: varchar("course_id").references(() => courses.id),
   webinarId: varchar("webinar_id").references(() => webinars.id),
-  consultationId: varchar("consultation_id"), // Expert ID for consultations
+  expertId: varchar("expert_id").references(() => experts.id), // Expert ID for consultations
   ebookId: varchar("ebook_id").references(() => ebooks.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: text("currency").default("INR"),
@@ -240,7 +240,7 @@ export const courseReviews = pgTable("course_reviews", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const bookedConsultations = pgTable("booked_consultations", {
+export const consultations = pgTable("consultations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   studentId: varchar("student_id").references(() => users.id).notNull(),
   expertId: varchar("expert_id").references(() => experts.id).notNull(),
@@ -332,7 +332,7 @@ export const insertExpertSchema = createInsertSchema(experts).omit({
   totalSessions: true,
 });
 
-export const insertBookedConsultationSchema = createInsertSchema(bookedConsultations).omit({
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
