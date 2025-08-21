@@ -2608,6 +2608,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get payments by expert ID for current user
+  app.get("/api/payments/by-expert/:expertId", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser) {
+        return res.status(401).json({ error: "Student not authenticated" });
+      }
+
+      const { expertId } = req.params;
+      const payments = await storage.getPaymentsWithDetails();
+      const expertPayments = payments.filter(p => 
+        p.userId === studentUser.id && p.expertId === expertId
+      );
+
+      res.json(expertPayments);
+    } catch (error) {
+      console.error("Error fetching expert payments:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get payment history for user
   app.get("/api/payments/history", requireAuth, async (req, res) => {
     try {

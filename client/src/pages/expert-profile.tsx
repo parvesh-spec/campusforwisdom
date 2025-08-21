@@ -1616,11 +1616,97 @@ export default function ExpertProfile() {
                   onSuccess={async () => {
                     // Submit consultation booking after successful payment
                     try {
-                      // PaymentButton will pass paymentId via onSuccess callback
-                      queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
-                      queryClient.invalidateQueries({ queryKey: [`/api/experts/${expert.id}/reviews`] });
+                      console.log('Payment successful, creating consultation booking with form data:', {
+                        title: bookingForm.title,
+                        description: bookingForm.description,
+                        selectedSlot: bookingForm.selectedSlot,
+                        selectedDate: selectedDate,
+                        expertId: expertId
+                      });
+
+                      // Get the payment record by expert ID to find payment ID
+                      const paymentResponse = await fetch(`/api/payments/by-expert/${expertId}`, {
+                        credentials: 'include'
+                      });
+                      
+                      let paymentId = null;
+                      if (paymentResponse.ok) {
+                        const payments = await paymentResponse.json();
+                        const completedPayment = payments.find((p: any) => 
+                          p.status === 'completed' && p.expertId === expertId && p.userId === currentUser?.id
+                        );
+                        paymentId = completedPayment?.id;
+                        console.log('Found payment ID for consultation:', paymentId);
+                      }
+
+                      // Convert time and create consultation data
+                      const convertTo24Hour = (time12: string): string => {
+                        const [time, period] = time12.split(' ');
+                        const [hours, minutes] = time.split(':');
+                        let hour24 = parseInt(hours);
+                        
+                        if (period === 'AM' && hour24 === 12) hour24 = 0;
+                        else if (period === 'PM' && hour24 !== 12) hour24 += 12;
+                        
+                        return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+                      };
+                      
+                      const startTime24 = convertTo24Hour(bookingForm.selectedSlot);
+                      const scheduledAt = `${selectedDate}T${startTime24}:00`;
+                      
+                      const consultationData = {
+                        expertId: expertId!,
+                        title: bookingForm.title,
+                        description: bookingForm.description,
+                        scheduledAt,
+                        duration: 60,
+                        amount: parseFloat(expert!.hourlyRate).toFixed(2),
+                        status: 'pending' as const,
+                        ...(paymentId && { paymentId })
+                      };
+
+                      console.log('Creating consultation with data:', consultationData);
+                      
+                      const response = await fetch('/api/student/consultations', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(consultationData)
+                      });
+
+                      if (response.ok) {
+                        const consultation = await response.json();
+                        console.log('Consultation created successfully:', consultation);
+                        
+                        toast({
+                          title: "Success",
+                          description: "Consultation booked successfully! Please wait for confirmation.",
+                        });
+
+                        // Clear form
+                        setBookingForm({
+                          title: "",
+                          description: "",
+                          selectedSlot: ""
+                        });
+                        setSelectedDate("");
+                        
+                        // Refresh data
+                        queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
+                      } else {
+                        const error = await response.json();
+                        console.error('Consultation creation failed:', error);
+                        throw new Error(error.message || 'Failed to create consultation');
+                      }
                     } catch (error) {
                       console.error('Consultation booking error:', error);
+                      toast({
+                        title: "Booking Error",
+                        description: error instanceof Error ? error.message : "Failed to complete booking after payment. Please contact support.",
+                        variant: "destructive",
+                      });
                     }
                   }}
                 >
