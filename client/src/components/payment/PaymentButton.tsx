@@ -11,6 +11,7 @@ interface PaymentButtonProps {
   title: string;
   disabled?: boolean;
   onSuccess?: () => void;
+  onPaymentStart?: () => void; // Called when payment gateway opens
   className?: string;
   children?: React.ReactNode;
 }
@@ -22,6 +23,7 @@ export function PaymentButton({
   title, 
   disabled, 
   onSuccess, 
+  onPaymentStart,
   className,
   children 
 }: PaymentButtonProps) {
@@ -30,6 +32,11 @@ export function PaymentButton({
 
   const handlePayment = async () => {
     setLoading(true);
+    
+    // Call onPaymentStart to close modal before payment gateway opens
+    if (onPaymentStart) {
+      onPaymentStart();
+    }
     
     try {
       let result;

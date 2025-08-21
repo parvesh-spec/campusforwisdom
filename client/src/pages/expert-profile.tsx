@@ -1609,11 +1609,14 @@ export default function ExpertProfile() {
                   amount={parseFloat(expert.hourlyRate)}
                   title={`Consultation with ${expert.name}`}
                   disabled={!bookingForm.title || !bookingForm.selectedSlot || !selectedDate}
+                  onPaymentStart={() => {
+                    // Close modal before payment gateway opens to avoid conflicts
+                    setShowBookingModal(false);
+                  }}
                   onSuccess={async () => {
                     // Submit consultation booking after successful payment
                     try {
                       // PaymentButton will pass paymentId via onSuccess callback
-                      setShowBookingModal(false);
                       queryClient.invalidateQueries({ queryKey: ["/api/student/consultations"] });
                       queryClient.invalidateQueries({ queryKey: [`/api/experts/${expert.id}/reviews`] });
                     } catch (error) {
