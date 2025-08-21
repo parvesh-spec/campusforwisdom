@@ -46,22 +46,22 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-300">
               <li>
                 <Link href="/courses">
-                  <a className="hover:text-white transition-colors">Courses</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Courses</span>
                 </Link>
               </li>
               <li>
                 <Link href="/live-sessions">
-                  <a className="hover:text-white transition-colors">Live Sessions</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Live Sessions</span>
                 </Link>
               </li>
               <li>
                 <Link href="/ai-experts">
-                  <a className="hover:text-white transition-colors">1:1 Consultation</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">1:1 Consultation</span>
                 </Link>
               </li>
               <li>
                 <Link href="/ebooks">
-                  <a className="hover:text-white transition-colors">Ebooks</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Ebooks</span>
                 </Link>
               </li>
             </ul>
@@ -72,17 +72,17 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-300">
               <li>
                 <Link href="/contact">
-                  <a className="hover:text-white transition-colors">Contact Us</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Contact Us</span>
                 </Link>
               </li>
               <li>
                 <Link href="/about">
-                  <a className="hover:text-white transition-colors">About</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">About</span>
                 </Link>
               </li>
               <li>
                 <Link href="/become-instructor">
-                  <a className="hover:text-white transition-colors">Become an Instructor</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Become an Instructor</span>
                 </Link>
               </li>
             </ul>
@@ -93,22 +93,22 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-300">
               <li>
                 <Link href="/legal/privacy-policy">
-                  <a className="hover:text-white transition-colors">Privacy Policy</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
                 </Link>
               </li>
               <li>
                 <Link href="/legal/terms-of-service">
-                  <a className="hover:text-white transition-colors">Terms of Service</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Terms of Service</span>
                 </Link>
               </li>
               <li>
                 <Link href="/legal/cookie-policy">
-                  <a className="hover:text-white transition-colors">Cookie Policy</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Cookie Policy</span>
                 </Link>
               </li>
               <li>
                 <Link href="/legal/refund-policy">
-                  <a className="hover:text-white transition-colors">Refund Policy</a>
+                  <span className="hover:text-white transition-colors cursor-pointer">Refund Policy</span>
                 </Link>
               </li>
             </ul>

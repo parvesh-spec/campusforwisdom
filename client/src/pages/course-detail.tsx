@@ -53,14 +53,8 @@ export default function CourseDetail() {
     queryKey: ["/api/student/enrollments"],
     enabled: true, // Force enabled for production testing
     staleTime: 0, // Always refetch to get latest enrollment status
-    cacheTime: 0, // Don't cache to prevent stale data
-    retry: 3,
-    onSuccess: (data) => {
-      console.log('Enrollment API Success:', data);
-    },
-    onError: (error) => {
-      console.error('Enrollment API Error:', error);
-    }
+    gcTime: 0, // Don't cache to prevent stale data
+    retry: 3
   });
 
   // Force refetch enrollments when user becomes available
@@ -84,7 +78,7 @@ export default function CourseDetail() {
   });
 
   const isLoggedIn = !!user;
-  const isEnrolled = userEnrolledCourses?.some((enrolledCourse: Course) => enrolledCourse.id === courseId);
+  const isEnrolled = Array.isArray(userEnrolledCourses) && userEnrolledCourses.some((enrolledCourse: Course) => enrolledCourse.id === courseId);
   
   // Debug logging
   console.log('Course Detail Debug:', {
@@ -93,14 +87,14 @@ export default function CourseDetail() {
     isEnrolled,
     enrollmentsLoading,
     enrollmentsError: enrollmentsError?.message,
-    userEnrolledCourses: userEnrolledCourses?.map(c => ({ id: c.id, title: c.title })),
+    userEnrolledCourses: Array.isArray(userEnrolledCourses) ? userEnrolledCourses.map(c => ({ id: c.id, title: c.title })) : [],
     user: user?.id,
     queryEnabled: !!user,
-    enrollmentCheck: userEnrolledCourses?.map(enrolledCourse => ({
+    enrollmentCheck: Array.isArray(userEnrolledCourses) ? userEnrolledCourses.map(enrolledCourse => ({
       enrolledId: enrolledCourse.id,
       currentId: courseId,
       match: enrolledCourse.id === courseId
-    }))
+    })) : []
   });
 
 
@@ -193,8 +187,8 @@ export default function CourseDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 sm:py-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Back Button */}
         <Link href="/courses">
           <Button variant="ghost" className="mb-6 hover:bg-gray-100">
@@ -234,7 +228,7 @@ export default function CourseDetail() {
               </div>
 
               {/* Course Info */}
-              <div className="p-6">
+              <div className="p-3 sm:p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Badge className={`${levelColors[course.level as keyof typeof levelColors]} border font-medium`}>
                     {course.level}
@@ -248,11 +242,11 @@ export default function CourseDetail() {
                   </div>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.title}</h1>
-                <p className="text-lg text-gray-600 mb-6">{course.shortDescription || course.description}</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 break-words">{course.title}</h1>
+                <p className="text-base sm:text-lg text-gray-600 mb-6 break-words">{course.shortDescription || course.description}</p>
 
                 {/* Course Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
                   <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                     <Clock className="h-5 w-5 text-gray-500" />
                     <div>
@@ -316,15 +310,15 @@ export default function CourseDetail() {
 
             {/* Course Content Tabs */}
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <Tabs defaultValue="overview" className="w-full">
-                  <div className="w-full overflow-x-auto scrollbar-hide">
-                    <TabsList className="inline-flex w-max min-w-full gap-1 sm:gap-2 p-1">
-                      <TabsTrigger value="overview" className="whitespace-nowrap px-3 py-2 text-sm">Overview</TabsTrigger>
-                      <TabsTrigger value="curriculum" className="whitespace-nowrap px-3 py-2 text-sm">Curriculum</TabsTrigger>
-                      <TabsTrigger value="instructor" className="whitespace-nowrap px-3 py-2 text-sm">Instructor</TabsTrigger>
-                      <TabsTrigger value="faq" className="whitespace-nowrap px-3 py-2 text-sm">FAQ</TabsTrigger>
-                      <TabsTrigger value="reviews" className="whitespace-nowrap px-3 py-2 text-sm">Reviews</TabsTrigger>
+                  <div className="w-full overflow-x-auto">
+                    <TabsList className="inline-flex w-max gap-1 p-1">
+                      <TabsTrigger value="overview" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Overview</TabsTrigger>
+                      <TabsTrigger value="curriculum" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Curriculum</TabsTrigger>
+                      <TabsTrigger value="instructor" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Instructor</TabsTrigger>
+                      <TabsTrigger value="faq" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">FAQ</TabsTrigger>
+                      <TabsTrigger value="reviews" className="whitespace-nowrap px-2 sm:px-3 py-2 text-xs sm:text-sm">Reviews</TabsTrigger>
                     </TabsList>
                   </div>
 
@@ -333,11 +327,11 @@ export default function CourseDetail() {
                     {courseData.whatYouWillLearn?.length > 0 && (
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-4">What you'll learn</h3>
-                        <div className="grid md:grid-cols-2 gap-3">
+                        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-3">
                           {courseData.whatYouWillLearn.map((item: string, index: number) => (
                             <div key={index} className="flex items-start gap-3">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-700">{item}</span>
+                              <span className="text-gray-700 break-words">{item}</span>
                             </div>
                           ))}
                         </div>
