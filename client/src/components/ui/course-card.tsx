@@ -38,7 +38,7 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
     <Link href={`/courses/${course.id}`}>
       <Card className="group bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
         {/* Course Image/Thumbnail */}
-        <div className="relative w-full h-52 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+        <div className="relative w-full aspect-video bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
           {courseData.thumbnail ? (
             <img 
               src={courseData.thumbnail} 

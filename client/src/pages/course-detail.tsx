@@ -209,7 +209,7 @@ export default function CourseDetail() {
             {/* Course Header */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
               {/* Course Image */}
-              <div className="relative h-64 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600">
+              <div className="relative w-full aspect-video bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600">
                 {courseData.thumbnail ? (
                   <img 
                     src={courseData.thumbnail} 

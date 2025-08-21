@@ -128,7 +128,7 @@ export default function EbookDetail() {
             <Card className="sticky top-6">
               <CardContent className="p-6">
                 {/* Cover Image */}
-                <div className="aspect-[3/4] bg-gray-100 rounded-lg mb-6 overflow-hidden">
+                <div className="aspect-video bg-gray-100 rounded-lg mb-6 overflow-hidden">
                   {ebook.coverImage ? (
                     <img
                       src={ebook.coverImage}
