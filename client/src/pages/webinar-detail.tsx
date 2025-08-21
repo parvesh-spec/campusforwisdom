@@ -140,71 +140,89 @@ export default function WebinarDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <Link href="/live-sessions">
-          <Button variant="ghost" className="mb-6 hover:bg-gray-100">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Sessions
-          </Button>
-        </Link>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link href="/live-sessions">
+            <Button variant="ghost" size="sm" className="mb-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Sessions
+            </Button>
+          </Link>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Session Header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-              {/* Session Image */}
-              <div className="relative w-full aspect-video bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600">
-                {(session as any).thumbnail ? (
-                  <img 
-                    src={(session as any).thumbnail} 
-                    alt={session.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-8xl text-white/80">🎥</div>
+          {/* Cover Image */}
+          {(session as any).thumbnail && (
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-6 shadow-lg">
+              <img 
+                src={(session as any).thumbnail} 
+                alt={session.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              
+              {/* Live indicator overlay */}
+              {isLive && (
+                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <span className="text-sm font-medium">LIVE NOW</span>
+                </div>
+              )}
+              
+              {/* Price overlay */}
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2">
+                {price > 0 ? (
+                  <div className="flex items-center space-x-1">
+                    <IndianRupee className="h-5 w-5 text-green-600" />
+                    <span className="text-xl font-bold text-gray-900">₹{price}</span>
                   </div>
+                ) : (
+                  <span className="text-xl font-bold text-green-600">FREE</span>
                 )}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <Badge className={`${(statusColors as Record<string, string>)[session.status] || statusColors.scheduled} border`}>
+                  {session.status === "live" ? (
+                    <><Play className="w-3 h-3 mr-1" /> Live Now</>
+                  ) : session.status === "scheduled" ? (
+                    "Upcoming"
+                  ) : (
+                    session.status
+                  )}
+                </Badge>
                 
-                {/* Live indicator overlay */}
                 {isLive && (
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <div className="flex items-center space-x-2 text-red-600">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                     <span className="text-sm font-medium">LIVE NOW</span>
                   </div>
                 )}
               </div>
               
-              {/* Session Info */}
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Badge className={`${(statusColors as Record<string, string>)[session.status] || statusColors.scheduled} border`}>
-                      {session.status === "live" ? (
-                        <><Play className="w-3 h-3 mr-1" /> Live Now</>
-                      ) : session.status === "scheduled" ? (
-                        "Upcoming"
-                      ) : (
-                        session.status
-                      )}
-                    </Badge>
-                    
-                    {spotsLeft <= 10 && spotsLeft > 0 && (
-                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
-                        Only {spotsLeft} seats left!
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                <h1 className="text-3xl font-bold text-gray-900 mb-3">{session.title}</h1>
-                <p className="text-lg text-gray-600 leading-relaxed">{session.description}</p>
-              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{session.title}</h1>
+              <p className="text-lg text-gray-600">{session.description}</p>
             </div>
+            
+            {spotsLeft <= 10 && spotsLeft > 0 && (
+              <div className="ml-8 text-right">
+                <p className="text-sm text-orange-600 font-medium">
+                  Only {spotsLeft} seats left!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Session Details */}
             <Card>
               <CardHeader>
@@ -278,26 +296,14 @@ export default function WebinarDetail() {
               </CardContent>
             </Card>
 
-            {/* Session Agenda */}
-            {(session as any).agenda && (session as any).agenda.length > 0 && (
+            {/* Detailed Agenda */}
+            {(session as any).agenda && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BookOpen className="h-5 w-5 mr-2 text-indigo-600" />
-                    Session Agenda
-                  </CardTitle>
+                  <CardTitle>Detailed Agenda</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    {(session as any).agenda.map((item: string, index: number) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-700">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-gray-700 whitespace-pre-wrap">{(session as any).agenda}</p>
                 </CardContent>
               </Card>
             )}
@@ -315,7 +321,7 @@ export default function WebinarDetail() {
                   <ul className="space-y-2">
                     {(session as any).whatYouWillLearn.map((item: string, index: number) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">{item}</span>
                       </li>
                     ))}
@@ -324,21 +330,18 @@ export default function WebinarDetail() {
               </Card>
             )}
 
-            {/* Prerequisites */}
-            {(session as any).prerequisites && (session as any).prerequisites.length > 0 && (
+            {/* Key Points */}
+            {(session as any).keyPoints && (session as any).keyPoints.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <AlertCircle className="h-5 w-5 mr-2 text-orange-600" />
-                    Prerequisites
-                  </CardTitle>
+                  <CardTitle>Key Topics</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(session as any).prerequisites.map((item: string, index: number) => (
+                    {(session as any).keyPoints.map((point: string, index: number) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full mt-2 flex-shrink-0" />
-                        <span className="text-gray-700">{item}</span>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                        <span className="text-gray-700">{point}</span>
                       </li>
                     ))}
                   </ul>
@@ -346,20 +349,50 @@ export default function WebinarDetail() {
               </Card>
             )}
 
-            {/* Target Audience */}
-            {(session as any).targetAudience && (
+            {/* FAQ */}
+            {(session as any).faq && (session as any).faq.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Users className="h-5 w-5 mr-2 text-purple-600" />
-                    Who This Session Is For
-                  </CardTitle>
+                  <CardTitle>Frequently Asked Questions</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap">{(session as any).targetAudience}</p>
+                <CardContent className="space-y-4">
+                  {(session as any).faq.map((faqItem: any, index: number) => (
+                    <div key={index} className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="font-semibold text-gray-900 mb-1">{faqItem.question}</h4>
+                      <p className="text-gray-700">{faqItem.answer}</p>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
+
+            {/* Prerequisites & Target Audience */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(session as any).prerequisites && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Prerequisites</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 whitespace-pre-wrap">{(session as any).prerequisites}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {(session as any).targetAudience && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <Target className="h-4 w-4 mr-2" />
+                      Target Audience
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 whitespace-pre-wrap">{(session as any).targetAudience}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
             {/* Resources */}
             {(session as any).resources && (session as any).resources.length > 0 && (
@@ -389,312 +422,255 @@ export default function WebinarDetail() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="space-y-6">
-              {/* Expert Info */}
-              {expert && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <User className="h-5 w-5 mr-2" />
-                      Your Expert
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className="flex-shrink-0 relative">
-                        {expert.avatar ? (
-                          <img 
-                            src={expert.avatar} 
-                            alt={expert.name}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-lg font-semibold text-blue-600">
-                              {expert.name.charAt(0)}
-                            </span>
-                          </div>
-                        )}
-                        {expert.isActive && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-1">{expert.name}</h4>
-                        <p className="text-blue-600 font-medium mb-3">{expert.specialization}</p>
-                        
-                        {/* Rating */}
-                        {expert.rating && (
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="flex items-center">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`h-4 w-4 ${
-                                    star <= Math.round(Number(expert.rating) || 0)
-                                      ? "fill-yellow-400 text-yellow-400" 
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-sm text-gray-600">
-                              {Number(expert.rating).toFixed(1)} rating
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bio */}
-                    {expert.bio && (
-                      <div className="mb-4">
-                        <p className="text-sm text-gray-700 leading-relaxed">{expert.bio}</p>
-                      </div>
-                    )}
-
-                    {/* Experience */}
-                    {expert.experience && (
-                      <div className="mb-4">
-                        <h5 className="font-medium text-gray-900 mb-2">Experience</h5>
-                        <p className="text-sm text-gray-700">{expert.experience} years</p>
-                      </div>
-                    )}
-
-                    {/* Skills */}
-                    {expert.skills && expert.skills.length > 0 && (
-                      <div className="mb-4">
-                        <h5 className="font-medium text-gray-900 mb-2">Skills</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {expert.skills.slice(0, 4).map((skill, index) => (
-                            <span 
-                              key={index}
-                              className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md border border-blue-200"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {expert.skills.length > 4 && (
-                            <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-md border border-gray-200">
-                              +{expert.skills.length - 4} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Action Card */}
-              <Card className="sticky top-6">
-                <CardContent className="p-6">
-                  <div className="text-center space-y-4">
-                    <div>
-                      {price > 0 ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <IndianRupee className="h-6 w-6 text-green-600" />
-                          <span className="text-2xl font-bold text-gray-900">₹{price}</span>
-                          <span className="text-gray-500">per person</span>
-                        </div>
+          <div className="space-y-6">
+            {/* Expert Info */}
+            {expert && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="h-5 w-5 mr-2" />
+                    Your Expert
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="flex-shrink-0">
+                      {expert.avatar ? (
+                        <img 
+                          src={expert.avatar} 
+                          alt={expert.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        />
                       ) : (
-                        <span className="text-2xl font-bold text-green-600">FREE</span>
+                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="text-lg font-semibold text-blue-600">
+                            {expert.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      {expert.isActive && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
                       )}
                     </div>
-                    {isLive ? (
-                      // For live sessions, show different buttons based on user registration status
-                      (session as any).isBooked ? (
-                        // If user is already registered, allow them to join
-                        <Button 
-                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
-                          size="lg"
-                          onClick={() => {
-                            if ((session as any).registrationLink) {
-                              window.open((session as any).registrationLink, '_blank');
-                            }
-                          }}
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          Join Live Session
-                        </Button>
-                      ) : (
-                        // If user is not registered, registration is closed for live sessions
+                    
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1">{expert.name}</h4>
+                      <p className="text-blue-600 font-medium mb-3">{expert.specialization}</p>
+                      
+                      {/* Rating */}
+                      {expert.rating && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${
+                                  star <= Math.round(Number(expert.rating) || 0)
+                                    ? "fill-yellow-400 text-yellow-400" 
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            {Number(expert.rating).toFixed(1)} rating
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  {expert.bio && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-700 leading-relaxed">{expert.bio}</p>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {expert.experience && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Experience</h5>
+                      <p className="text-sm text-gray-700">{expert.experience} years</p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {expert.skills && expert.skills.length > 0 && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Skills</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {expert.skills.slice(0, 4).map((skill, index) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md border border-blue-200"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {expert.skills.length > 4 && (
+                          <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-md border border-gray-200">
+                            +{expert.skills.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Action Card */}
+            <Card className="sticky top-6">
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  <div>
+                    {price > 0 ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <IndianRupee className="h-6 w-6 text-green-600" />
+                        <span className="text-2xl font-bold text-gray-900">₹{price}</span>
+                        <span className="text-gray-500">per person</span>
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-bold text-green-600">FREE</span>
+                    )}
+                  </div>
+
+                  {isLive ? (
+                    // For live sessions, show different buttons based on user registration status
+                    (session as any).isBooked ? (
+                      // If user is already registered, allow them to join
+                      <Button 
+                        className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
+                        size="lg"
+                        onClick={() => {
+                          if ((session as any).registrationLink) {
+                            window.open((session as any).registrationLink, '_blank');
+                          }
+                        }}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Join Live Session
+                      </Button>
+                    ) : (
+                      // If user is not registered, registration is closed for live sessions
+                      <Button 
+                        variant="outline"
+                        disabled 
+                        className="w-full"
+                        size="lg"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Registration Closed
+                      </Button>
+                    )
+                  ) : isScheduled ? (
+                    (session as any).isBooked ? (
+                      <div className="space-y-2">
                         <Button 
                           variant="outline"
-                          disabled 
-                          className="w-full"
+                          className="w-full border-green-600 text-green-700 bg-green-50"
+                          disabled
                           size="lg"
                         >
-                          <X className="h-4 w-4 mr-2" />
-                          Registration Closed
+                          ✓ Booked
+                        </Button>
+                        {(session as any).registrationLink && (
+                          <Button
+                            variant="ghost"
+                            className="w-full text-blue-600 hover:text-blue-800"
+                            onClick={() => window.open((session as any).registrationLink, '_blank')}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Join Meeting
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      // Check if session requires payment
+                      session.price && session.price > 0 && studentUser ? (
+                        <PaymentButton
+                          type="webinar"
+                          itemId={session.id}
+                          amount={session.price}
+                          title={session.title}
+                          disabled={spotsLeft <= 0}
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                          onSuccess={() => {
+                            queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${sessionId}`] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+                          }}
+                        >
+                          {spotsLeft <= 0 ? "Fully Booked" : (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Pay ₹{session.price} & Book
+                            </>
+                          )}
+                        </PaymentButton>
+                      ) : (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                          onClick={handleBookSession}
+                          disabled={spotsLeft <= 0 || isBooking}
+                          size="lg"
+                        >
+                          {isBooking ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                              Booking...
+                            </>
+                          ) : spotsLeft <= 0 ? (
+                            "Fully Booked"
+                          ) : !studentUser ? (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Login to Book
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Book Your Seat
+                            </>
+                          )}
                         </Button>
                       )
-                    ) : isScheduled ? (
-                      (session as any).isBooked ? (
-                        <div className="space-y-2">
-                          <Button 
-                            variant="outline"
-                            className="w-full border-green-600 text-green-700 bg-green-50"
-                            disabled
-                            size="lg"
-                          >
-                            ✓ Booked
-                          </Button>
-                          {(session as any).registrationLink && (
-                            <Button
-                              variant="ghost"
-                              className="w-full text-blue-600 hover:text-blue-800"
-                              onClick={() => window.open((session as any).registrationLink, '_blank')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Join Meeting
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        // Check if session requires payment
-                        session.price && parseFloat(session.price as string) > 0 && studentUser ? (
-                          <PaymentButton
-                            type="webinar"
-                            itemId={session.id}
-                            amount={parseFloat(session.price as string)}
-                            title={session.title}
-                            disabled={spotsLeft <= 0}
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
-                            onSuccess={() => {
-                              queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${sessionId}`] });
-                              queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
-                              queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
-                            }}
-                          >
-                            {spotsLeft <= 0 ? "Fully Booked" : (
-                              <>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Pay ₹{session.price} & Book
-                              </>
-                            )}
-                          </PaymentButton>
-                        ) : (
-                          <Button 
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
-                            onClick={handleBookSession}
-                            disabled={spotsLeft <= 0 || isBooking}
-                            size="lg"
-                          >
-                            {isBooking ? (
-                              <>
-                                <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                                Booking...
-                              </>
-                            ) : spotsLeft <= 0 ? (
-                              "Fully Booked"
-                            ) : !studentUser ? (
-                              <>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Login to Book
-                              </>
-                            ) : (
-                              <>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Book Your Seat
-                              </>
-                            )}
-                          </Button>
-                        )
-                      )
-                    ) : (
-                      <Button variant="outline" disabled className="w-full" size="lg">
-                        {session.status === "completed" ? "Session Ended" : "Unavailable"}
-                      </Button>
-                    )}
+                    )
+                  ) : (
+                    <Button variant="outline" disabled className="w-full" size="lg">
+                      {session.status === "completed" ? "Session Ended" : "Unavailable"}
+                    </Button>
+                  )}
 
-                    {isScheduled && spotsLeft > 0 && (
-                      <p className="text-sm text-gray-500">
-                        {spotsLeft} seats available
-                      </p>
-                    )}
+                  {isScheduled && spotsLeft > 0 && (
+                    <p className="text-sm text-gray-500">
+                      {spotsLeft} seats available
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tags */}
+            {(session as any).tags && (session as any).tags.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Tags</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {(session as any).tags.map((tag: string, index: number) => (
+                      <Badge key={index} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Tags */}
-              {(session as any).tags && (session as any).tags.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Tags</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {(session as any).tags.map((tag: string, index: number) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Login Modal */}
-      {showLoginModal && (
-        <StudentLoginModal 
-          isOpen={showLoginModal} 
-          onClose={() => setShowLoginModal(false)} 
-        />
-      )}
-    </div>
-  );
-}
-                          <Button 
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
-                            onClick={handleBookSession}
-                            disabled={spotsLeft <= 0 || isBooking}
-                            size="lg"
-                          >
-                            {isBooking ? (
-                              <>
-                                <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                                Booking...
-                              </>
-                            ) : spotsLeft <= 0 ? (
-                              "Fully Booked"
-                            ) : !studentUser ? (
-                              <>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Login to Book
-                              </>
-                            ) : (
-                              <>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Book Your Seat
-                              </>
-                            )}
-                          </Button>
-                        )
-                      )
-                    ) : (
-                      <Button variant="outline" disabled className="w-full" size="lg">
-                        {session.status === "completed" ? "Session Ended" : "Unavailable"}
-                      </Button>
-                    )}
-
-                    {isScheduled && spotsLeft > 0 && (
-                      <p className="text-sm text-gray-500">
-                        {spotsLeft} seats available
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-
-            </div>
+            )}
           </div>
         </div>
       </div>
