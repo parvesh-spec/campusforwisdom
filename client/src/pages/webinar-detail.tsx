@@ -204,8 +204,10 @@ export default function WebinarDetail() {
                 <p className="text-lg text-gray-600 leading-relaxed">{session.description}</p>
               </div>
             </div>
-            
-            {/* Main Content */}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
             <div className="space-y-6">
               {/* Session Details */}
             <Card>
@@ -661,6 +663,252 @@ export default function WebinarDetail() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="space-y-6">
+              {/* Expert Info */}
+              {expert && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Your Expert
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="flex-shrink-0 relative">
+                        {expert.avatar ? (
+                          <img 
+                            src={expert.avatar} 
+                            alt={expert.name}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-lg font-semibold text-blue-600">
+                              {expert.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        {expert.isActive && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-1">{expert.name}</h4>
+                        <p className="text-blue-600 font-medium mb-3">{expert.specialization}</p>
+                        
+                        {/* Rating */}
+                        {expert.rating && (
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-4 w-4 ${
+                                    star <= Math.round(Number(expert.rating) || 0)
+                                      ? "fill-yellow-400 text-yellow-400" 
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm text-gray-600">
+                              {Number(expert.rating).toFixed(1)} rating
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bio */}
+                    {expert.bio && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-700 leading-relaxed">{expert.bio}</p>
+                      </div>
+                    )}
+
+                    {/* Experience */}
+                    {expert.experience && (
+                      <div className="mb-4">
+                        <h5 className="font-medium text-gray-900 mb-2">Experience</h5>
+                        <p className="text-sm text-gray-700">{expert.experience} years</p>
+                      </div>
+                    )}
+
+                    {/* Skills */}
+                    {expert.skills && expert.skills.length > 0 && (
+                      <div className="mb-4">
+                        <h5 className="font-medium text-gray-900 mb-2">Skills</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {expert.skills.slice(0, 4).map((skill, index) => (
+                            <span 
+                              key={index}
+                              className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md border border-blue-200"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {expert.skills.length > 4 && (
+                            <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-md border border-gray-200">
+                              +{expert.skills.length - 4} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Action Card */}
+              <Card className="sticky top-6">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-4">
+                    <div>
+                      {price > 0 ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <IndianRupee className="h-6 w-6 text-green-600" />
+                          <span className="text-2xl font-bold text-gray-900">₹{price}</span>
+                          <span className="text-gray-500">per person</span>
+                        </div>
+                      ) : (
+                        <span className="text-2xl font-bold text-green-600">FREE</span>
+                      )}
+                    </div>
+
+                    {isLive ? (
+                      // For live sessions, show different buttons based on user registration status
+                      (session as any).isBooked ? (
+                        // If user is already registered, allow them to join
+                        <Button 
+                          className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
+                          size="lg"
+                          onClick={() => {
+                            if ((session as any).registrationLink) {
+                              window.open((session as any).registrationLink, '_blank');
+                            }
+                          }}
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Join Live Session
+                        </Button>
+                      ) : (
+                        // If user is not registered, registration is closed for live sessions
+                        <Button 
+                          variant="outline"
+                          disabled 
+                          className="w-full"
+                          size="lg"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Registration Closed
+                        </Button>
+                      )
+                    ) : isScheduled ? (
+                      (session as any).isBooked ? (
+                        <div className="space-y-2">
+                          <Button 
+                            variant="outline"
+                            className="w-full border-green-600 text-green-700 bg-green-50"
+                            disabled
+                            size="lg"
+                          >
+                            ✓ Booked
+                          </Button>
+                          {(session as any).registrationLink && (
+                            <Button
+                              variant="ghost"
+                              className="w-full text-blue-600 hover:text-blue-800"
+                              onClick={() => window.open((session as any).registrationLink, '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Join Meeting
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        // Check if session requires payment
+                        session.price && parseFloat(session.price as string) > 0 && studentUser ? (
+                          <PaymentButton
+                            type="webinar"
+                            itemId={session.id}
+                            amount={parseFloat(session.price as string)}
+                            title={session.title}
+                            disabled={spotsLeft <= 0}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                            onSuccess={() => {
+                              queryClient.invalidateQueries({ queryKey: [`/api/live-sessions/${sessionId}`] });
+                              queryClient.invalidateQueries({ queryKey: ["/api/live-sessions"] });
+                              queryClient.invalidateQueries({ queryKey: ["/api/student/live-sessions"] });
+                            }}
+                          >
+                            {spotsLeft <= 0 ? "Fully Booked" : (
+                              <>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Pay ₹{session.price} & Book
+                              </>
+                            )}
+                          </PaymentButton>
+                        ) : (
+                          <Button 
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                            onClick={handleBookSession}
+                            disabled={spotsLeft <= 0 || isBooking}
+                            size="lg"
+                          >
+                            {isBooking ? (
+                              <>
+                                <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                                Booking...
+                              </>
+                            ) : spotsLeft <= 0 ? (
+                              "Fully Booked"
+                            ) : !studentUser ? (
+                              <>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Login to Book
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Book Your Seat
+                              </>
+                            )}
+                          </Button>
+                        )
+                      )
+                    ) : (
+                      <Button variant="outline" disabled className="w-full" size="lg">
+                        {session.status === "completed" ? "Session Ended" : "Unavailable"}
+                      </Button>
+                    )}
+
+                    {isScheduled && spotsLeft > 0 && (
+                      <p className="text-sm text-gray-500">
+                        {spotsLeft} seats available
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tags */}
+              {(session as any).tags && (session as any).tags.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Tags</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {(session as any).tags.map((tag: string, index: number) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
