@@ -140,90 +140,74 @@ export default function WebinarDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/live-sessions">
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Sessions
-            </Button>
-          </Link>
+    <div className="min-h-screen bg-gray-50 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <Link href="/live-sessions">
+          <Button variant="ghost" className="mb-6 hover:bg-gray-100">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Sessions
+          </Button>
+        </Link>
 
-          {/* Cover Image */}
-          {(session as any).thumbnail && (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-6 shadow-lg">
-              <img 
-                src={(session as any).thumbnail} 
-                alt={session.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-              
-              {/* Live indicator overlay */}
-              {isLive && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                  <span className="text-sm font-medium">LIVE NOW</span>
-                </div>
-              )}
-              
-              {/* Price overlay */}
-              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2">
-                {price > 0 ? (
-                  <div className="flex items-center space-x-1">
-                    <IndianRupee className="h-5 w-5 text-green-600" />
-                    <span className="text-xl font-bold text-gray-900">₹{price}</span>
-                  </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Session Header */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+              {/* Session Image */}
+              <div className="relative w-full aspect-video bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600">
+                {(session as any).thumbnail ? (
+                  <img 
+                    src={(session as any).thumbnail} 
+                    alt={session.title}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <span className="text-xl font-bold text-green-600">FREE</span>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-8xl text-white/80">🎥</div>
+                  </div>
                 )}
-              </div>
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <Badge className={`${(statusColors as Record<string, string>)[session.status] || statusColors.scheduled} border`}>
-                  {session.status === "live" ? (
-                    <><Play className="w-3 h-3 mr-1" /> Live Now</>
-                  ) : session.status === "scheduled" ? (
-                    "Upcoming"
-                  ) : (
-                    session.status
-                  )}
-                </Badge>
                 
+                {/* Live indicator overlay */}
                 {isLive && (
-                  <div className="flex items-center space-x-2 text-red-600">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                     <span className="text-sm font-medium">LIVE NOW</span>
                   </div>
                 )}
               </div>
               
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{session.title}</h1>
-              <p className="text-lg text-gray-600">{session.description}</p>
+              {/* Session Info */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Badge className={`${(statusColors as Record<string, string>)[session.status] || statusColors.scheduled} border`}>
+                      {session.status === "live" ? (
+                        <><Play className="w-3 h-3 mr-1" /> Live Now</>
+                      ) : session.status === "scheduled" ? (
+                        "Upcoming"
+                      ) : (
+                        session.status
+                      )}
+                    </Badge>
+                    
+                    {spotsLeft <= 10 && spotsLeft > 0 && (
+                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
+                        Only {spotsLeft} seats left!
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <h1 className="text-3xl font-bold text-gray-900 mb-3">{session.title}</h1>
+                <p className="text-lg text-gray-600 leading-relaxed">{session.description}</p>
+              </div>
             </div>
             
-            {spotsLeft <= 10 && spotsLeft > 0 && (
-              <div className="ml-8 text-right">
-                <p className="text-sm text-orange-600 font-medium">
-                  Only {spotsLeft} seats left!
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Session Details */}
+            {/* Main Content */}
+            <div className="space-y-6">
+              {/* Session Details */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -590,11 +574,11 @@ export default function WebinarDetail() {
                       </div>
                     ) : (
                       // Check if session requires payment
-                      session.price && session.price > 0 && studentUser ? (
+                      session.price && parseFloat(session.price as string) > 0 && studentUser ? (
                         <PaymentButton
                           type="webinar"
                           itemId={session.id}
-                          amount={session.price}
+                          amount={parseFloat(session.price as string)}
                           title={session.title}
                           disabled={spotsLeft <= 0}
                           className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg"
@@ -671,6 +655,13 @@ export default function WebinarDetail() {
                 </CardContent>
               </Card>
             )}
+          </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+            </div>
           </div>
         </div>
       </div>
