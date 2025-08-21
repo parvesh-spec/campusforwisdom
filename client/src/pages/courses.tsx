@@ -29,10 +29,12 @@ export default function Courses() {
     queryKey: ["/api/auth/student"],
   });
 
-  // Fetch user's enrolled courses if logged in
+  // Fetch user's enrolled courses if logged in - FORCE ENABLED for production testing
   const { data: userEnrolledCourses } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
-    enabled: !!user,
+    enabled: true, // Force enabled for production testing
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   const isLoggedIn = !!user;
