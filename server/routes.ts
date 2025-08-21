@@ -1904,7 +1904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify payment exists and is completed
         const payment = await storage.getPayment(paymentId);
-        if (!payment || payment.status !== 'completed' || payment.ebookId) {
+        if (!payment || payment.status !== 'completed' || payment.ebookId !== ebookId) {
           return res.status(400).json({ 
             error: "Invalid or already used payment",
             message: "Please complete a valid payment for this ebook."
@@ -2625,6 +2625,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(expertPayments);
     } catch (error) {
       console.error("Error fetching expert payments:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get payments by ebook ID for current user
+  app.get("/api/payments/by-ebook/:ebookId", async (req, res) => {
+    try {
+      const studentUser = (req.session as any)?.studentUser;
+      if (!studentUser) {
+        return res.status(401).json({ error: "Student not authenticated" });
+      }
+
+      const { ebookId } = req.params;
+      const payments = await storage.getPaymentsWithDetails();
+      const ebookPayments = payments.filter(p => 
+        p.userId === studentUser.id && p.ebookId === ebookId
+      );
+
+      res.json(ebookPayments);
+    } catch (error) {
+      console.error("Error fetching ebook payments:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

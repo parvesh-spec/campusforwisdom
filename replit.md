@@ -22,6 +22,17 @@ The application is built as a full-stack web platform with a React frontend, Exp
 - ✅ **UI Enhancement**: Extended PaymentButton reload delay for course payments (3s vs 2s) to allow webhook processing
 - ✅ **Debug Logging**: Added comprehensive debug logging to course detail page for enrollment status tracking
 
+### CONSULTATION & EBOOK PAYMENT FIXES (August 21, 2025)
+- ✅ **CONSULTATION PAYMENT INTEGRATION**: Fixed payment success → consultation booking creation flow
+- ✅ **Database Migration**: Added expert_id column to payments table for consultation payments
+- ✅ **PaymentButton Enhancement**: Added onSuccess callback logic for consultation booking automation
+- ✅ **Payment Verification**: Updated consultation routes to use expert_id instead of consultation_id
+- ✅ **EBOOK PAYMENT INTEGRATION**: Fixed payment success → ebook download record creation flow
+- ✅ **PaymentButton Enhancement**: Added onSuccess callback logic for ebook download automation
+- ✅ **Payment Lookup Endpoints**: Added /api/payments/by-expert/:expertId and /api/payments/by-ebook/:ebookId
+- ✅ **Complete Flow**: Payment success → automatic consultation/ebook entry creation with proper error handling
+- ✅ **User Experience**: Success messages, automatic downloads, and page refresh after successful payments
+
 ## Previous Changes (August 19, 2025)
 - ✅ Complete Cashfree payment gateway integration with production credentials
 - ✅ Payment verification added to all booking endpoints (courses, live sessions, consultations, ebooks)

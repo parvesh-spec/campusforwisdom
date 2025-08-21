@@ -10,23 +10,25 @@ import { Link } from "wouter";
 import StudentLoginModal from "@/components/StudentLoginModal";
 import type { Ebook, User as UserType } from "@shared/schema";
 import { PaymentButton } from "@/components/payment/PaymentButton";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EbookDetail() {
   const { id } = useParams<{ id: string }>();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const { toast } = useToast();
   
   // Check if user is logged in as student
-  const { data: user } = useQuery<UserType>({
+  const { data: currentUser } = useQuery<UserType>({
     queryKey: ["/api/auth/student"],
   });
 
   // Check if user has already downloaded this ebook
   const { data: userEbooks = [] } = useQuery<Ebook[]>({
     queryKey: ["/api/student/ebooks"],
-    enabled: !!user,
+    enabled: !!currentUser,
   });
 
-  const isLoggedIn = !!user;
+  const isLoggedIn = !!currentUser;
   
   // Fetch specific ebook
   const { data: ebook, isLoading, error } = useQuery<Ebook>({
@@ -180,9 +182,69 @@ export default function EbookDetail() {
                     amount={parseFloat(ebook.price || "0")}
                     title={ebook.title}
                     className="w-full mt-6"
-                    onSuccess={() => {
-                      // Refresh user ebooks after successful payment
-                      window.location.reload();
+                    onSuccess={async () => {
+                      try {
+                        console.log('Ebook payment successful, creating download record for:', ebook.id);
+
+                        // Get the payment record by ebook ID to find payment ID
+                        const paymentResponse = await fetch(`/api/payments/by-ebook/${ebook.id}`, {
+                          credentials: 'include'
+                        });
+                        
+                        let paymentId = null;
+                        if (paymentResponse.ok) {
+                          const payments = await paymentResponse.json();
+                          const completedPayment = payments.find((p: any) => 
+                            p.status === 'completed' && p.ebookId === ebook.id && p.userId === currentUser?.id
+                          );
+                          paymentId = completedPayment?.id;
+                          console.log('Found payment ID for ebook:', paymentId);
+                        }
+
+                        // Create download record after successful payment
+                        const downloadResponse = await fetch(`/api/student/ebooks/${ebook.id}/download`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          credentials: 'include',
+                          body: JSON.stringify({ paymentId })
+                        });
+
+                        if (downloadResponse.ok) {
+                          const result = await downloadResponse.json();
+                          console.log('Ebook download record created:', result);
+                          
+                          toast({
+                            title: "Success",
+                            description: "Ebook purchased successfully! Starting download...",
+                          });
+
+                          // Trigger actual download
+                          if (ebook.fileUrl) {
+                            const link = document.createElement('a');
+                            link.href = ebook.fileUrl;
+                            link.download = `${ebook.title}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }
+
+                          // Refresh page to show updated status
+                          window.location.reload();
+                        } else {
+                          const error = await downloadResponse.json();
+                          console.error('Download record creation failed:', error);
+                          throw new Error(error.message || 'Failed to create download record');
+                        }
+                      } catch (error) {
+                        console.error('Ebook download error after payment:', error);
+                        toast({
+                          title: "Download Error",
+                          description: error instanceof Error ? error.message : "Failed to complete download after payment. Please contact support.",
+                          variant: "destructive",
+                        });
+                      }
                     }}
                   >
                     <Download className="h-4 w-4 mr-2" />
