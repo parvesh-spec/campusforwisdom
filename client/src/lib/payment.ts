@@ -153,11 +153,10 @@ export const payForWebinar = async (webinarId: string, amount: number): Promise<
 
 export const payForConsultation = async (expertId: string, amount: number): Promise<PaymentResult> => {
   try {
-    // For consultations, we create payment without consultationId
-    // It will be linked later when consultation is actually booked
+    // For consultations, we pass expertId as consultationId for linking
     const session = await createPaymentSession({ 
-      amount
-      // No consultationId - will be set when consultation is created
+      amount,
+      consultationId: expertId // Expert ID becomes consultation ID
     });
     
     return await processPayment(session);
