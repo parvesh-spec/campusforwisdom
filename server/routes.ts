@@ -2522,7 +2522,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Update payment status
-        await storage.updatePaymentStatus(orderId, paymentStatus.toLowerCase(), cfPaymentId, webhookData.data);
+        const finalStatus = paymentStatus.toUpperCase() === 'SUCCESS' ? 'completed' : paymentStatus.toLowerCase();
+        await storage.updatePaymentStatus(orderId, finalStatus, cfPaymentId, webhookData.data);
 
         // Handle post-payment actions
         const payment = await storage.getPaymentByOrderId(orderId);

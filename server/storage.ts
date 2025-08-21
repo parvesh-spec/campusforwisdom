@@ -2281,6 +2281,22 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log('Adding webinar attendee with data:', attendeeData);
       
+      // Check if user is already enrolled in this webinar
+      const existingAttendee = await db
+        .select()
+        .from(webinarAttendees)
+        .where(
+          and(
+            eq(webinarAttendees.webinarId, attendeeData.webinarId),
+            eq(webinarAttendees.participantId, attendeeData.participantId)
+          )
+        );
+
+      if (existingAttendee.length > 0) {
+        console.log('User already enrolled in this webinar, skipping duplicate enrollment');
+        return;
+      }
+      
       const webinarAttendeeData = {
         id: `attendee-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         webinarId: attendeeData.webinarId,
