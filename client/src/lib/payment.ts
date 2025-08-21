@@ -22,6 +22,7 @@ export interface PaymentRequest {
   webinarId?: string;
   consultationId?: string;
   ebookId?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface PaymentSession {
@@ -150,11 +151,13 @@ export const payForWebinar = async (webinarId: string, amount: number): Promise<
   }
 };
 
-export const payForConsultation = async (consultationId: string, amount: number): Promise<PaymentResult> => {
+export const payForConsultation = async (expertId: string, amount: number): Promise<PaymentResult> => {
   try {
+    // For consultations, we create payment without consultationId
+    // It will be linked later when consultation is actually booked
     const session = await createPaymentSession({ 
-      amount, 
-      consultationId 
+      amount
+      // No consultationId - will be set when consultation is created
     });
     
     return await processPayment(session);

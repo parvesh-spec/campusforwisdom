@@ -2349,6 +2349,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create payment session with Cashfree
         const session = await CashfreeService.createPaymentSession(sessionRequest);
 
+        // For consultation payments, don't link consultation_id during payment creation
+        // It will be linked later when consultation is actually booked
+        const actualConsultationId = consultationId ? null : null;
+
         // Create payment record in database
         const paymentData = {
           id: `payment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -2362,7 +2366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Include foreign keys based on request parameters
           courseId: courseId || null,
           webinarId: webinarId || null,
-          consultationId: consultationId || null,
+          consultationId: actualConsultationId,
           ebookId: ebookId || null
         };
 
