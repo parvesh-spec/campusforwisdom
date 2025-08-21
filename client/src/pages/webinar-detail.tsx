@@ -204,12 +204,8 @@ export default function WebinarDetail() {
                 <p className="text-lg text-gray-600 leading-relaxed">{session.description}</p>
               </div>
             </div>
-          </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="space-y-6">
-              {/* Session Details */}
+            {/* Session Details */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -282,14 +278,26 @@ export default function WebinarDetail() {
               </CardContent>
             </Card>
 
-            {/* Detailed Agenda */}
-            {(session as any).agenda && (
+            {/* Session Agenda */}
+            {(session as any).agenda && (session as any).agenda.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Detailed Agenda</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <BookOpen className="h-5 w-5 mr-2 text-indigo-600" />
+                    Session Agenda
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap">{(session as any).agenda}</p>
+                  <ul className="space-y-3">
+                    {(session as any).agenda.map((item: string, index: number) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
+                          {index + 1}
+                        </div>
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             )}
@@ -307,7 +315,7 @@ export default function WebinarDetail() {
                   <ul className="space-y-2">
                     {(session as any).whatYouWillLearn.map((item: string, index: number) => (
                       <li key={index} className="flex items-start space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
                         <span className="text-gray-700">{item}</span>
                       </li>
                     ))}
@@ -316,8 +324,75 @@ export default function WebinarDetail() {
               </Card>
             )}
 
-            {/* Key Points */}
-            {(session as any).keyPoints && (session as any).keyPoints.length > 0 && (
+            {/* Prerequisites */}
+            {(session as any).prerequisites && (session as any).prerequisites.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <AlertCircle className="h-5 w-5 mr-2 text-orange-600" />
+                    Prerequisites
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {(session as any).prerequisites.map((item: string, index: number) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full mt-2 flex-shrink-0" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Target Audience */}
+            {(session as any).targetAudience && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-purple-600" />
+                    Who This Session Is For
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap">{(session as any).targetAudience}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Resources */}
+            {(session as any).resources && (session as any).resources.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Resources</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {(session as any).resources.map((resource: string, index: number) => (
+                      <li key={index}>
+                        <a
+                          href={resource}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline flex items-center space-x-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          <span>{resource}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              {/* Expert Info */}
+              {expert && (
               <Card>
                 <CardHeader>
                   <CardTitle>Key Topics</CardTitle>
@@ -892,23 +967,7 @@ export default function WebinarDetail() {
                 </CardContent>
               </Card>
 
-              {/* Tags */}
-              {(session as any).tags && (session as any).tags.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Tags</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {(session as any).tags.map((tag: string, index: number) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+
             </div>
           </div>
         </div>
