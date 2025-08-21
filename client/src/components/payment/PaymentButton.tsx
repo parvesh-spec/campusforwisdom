@@ -73,10 +73,13 @@ export function PaymentButton({
           queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
         }
         
-        // Refresh page to show updated status after small delay
+        // For course payments, wait longer for webhook processing
+        const reloadDelay = type === 'course' ? 3000 : 2000;
+        
+        // Refresh page to show updated status after delay
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, reloadDelay);
       } else {
         // Only show error if it's not a user cancellation
         if (!result.error?.includes("User closed") && !result.error?.includes("popup was closed")) {

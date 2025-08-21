@@ -68,6 +68,15 @@ export default function CourseDetail() {
 
   const isLoggedIn = !!user;
   const isEnrolled = userEnrolledCourses?.some((enrolledCourse: Course) => enrolledCourse.id === courseId);
+  
+  // Debug logging
+  console.log('Course Detail Debug:', {
+    courseId,
+    isLoggedIn,
+    isEnrolled,
+    userEnrolledCourses: userEnrolledCourses?.map(c => ({ id: c.id, title: c.title })),
+    user: user?.id
+  });
 
   // Enrollment mutation
   const enrollMutation = useMutation({
@@ -407,6 +416,12 @@ export default function CourseDetail() {
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold mb-4"
                     onSuccess={() => {
                       queryClient.invalidateQueries({ queryKey: ["/api/student/enrollments"] });
+                      queryClient.invalidateQueries({ queryKey: [`/api/courses/${courseId}`] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
+                      // Force refresh by reloading the page after delay
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1000);
                     }}
                   />
                 ) : (
