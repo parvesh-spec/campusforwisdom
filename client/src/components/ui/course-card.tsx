@@ -173,11 +173,8 @@ export default function CourseCard({ course, onEnroll, isEnrolled = false, isEnr
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isEnrolled) {
-                  setLocation(`/courses/${course.id}`);
-                } else if (onEnroll) {
-                  onEnroll(course.id);
-                }
+                // Always navigate to course page - payment logic handled there
+                setLocation(`/courses/${course.id}`);
               }}
               disabled={isEnrolling}
             >
