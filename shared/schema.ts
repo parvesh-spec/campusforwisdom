@@ -145,7 +145,7 @@ export const webinarAttendees = pgTable("webinar_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   webinarId: varchar("webinar_id").references(() => webinars.id).notNull(),
   participantId: varchar("participant_id").references(() => users.id),
-  participantName: varchar("participant_name"),
+  participantName: varchar("participant_name").notNull(),
   participantEmail: varchar("participant_email").notNull(),
   role: varchar("role").default("attendee"), // attendee, panelist, presenter
   status: varchar("status").default("registered"), // registered, joined, left
