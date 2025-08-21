@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -49,12 +49,27 @@ export default function CourseDetail() {
   });
 
   // Fetch user's enrolled courses if logged in
-  const { data: userEnrolledCourses, isLoading: enrollmentsLoading, error: enrollmentsError } = useQuery<Course[]>({
+  const { data: userEnrolledCourses, isLoading: enrollmentsLoading, error: enrollmentsError, refetch: refetchEnrollments } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
     enabled: !!user,
     staleTime: 0, // Always refetch to get latest enrollment status
     cacheTime: 0, // Don't cache to prevent stale data
+    retry: 3,
+    onSuccess: (data) => {
+      console.log('Enrollment API Success:', data);
+    },
+    onError: (error) => {
+      console.error('Enrollment API Error:', error);
+    }
   });
+
+  // Force refetch enrollments when user becomes available
+  useEffect(() => {
+    if (user && !userEnrolledCourses && !enrollmentsLoading) {
+      console.log('Force triggering enrollment refetch due to missing data');
+      refetchEnrollments();
+    }
+  }, [user, userEnrolledCourses, enrollmentsLoading, refetchEnrollments]);
 
   // Fetch expert details if course has expertId
   const { data: expert } = useQuery<Expert>({
@@ -80,12 +95,15 @@ export default function CourseDetail() {
     enrollmentsError: enrollmentsError?.message,
     userEnrolledCourses: userEnrolledCourses?.map(c => ({ id: c.id, title: c.title })),
     user: user?.id,
+    queryEnabled: !!user,
     enrollmentCheck: userEnrolledCourses?.map(enrolledCourse => ({
       enrolledId: enrolledCourse.id,
       currentId: courseId,
       match: enrolledCourse.id === courseId
     }))
   });
+
+
 
   // Enrollment mutation
   const enrollMutation = useMutation({
