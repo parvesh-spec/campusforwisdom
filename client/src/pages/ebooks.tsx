@@ -149,9 +149,9 @@ export default function EbooksPage() {
 
         {/* Search and Filters */}
         <div className="mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
             {/* Search */}
-            <div className="relative flex-1 max-w-lg">
+            <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search eBooks, authors, or topics..."
@@ -162,9 +162,9 @@ export default function EbooksPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-4 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -178,7 +178,7 @@ export default function EbooksPage() {
               </Select>
 
               <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Languages" />
                 </SelectTrigger>
                 <SelectContent>
@@ -198,6 +198,7 @@ export default function EbooksPage() {
                   setSelectedCategory("all");
                   setSelectedLanguage("all");
                 }}
+                className="sm:col-span-2 lg:col-span-1 w-full"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Clear Filters
