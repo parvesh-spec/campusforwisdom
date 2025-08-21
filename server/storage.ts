@@ -2260,6 +2260,22 @@ export class DatabaseStorage implements IStorage {
   // Method to enroll student in course
   async enrollStudentInCourse(studentId: string, courseId: string): Promise<void> {
     try {
+      // Check if user is already enrolled in this course
+      const existingEnrollment = await db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, studentId),
+            eq(enrollments.courseId, courseId)
+          )
+        );
+
+      if (existingEnrollment.length > 0) {
+        console.log('User already enrolled in this course, skipping duplicate enrollment');
+        return;
+      }
+
       const enrollmentData = {
         id: `enrollment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         studentId,
