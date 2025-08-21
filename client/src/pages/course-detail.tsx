@@ -48,10 +48,10 @@ export default function CourseDetail() {
     queryKey: ["/api/auth/student"],
   });
 
-  // Fetch user's enrolled courses if logged in
+  // Fetch user's enrolled courses if logged in - FORCE ENABLED for production testing
   const { data: userEnrolledCourses, isLoading: enrollmentsLoading, error: enrollmentsError, refetch: refetchEnrollments } = useQuery<Course[]>({
     queryKey: ["/api/student/enrollments"],
-    enabled: !!user,
+    enabled: true, // Force enabled for production testing
     staleTime: 0, // Always refetch to get latest enrollment status
     cacheTime: 0, // Don't cache to prevent stale data
     retry: 3,
