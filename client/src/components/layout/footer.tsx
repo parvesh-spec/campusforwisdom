@@ -7,9 +7,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-2xl font-bold mb-4 gradient-text">
-              CampusForWisdom
-            </h3>
+            <Link href="/">
+              <img 
+                src="/attached_assets/New Logo Campous_1755838818776.png" 
+                alt="Campus for Wisdom" 
+                className="h-12 w-auto mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
             <p className="text-gray-300 mb-4 max-w-md">
               Empowering the next generation with AI skills. Learn, create, and innovate with cutting-edge artificial intelligence technologies.
             </p>
@@ -116,7 +120,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 CampusForWisdom. All rights reserved.</p>
+          <p>&copy; 2025 Campus for Wisdom. All rights reserved.</p>
         </div>
       </div>
     </footer>
