@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Youtube } from "lucide-react";
+import logoImage from "@assets/New Logo Campous_1755838818776.png";
 
 export default function Footer() {
   return (
@@ -9,7 +10,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-1">
             <Link href="/">
               <img 
-                src="/attached_assets/New Logo Campous_1755838818776.png" 
+                src={logoImage} 
                 alt="Campus for Wisdom" 
                 className="h-12 w-auto mb-4 cursor-pointer hover:opacity-80 transition-opacity"
               />

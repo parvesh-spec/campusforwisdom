@@ -8,6 +8,7 @@ import StudentLoginModal from "@/components/StudentLoginModal";
 import StudentProfile from "@/components/StudentProfile";
 import AdminLogout from "@/components/AdminLogout";
 import { useStudentAuth, useAdminAuth } from "@/hooks/useAuth";
+import logoImage from "@assets/New Logo Campous_1755838818776.png";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -76,7 +77,7 @@ export default function Header() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <img 
-                  src="/attached_assets/New Logo Campous_1755838818776.png" 
+                  src={logoImage} 
                   alt="Campus for Wisdom" 
                   className="h-10 w-auto cursor-pointer hover:opacity-80 transition-opacity"
                 />
