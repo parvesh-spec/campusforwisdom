@@ -9,9 +9,9 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-1">
             <Link href="/">
               <img 
-                src="https://image.coinkundli.com/NEWLogoCampous.svg" 
+                src="https://image.coinkundli.com/campusforwisdomlogo.png" 
                 alt="Campus for Wisdom" 
-                className="h-12 w-auto mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+                className="h-48 w-auto mb-4 cursor-pointer hover:opacity-80 transition-opacity"
               />
             </Link>
             <p className="text-gray-300 mb-4 max-w-md">
