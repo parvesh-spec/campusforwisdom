@@ -8,11 +8,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
             <div className="flex flex-col items-start">
-              <Link href="/" className="mb-4">
+              <Link href="/" className="mb-2">
                 <img 
                   src="https://image.coinkundli.com/campusforwisdomwhitelogo.png" 
                   alt="Campus for Wisdom" 
-                  className="h-22 w-auto cursor-pointer hover:opacity-80 transition-opacity object-contain"
+                  className="h-18 w-auto cursor-pointer hover:opacity-80 transition-opacity object-contain"
                 />
               </Link>
               <p className="text-gray-300 mb-4 max-w-md">
