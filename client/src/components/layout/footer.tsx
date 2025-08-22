@@ -7,16 +7,18 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
-            <Link href="/">
-              <img 
-                src="https://image.coinkundli.com/campusforwisdomlogo.png" 
-                alt="Campus for Wisdom" 
-                className="h-48 w-auto mb-4 cursor-pointer hover:opacity-80 transition-opacity"
-              />
-            </Link>
-            <p className="text-gray-300 mb-4 max-w-md">
-              Empowering the next generation with AI skills. Learn, create, and innovate with cutting-edge artificial intelligence technologies.
-            </p>
+            <div className="flex flex-col items-start">
+              <Link href="/" className="mb-6">
+                <img 
+                  src="https://image.coinkundli.com/campusforwisdomlogo.png" 
+                  alt="Campus for Wisdom" 
+                  className="h-32 w-auto cursor-pointer hover:opacity-80 transition-opacity object-contain"
+                />
+              </Link>
+              <p className="text-gray-300 mb-4 max-w-md">
+                Empowering the next generation with AI skills. Learn, create, and innovate with cutting-edge artificial intelligence technologies.
+              </p>
+            </div>
             <div className="flex space-x-4">
               <a 
                 href="https://www.facebook.com/profile.php?id=61579634634709" 

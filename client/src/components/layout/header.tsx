@@ -72,14 +72,14 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-40">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-24">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link href="/">
                 <img 
                   src="https://image.coinkundli.com/campusforwisdomlogo.png" 
                   alt="Campus for Wisdom" 
-                  className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+                  className="h-32 w-auto cursor-pointer hover:opacity-80 transition-opacity"
                 />
               </Link>
             </div>
