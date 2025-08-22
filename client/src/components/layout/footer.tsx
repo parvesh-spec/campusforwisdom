@@ -10,9 +10,9 @@ export default function Footer() {
             <div className="flex flex-col items-start">
               <Link href="/" className="mb-6">
                 <img 
-                  src="https://image.coinkundli.com/campusforwisdomlogo.png" 
+                  src="https://image.coinkundli.com/campusforwisdomwhitelogo.png" 
                   alt="Campus for Wisdom" 
-                  className="h-32 w-auto cursor-pointer hover:opacity-80 transition-opacity object-contain"
+                  className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity object-contain"
                 />
               </Link>
               <p className="text-gray-300 mb-4 max-w-md">
